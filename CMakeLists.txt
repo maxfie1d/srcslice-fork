@@ -33,5 +33,21 @@ include(srcslice)
 include_directories(src/headers src/cpp
 	src/srcSAX/src/srcsax src/srcSAX/src/cpp src/srcSAX/src/windows)
 
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
+include_directories(${LIBXML2_INCLUDE_DIR}
+                    ${CMAKE_SOURCE_DIR}/srcSAXEventDispatch/srcSAX/src/srcsax
+                    ${CMAKE_SOURCE_DIR}/srcSAXEventDispatch/srcSAX/src/cpp
+                    ${CMAKE_SOURCE_DIR}/srcSAXEventDispatch/srcSAX/src/windows 
+                    ${CMAKE_SOURCE_DIR}/testPS
+                    srcSAXEventDispatch/src/dispatcher
+                    srcSAXEventDispatch/src/policy_classes
+                    src/headers
+                    testPS)
+include_directories(/home/n-isida/github/srcML-src-latest/src/libsrcml)
+link_directories(/home/n-isida/github/srcML-src-latest/build/bin)
 add_subdirectory(src)
-add_subdirectory(src/srcSAX/src)
+add_subdirectory(srcSAXEventDispatch)
+add_subdirectory(testPS)
