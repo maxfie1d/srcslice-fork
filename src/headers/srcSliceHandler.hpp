@@ -31,6 +31,7 @@
 #include <algorithm>
 #include <sstream>
 #include <stack>
+#include <functional>
 class srcSliceHandler : public srcSAXHandler {
 private:
     /*ParserState is a set of enums corresponding to srcML tags. Primarily, they're for addressing into the 

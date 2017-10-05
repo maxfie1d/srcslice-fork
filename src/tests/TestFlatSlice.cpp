@@ -51,7 +51,8 @@ std::string StringToSrcML(const std::string str){
     unit = srcml_unit_create(archive);
     srcml_unit_set_language(unit, SRCML_LANGUAGE_CXX);        
     srcml_unit_parse_memory(unit, str.c_str(), str.size());
-    srcml_archive_write_unit(archive, unit);            
+    // srcml_archive_write_unit(archive, unit);   
+    srcml_write_unit(archive, unit);         
     srcml_unit_free(unit);
     srcml_archive_close(archive);
     srcml_archive_free(archive);
