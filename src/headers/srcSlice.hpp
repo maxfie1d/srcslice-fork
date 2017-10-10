@@ -1,5 +1,8 @@
 #include <srcSliceHandler.hpp>
 #include <Utility.hpp>
+// #include <exception>
+#include <stdexcept>
+
 #ifndef SRCSLICEHPP
 #define SRCSLICEHPP
 struct srcSlice{
