@@ -25,7 +25,9 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <set>
+
 class SliceProfile;
+
 typedef std::unordered_map<std::string, SliceProfile> VarMap;
 typedef std::unordered_map<std::string, VarMap> FunctionVarMap;
 typedef std::unordered_map<std::string, FunctionVarMap> FileFunctionVarMap;
@@ -33,65 +35,69 @@ typedef std::pair<std::string, unsigned int> NameLineNumberPair;
 
 struct NameLineNumberPairHash {
 public:
-  template <typename T, typename U>
-  std::size_t operator()(const std::pair<T, U> &x) const
-  {
-    return std::hash<T>()(x.first);
-  }
+    template<typename T, typename U>
+    std::size_t operator()(const std::pair<T, U> &x) const {
+        return std::hash<T>()(x.first);
+    }
 };
-struct FunctionData{
-    FunctionData(){
+
+struct FunctionData {
+    FunctionData() {
         functionLineNumber = 0;
     }
-    void clear(){
+
+    void clear() {
         returnType.clear();
         functionName.clear();
     }
+
     std::string returnType;
     std::string functionName;
     std::string fileName;
-    
+
     std::vector<std::string> params; //size of vector is # of arguments. String is type of argument.
 
     unsigned int functionLineNumber;
 };
 
-struct ClassProfile{
+struct ClassProfile {
     std::string className;
     std::unordered_set<std::string> memberVariables;
     //std::unordered_set<FunctionData, FunctionArgtypeArgnumHash> memberFunctions; //need to handle overloads. Can't be string.
 };
 
-class SliceProfile{
-	public:
-		SliceProfile():index(0),visited(false),potentialAlias(false),dereferenced(false),isGlobal(false){}
-		SliceProfile(unsigned int idx, std::string fle, std::string fcn, unsigned int sline, std::string name, bool alias = 0, bool global = 0):
-        index(idx), file(fle), function(fcn), potentialAlias(alias), variableName(name),isGlobal(global) {
-            dereferenced = false;
-            visited = false;
-		}
+class SliceProfile {
+public:
+    SliceProfile() : index(0), visited(false), potentialAlias(false), dereferenced(false), isGlobal(false) {}
 
-		unsigned int index;
-		std::string file;
-		std::string function;
-		
-        std::unordered_set<std::string>::iterator lastInsertedAlias;
+    SliceProfile(unsigned int idx, std::string fle, std::string fcn, unsigned int sline, std::string name,
+                 bool alias = 0, bool global = 0) :
+            index(idx), file(fle), function(fcn), potentialAlias(alias), variableName(name), isGlobal(global) {
+        dereferenced = false;
+        visited = false;
+    }
 
-		bool potentialAlias;
-        bool dereferenced;
+    unsigned int index;
+    std::string file;
+    std::string function;
 
-        bool isGlobal;
-        bool visited;
+    std::unordered_set<std::string>::iterator lastInsertedAlias;
 
-		std::string variableName;
-		std::string variableType;
-		std::unordered_set<std::string> memberVariables;
-		std::unordered_set<unsigned int> slines; //Deprecated
-        
-        std::set<unsigned int> def;
-        std::set<unsigned int> use;
-		
-        std::unordered_set<std::pair<std::string, unsigned int>, NameLineNumberPairHash> cfunctions;
-		std::unordered_set<std::string> dvars;
-		std::unordered_set<std::string> aliases;
+    bool potentialAlias;
+    bool dereferenced;
+
+    bool isGlobal;
+    bool visited;
+
+    std::string variableName;
+    std::string variableType;
+    std::unordered_set<std::string> memberVariables;
+    std::unordered_set<unsigned int> slines; //Deprecated
+
+    std::set<unsigned int> def;
+    std::set<unsigned int> use;
+
+    std::unordered_set<std::pair<std::string, unsigned int>, NameLineNumberPairHash> cfunctions;
+    std::unordered_set<std::string> dvars;
+    std::unordered_set<std::string> aliases;
 };
