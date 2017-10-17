@@ -1,7 +1,7 @@
+#pragma once
 #include <srcSliceHandler.hpp>
 #include <Utility.hpp>
-#ifndef SRCSLICEHPP
-#define SRCSLICEHPP
+
 struct srcSlice{
 /*This is a map of file, function/method, and variables. {file, {function, {SliceProfiles}}}*/
 SliceDictionary dictionary;
@@ -12,7 +12,7 @@ srcSlice(FILE* file, const char* encoding);
 srcSlice(int fd, const char* encoding);
 void ReadArchiveFile(std::string filename);    
     int size()const {return dictionary.ffvMap.size();}
-    
+
     bool SetContext(std::string fle, std::string fn, int linenumber){
         FileFunctionVarMap::iterator fleIt = dictionary.ffvMap.find(fle);
         if(fleIt != dictionary.ffvMap.end()){
@@ -138,4 +138,3 @@ void ReadArchiveFile(std::string filename);
     }
 
 };
-#endif

@@ -7,8 +7,8 @@ file(GLOB SRCSLICETEST_INCLUDE tests/*.hpp)
 link_directories(/usr/local/lib/)
 
 # srcMLへの参照を加える
-include_directories(/home/n-isida/github/srcML-src-latest/src/libsrcml)
-link_directories(/home/n-isida/github/srcML-src-latest/build/bin)
+include_directories(/home/n-isida/github/srcml-fork/src/libsrcml)
+link_directories(/home/n-isida/github/srcml-fork/build/bin)
 
 add_executable(srcSlice ${SRCSLICEHANDLER_SOURCE} ${SRCSLICEHANDLER_INCLUDE})
 add_executable(srcslicetest ${SRCSLICEHANDLER_SOURCE2} ${SRCSLICEHANDLER_INCLUDE} ${SRCSLICETEST_SOURCE} ${SRCSLICETEST_INCLUDE})

@@ -18,8 +18,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef INCLUDED_SRCSLICEHANDLER_HPP
-#define INCLUDED_SRCSLICEHANDLER_HPP
+#pragma once
 
 #include <srcSAXHandler.hpp>
 #include <SliceProfile.hpp>
@@ -931,4 +930,3 @@ inline void DoComputation(srcSliceHandler& h, const FileFunctionVarMap& mp){
         h.ComputeInterprocedural(ffvmIt->first);
     }
 }
-#endif

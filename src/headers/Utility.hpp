@@ -17,8 +17,7 @@
  * along with the srcML Toolkit; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-#ifndef UTILITY_HPP
-#define UTILITY_HPP
+#pragma once
 
 #include <iostream>
 #include <unordered_set>
@@ -97,4 +96,3 @@ inline std::vector<std::string> SplitOnTok(const std::string& str, const char* t
     }
     return result;
 }
-#endif
