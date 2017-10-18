@@ -37,6 +37,9 @@ private:
     /*ParserState is a set of enums corresponding to srcML tags. Primarily, they're for addressing into the 
      *triggerField vector and figuring out which tags have been seen. It keeps a count of how many of each
      *tag is currently open. Increments at a start tag and decrements at an end tag*/
+    /**
+     * `ParserState は srcML のタグに相当する enum です。
+     */
     enum ParserState {
         decl, expr, param, decl_stmt, expr_stmt, parameter_list,
         argument_list, argument_list_template, condition, call, templates, ctrlflow, endflow,
