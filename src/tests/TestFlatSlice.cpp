@@ -91,13 +91,14 @@ void OutputCompare(const T &lhsSet, const T &rhsSet) {
 
 bool TestPrimitiveTypes() {
     std::string srcmlStr = StringToSrcML(FlatSlicePrograms::FlatSliceOne());
+    std::cout << srcmlStr << std::endl;
     try {
         //Run srcSlice
         srcSlice sslice(srcmlStr, 0);
         /*Test i's slice*/
         {
             std::cerr << std::endl << "================= TESTING i's SLICE =================" << std::endl;
-            assert(sslice.SetContext("testsrcSlice.cpp", "main", 10));
+            assert(sslice.SetContext("testsrcSlice.cpp", "main", 9));
             auto iSlice = sslice.Find("i");
 
             const std::set<unsigned int> defanswer = {11};

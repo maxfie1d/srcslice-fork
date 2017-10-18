@@ -2,6 +2,7 @@
 
 #include <srcSliceHandler.hpp>
 #include <Utility.hpp>
+#include <stdio.h>
 
 struct srcSlice {
 /*This is a map of file, function/method, and variables. {file, {function, {SliceProfiles}}}*/
@@ -23,9 +24,13 @@ struct srcSlice {
 
     bool SetContext(std::string fle, std::string fn, int linenumber) {
         FileFunctionVarMap::iterator fleIt = dictionary.ffvMap.find(fle);
+
+
         if (fleIt != dictionary.ffvMap.end()) {
+            printf("AAAA\n");
             FunctionVarMap::iterator fnIt = fleIt->second.find(fn);
             if (fnIt != fleIt->second.end()) {
+                printf("BBBB\n");
                 dictionary.currentContext.currentFile = fleIt;
                 dictionary.currentContext.currentFunc = fnIt;
                 dictionary.currentContext.ln = linenumber;
