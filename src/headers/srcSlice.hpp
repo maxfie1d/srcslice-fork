@@ -22,6 +22,19 @@ struct srcSlice {
 
     int size() const { return dictionary.ffvMap.size(); }
 
+    void dump_slice_dictionary_ffvMap(){
+        for (auto v : dictionary.ffvMap) {
+            std::cout << v.first << std::endl;
+            for (auto v2: v.second) {
+                std::cout << "    " << v2.first << std::endl;
+                for (auto v3: v2.second) {
+                    std::cout << "        " << v3.first << std::endl;
+                    std::cout << "        " << v3.second.variableName << std::endl;
+                }
+            }
+        }
+    }
+
     bool SetContext(std::string fle, std::string fn, int linenumber) {
         FileFunctionVarMap::iterator fleIt = dictionary.ffvMap.find(fle);
 
