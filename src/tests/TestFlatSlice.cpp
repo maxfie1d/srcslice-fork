@@ -25,6 +25,7 @@
 #include <iostream>
 #include <srcml.h>
 #include <cassert>
+#include <fstream>
 #include "TestFlatSlice.hpp"
 
 /// <summary>
@@ -515,15 +516,34 @@ bool TestDotAndMemberAccess() {
     }
 }
 
+std::string readFileAsStr(const char *filename) {
+    std::ifstream stream(filename);
+    if (stream.fail()) {
+        std::cerr << "ファイルの読み込みに失敗しました" << std::endl;
+        return NULL;
+    } else {
+        std::string str((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+        return str;
+    }
+}
+
+void testApp1() {
+    const char *path = "/home/n-isida/github/srcslice-fork/src/tests/samples/app1.c";
+    std::string content = readFileAsStr(path);
+    std::cout << content << std::endl;
+}
+
 int main(int argc, char **argv) {
     // Extra content at the end of the document になってしまう。
     // 確かにsrcmL形式に変換された文字列を見てみると変な文字が末尾にある。
     // srcmlのバイナリで変換したものには見られないので、srcslice内の処理が
     // 何かが起きていると思われる。
-//    TestPrimitiveTypes();
+    //    TestPrimitiveTypes();
 
     TestDecl();
     TestExpr();
+
+    testApp1();
 
     // 2017.10.19
     // XML パースの段階で「Extra content at the end of the document」という例外が発生する。
