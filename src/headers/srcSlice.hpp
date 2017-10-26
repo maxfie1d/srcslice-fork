@@ -40,10 +40,8 @@ struct srcSlice {
 
 
         if (fleIt != dictionary.ffvMap.end()) {
-            printf("AAAA\n");
             FunctionVarMap::iterator fnIt = fleIt->second.find(fn);
             if (fnIt != fleIt->second.end()) {
-                printf("BBBB\n");
                 dictionary.currentContext.currentFile = fleIt;
                 dictionary.currentContext.currentFunc = fnIt;
                 dictionary.currentContext.ln = linenumber;
@@ -77,8 +75,7 @@ struct srcSlice {
     }
 
     //Definition of find that assumes the user didn't give a context (They should just give a context, though, tbh).
-    std::pair<bool, SliceProfile>
-    Find(std::string flename, std::string funcname, std::string varname, int lineNumber) const {
+    std::pair<bool, SliceProfile> Find(std::string flename, std::string funcname, std::string varname, int lineNumber) const {
         FileFunctionVarMap::const_iterator ffvmIt = dictionary.ffvMap.find(flename);
         if (ffvmIt != dictionary.ffvMap.end()) {
             FunctionVarMap::const_iterator fvmIt = ffvmIt->second.find(funcname);

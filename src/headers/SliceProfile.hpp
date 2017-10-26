@@ -31,6 +31,10 @@ class SliceProfile;
 typedef std::unordered_map<std::string, SliceProfile> VarMap;
 typedef std::unordered_map<std::string, VarMap> FunctionVarMap;
 typedef std::unordered_map<std::string, FunctionVarMap> FileFunctionVarMap;
+
+/**
+ * 名前と行番号のペア
+ */
 typedef std::pair<std::string, unsigned int> NameLineNumberPair;
 
 struct NameLineNumberPairHash {
@@ -92,7 +96,10 @@ public:
     std::string variableName;
     std::string variableType;
     std::unordered_set<std::string> memberVariables;
-    std::unordered_set<unsigned int> slines; //Deprecated
+    /**
+     * Deprecated
+     */
+    std::unordered_set<unsigned int> slines;
 
     std::set<unsigned int> def;
     std::set<unsigned int> use;

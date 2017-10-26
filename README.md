@@ -1,3 +1,18 @@
+# メモ
+
+```bash
+# ビルドの実行
+$ sh ./build.sh
+
+# テストの実行
+$ sh ./build.sh && ./test.sh
+```
+
+## トラブルシューティング
+
+* サブモジュールの中身が消えた
+    * ルートで`git submodule init && git submodule update`
+
 # srcSlice
 Lightweight tool for slicing
 

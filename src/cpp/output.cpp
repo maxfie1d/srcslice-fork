@@ -99,8 +99,7 @@ void TestSlice(const FileFunctionVarMap &mp, srcSliceHandler handler) {
 
 void srcSliceToCsv(const srcSlice &handler) {
     std::string str;
-    for (FileFunctionVarMap::const_iterator ffvmIt = handler.dictionary.ffvMap.begin();
-         ffvmIt != handler.dictionary.ffvMap.end(); ++ffvmIt) {
+    for (FileFunctionVarMap::const_iterator ffvmIt = handler.dictionary.ffvMap.begin(); ffvmIt != handler.dictionary.ffvMap.end(); ++ffvmIt) {
         //auto fileNameIt = handler.dictionary.fileTable.find(ffvmIt->first);
         //if(fileNameIt != handler.dictionary.fileTable.end())
         for (FunctionVarMap::const_iterator fvmIt = ffvmIt->second.begin(); fvmIt != ffvmIt->second.end(); ++fvmIt) {
@@ -154,6 +153,7 @@ void srcSliceToCsv(const srcSlice &handler) {
         }
     }
 }
+
 /**
  * main
  * @param argc number of arguments
