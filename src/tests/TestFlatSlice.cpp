@@ -528,7 +528,7 @@ std::string readFileAsStr(const char *filename) {
 }
 
 void testApp1() {
-    const char *path = "/home/n-isida/github/srcslice-fork/src/tests/samples/app1.c";
+    const char *path = "../../src/tests/samples/app1.c";
     std::string content = readFileAsStr(path);
     std::cout << content << std::endl;
 }
