@@ -29,10 +29,10 @@ TEST(SliceTest, TestPrimitiveTypes) {
             OutputCompare(iSlice.second.dvars, dvarsanswer);
             OutputCompare(iSlice.second.cfunctions, cfuncanswer);
 
-            assert(iSlice.second.use == useanswer);
-            assert(iSlice.second.cfunctions == cfuncanswer);
-            assert(iSlice.second.aliases.empty());
-            assert(iSlice.second.dvars == dvarsanswer);
+            ASSERT_EQ(iSlice.second.use, useanswer);
+            ASSERT_EQ(iSlice.second.cfunctions, cfuncanswer);
+            ASSERT_EQ(iSlice.second.aliases.empty(), true);
+            ASSERT_EQ(iSlice.second.dvars, dvarsanswer);
             std::cerr << "================= COMPLETE =================" << std::endl;
         }
         /*test sum's slice*/
@@ -51,11 +51,11 @@ TEST(SliceTest, TestPrimitiveTypes) {
             OutputCompare(sumSlice.second.use, useanswer);
             OutputCompare(sumSlice.second.cfunctions, cfuncanswer);
 
-            assert(sumSlice.second.def == defanswer);
-            assert(sumSlice.second.use == useanswer);
-            assert(sumSlice.second.cfunctions == cfuncanswer);
-            assert(sumSlice.second.aliases.empty());
-            assert(sumSlice.second.dvars.empty());
+            ASSERT_EQ(sumSlice.second.def, defanswer);
+            ASSERT_EQ(sumSlice.second.use, useanswer);
+            ASSERT_EQ(sumSlice.second.cfunctions, cfuncanswer);
+            ASSERT_EQ(sumSlice.second.aliases.empty(), true);
+            ASSERT_EQ(sumSlice.second.dvars.empty(), true);
             std::cerr << "================= COMPLETE =================" << std::endl;
         }
         {
@@ -69,11 +69,11 @@ TEST(SliceTest, TestPrimitiveTypes) {
             OutputCompare(zSlice.second.def, defanswer);
             OutputCompare(zSlice.second.use, useanswer);
 
-            assert(zSlice.second.def == defanswer);
-            assert(zSlice.second.use == useanswer);
-            assert(zSlice.second.cfunctions.empty());
-            assert(zSlice.second.aliases.empty());
-            assert(zSlice.second.dvars.empty());
+            ASSERT_EQ(zSlice.second.def, defanswer);
+            ASSERT_EQ(zSlice.second.use, useanswer);
+            ASSERT_EQ(zSlice.second.cfunctions.empty(), true);
+            ASSERT_EQ(zSlice.second.aliases.empty(), true);
+            ASSERT_EQ(zSlice.second.dvars.empty(), true);
             std::cerr << "================= COMPLETE =================" << std::endl;
         }
         {
@@ -88,11 +88,11 @@ TEST(SliceTest, TestPrimitiveTypes) {
             OutputCompare(ySlice.second.def, defanswer);
             OutputCompare(ySlice.second.use, useanswer);
 
-            assert(ySlice.second.def == defanswer);
-            assert(ySlice.second.use == useanswer);
-            assert(ySlice.second.aliases == aliasanswer);
-            assert(ySlice.second.cfunctions.empty());
-            assert(ySlice.second.dvars.empty());
+            ASSERT_EQ(ySlice.second.def, defanswer);
+            ASSERT_EQ(ySlice.second.use, useanswer);
+            ASSERT_EQ(ySlice.second.aliases, aliasanswer);
+            ASSERT_EQ(ySlice.second.cfunctions.empty(), true);
+            ASSERT_EQ(ySlice.second.dvars.empty(), true);
             std::cerr << "================= COMPLETE =================" << std::endl;
         }
         {
@@ -112,11 +112,11 @@ TEST(SliceTest, TestPrimitiveTypes) {
             OutputCompare(xSlice.second.use, useanswer);
             OutputCompare<std::unordered_set<std::string>>(xSlice.second.aliases, aliasanswer);
             OutputCompare(xSlice.second.cfunctions, cfuncanswer);
-            assert(xSlice.second.def == defanswer);
-            assert(xSlice.second.use == useanswer);
-            assert(xSlice.second.cfunctions == cfuncanswer);
-            assert(xSlice.second.aliases == aliasanswer);
-            assert(xSlice.second.dvars.empty());
+            ASSERT_EQ(xSlice.second.def, defanswer);
+            ASSERT_EQ(xSlice.second.use, useanswer);
+            ASSERT_EQ(xSlice.second.cfunctions, cfuncanswer);
+            ASSERT_EQ(xSlice.second.aliases, aliasanswer);
+            ASSERT_EQ(xSlice.second.dvars.empty(), true);
             std::cerr << "================= COMPLETE =================" << std::endl;
         }
 
