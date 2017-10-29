@@ -16,7 +16,7 @@ include_directories($ENV{HOME}/github/srcml-fork/src/libsrcml)
 link_directories($ENV{HOME}/github/srcml-fork/build/bin)
 
 add_executable(srcSlice ${SRCSLICEHANDLER_SOURCE} ${SRCSLICEHANDLER_INCLUDE})
-add_executable(srcslicetest ${SRCSLICEHANDLER_SOURCE2} ${SRCSLICEHANDLER_INCLUDE} ${SRCSLICETEST_SOURCE} ${SRCSLICETEST_INCLUDE} tests/TestHelper.cpp tests/TestHelper.h)
+add_executable(srcslicetest ${SRCSLICEHANDLER_SOURCE2} ${SRCSLICEHANDLER_INCLUDE} tests/TestFlatSlice.cpp tests/TestFlatSlice.hpp tests/TestHelper.cpp tests/TestHelper.h)
 add_executable(srcslicetest_new ${SRCSLICEHANDLER_SOURCE2} ${SRCSLICEHANDLER_INCLUDE} tests/TempTest.cpp)
 
 target_link_libraries(srcSlice srcsax_static ${LIBXML2_LIBRARIES})

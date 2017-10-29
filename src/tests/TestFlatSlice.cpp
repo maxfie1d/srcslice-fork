@@ -65,9 +65,9 @@ std::string StringToSrcML(const char *file_name, const std::string str) {
     return std::string(ch);
 }
 
-typedef std::unordered_set<std::pair<std::string, unsigned int>, NameLineNumberPairHash> cfuncset;
+typedef std::unordered_set<std::pair<std::string, unsigned int>, NameLineNumberPairHash> CFuncSet;
 
-void OutputCompare(const cfuncset &lhsSet, const cfuncset &rhsSet) {
+void OutputCompare(const CFuncSet &lhsSet, const CFuncSet &rhsSet) {
     std::cerr << "cfuncs: {";
     for (auto i : lhsSet) {
         std::cerr << "{" << i.first << "," << i.second << "},";
@@ -75,19 +75,6 @@ void OutputCompare(const cfuncset &lhsSet, const cfuncset &rhsSet) {
     std::cerr << "} == {";
     for (auto i : rhsSet) {
         std::cerr << "{" << i.first << "," << i.second << "},";
-    }
-    std::cerr << "}" << std::endl;
-}
-
-template<typename T>
-void OutputCompare(const T &lhsSet, const T &rhsSet) {
-    std::cerr << "{";
-    for (auto i : lhsSet) {
-        std::cerr << i << ",";
-    }
-    std::cerr << "} == {";
-    for (auto i : rhsSet) {
-        std::cerr << i << ",";
     }
     std::cerr << "}" << std::endl;
 }
@@ -108,7 +95,7 @@ bool TestPrimitiveTypes() {
             const std::set<unsigned int> defanswer = {11};
             const std::set<unsigned int> useanswer = {1, 2, 3, 5, 7, 12, 13, 15, 16, 17};
             const std::unordered_set<std::string> dvarsanswer = {"sum"};
-            cfuncset cfuncanswer;
+            CFuncSet cfuncanswer;
             cfuncanswer.insert(std::make_pair("foo", 2));
             cfuncanswer.insert(std::make_pair("fun", 1));
 
@@ -131,7 +118,7 @@ bool TestPrimitiveTypes() {
 
             std::set<unsigned int> defanswer = {10, 17};
             std::set<unsigned int> useanswer = {1, 2, 3, 5, 6, 13, 15};
-            cfuncset cfuncanswer;
+            CFuncSet cfuncanswer;
             cfuncanswer.insert(std::make_pair("fun", 1));
             cfuncanswer.insert(std::make_pair("foo", 1));
 
@@ -191,7 +178,7 @@ bool TestPrimitiveTypes() {
             std::set<unsigned int> defanswer = {5};
             std::set<unsigned int> useanswer = {1, 2, 3, 6};
 
-            cfuncset cfuncanswer;
+            CFuncSet cfuncanswer;
             cfuncanswer.insert(std::make_pair("fun", 1));
 
             std::unordered_set<std::string> aliasanswer = {"sum"};
@@ -419,7 +406,7 @@ bool TestExpr() {
             const std::unordered_set<std::string> dvarsanswer = {"var1"};
             std::set<unsigned int> defanswer = {2};
             std::set<unsigned int> useanswer = {3, 6, 10, 13};
-            cfuncset cfuncanswer;
+            CFuncSet cfuncanswer;
             cfuncanswer.insert(std::make_pair("foo", 1));
 
             OutputCompare(temp2Slice.second.def, defanswer);
@@ -440,7 +427,7 @@ bool TestExpr() {
             const std::unordered_set<std::string> dvarsanswer = {"var1"};
             std::set<unsigned int> defanswer = {2};
             std::set<unsigned int> useanswer = {3, 5, 6, 8, 9, 13};
-            cfuncset cfuncanswer;
+            CFuncSet cfuncanswer;
             cfuncanswer.insert(std::make_pair("foo", 1));
 
             OutputCompare(tempSlice.second.def, defanswer);
@@ -461,7 +448,7 @@ bool TestExpr() {
             auto var1Slice = sslice.Find("var1");
             std::set<unsigned int> defanswer = {2, 3};
             std::set<unsigned int> useanswer = {5, 6, 8, 10};
-            cfuncset cfuncanswer;
+            CFuncSet cfuncanswer;
             cfuncanswer.insert(std::make_pair("foo", 2));
 
             OutputCompare(var1Slice.second.def, defanswer);
