@@ -119,5 +119,6 @@ TEST(SliceTest, TestPrimitiveTypes) {
 
     } catch (SAXError e) {
         std::cerr << "ERROR: " << e.message << std::endl;
+        FAIL();
     }
 }

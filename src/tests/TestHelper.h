@@ -16,6 +16,9 @@ std::string StringToSrcML(const char *file_name, const std::string str);
  */
 template<typename T>
 void OutputCompare(const T &lhsSet, const T &rhsSet) {
+    // NOTE: 2017.10.29 出力が邪魔なのでスキップしている
+    return;
+
     std::cerr << "{";
     for (auto i : lhsSet) {
         std::cerr << i << ",";

@@ -101,6 +101,7 @@ void srcSliceHandler::ProcessDeclStmt() {
         } else {
             varIt = FunctionIt->second.insert(
                     std::make_pair(currentDeclInit.first, std::move(currentSliceProfile))).first;
+            std::cout << "def#1: " << currentDeclInit.second << std::endl;
             varIt->second.def.insert(currentDeclInit.second);
         }
     }
@@ -168,6 +169,7 @@ void srcSliceHandler::GetParamName() {
     // function-var-mapに新しく追加する
     varIt = FunctionIt->second.insert(std::make_pair(currentParam.first, std::move(currentSliceProfile))).first;
     // def{} に引数の行番号を追加する
+    std::cout << "def#2: " << currentParam.second << std::endl;
     varIt->second.def.insert(currentParam.second);
 
     currentParam.first.clear();
@@ -253,6 +255,8 @@ void srcSliceHandler::GetDeclStmtData() {
             auto pair = std::make_pair(currentSliceProfile.variableName, std::move(currentSliceProfile));
             varIt = FunctionIt->second.insert(pair).first;
             // def{} 現在の宣言の行番号を追加する
+            std::cout << "def#3: " << currentDecl.second << std::endl;
+
             varIt->second.def.insert(currentDecl.second);
         } else {
             //TODO: Handle def use for globals
@@ -264,7 +268,7 @@ void srcSliceHandler::GetDeclStmtData() {
 
 /**
  * ProcessExprStmt
- * 式文全体を取得し、はじめに左辺と右辺に分けることにより処理します。
+ * 式文(2017.10.29: おそらく代入文のことだと思われる)全体を取得し、はじめに左辺と右辺に分けることにより処理します。
  * マップの中に見つかった場合左辺の行番号を保存するように処理します。
  * 左辺を処理したら、alias, dvars, 関数呼び出しのために右辺を処理します。
  */
@@ -288,9 +292,13 @@ void srcSliceHandler::ProcessExprStmtPreAssign() {
             currentSliceProfile.isGlobal = inGlobalScope;
 
             varIt = FunctionIt->second.insert(std::make_pair(lhsExprStmt.first, std::move(currentSliceProfile))).first;
+            std::cout << "def#4: " << lhsExprStmt.second << std::endl;
+
             varIt->second.def.insert(lhsExprStmt.second);
         } else {
             // 左辺のdef{}に追加する
+            std::cout << "def#5: " << lhsExprStmt.second << std::endl;
+
             lhs->def.insert(lhsExprStmt.second);
         }
     }

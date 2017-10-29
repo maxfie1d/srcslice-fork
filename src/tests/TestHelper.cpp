@@ -5,7 +5,7 @@
 std::string readFileAsStr(const char *filename) {
     std::ifstream stream(filename);
     if (stream.fail()) {
-        std::cerr << "ファイルの読み込みに失敗しました" << std::endl;
+        std::cerr << "ファイルの読み込みに失敗しました: " << filename << std::endl;
         return NULL;
     } else {
         std::string str((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
@@ -54,6 +54,9 @@ std::string StringToSrcML(const char *file_name, const std::string str) {
 typedef std::unordered_set<std::pair<std::string, unsigned int>, NameLineNumberPairHash> CFuncSet;
 
 void OutputCompare(const CFuncSet &lhsSet, const CFuncSet &rhsSet) {
+    // NOTE: 2017.10.29 出力が邪魔なのでスキップしている
+    return;
+
     std::cerr << "cfuncs: {";
     for (auto i : lhsSet) {
         std::cerr << "{" << i.first << "," << i.second << "},";
@@ -67,8 +70,8 @@ void OutputCompare(const CFuncSet &lhsSet, const CFuncSet &rhsSet) {
 
 std::string resolvePath(std::string path) {
     // CLion からだと、なぜか std::getenv が機能しない
-//    const char *base = "/home/n-isida/github/srcslice-fork";
-    const char *base = std::getenv("SRCSLICE_ROOT");
+    const char *srcslice_root = std::getenv("SRCSLICE_ROOT");
+    const char *base = srcslice_root != NULL ? srcslice_root : "/home/n-isida/github/srcslice-fork";
     if (base) {
         std::string resolved = std::string(base) + path;
         return resolved;
