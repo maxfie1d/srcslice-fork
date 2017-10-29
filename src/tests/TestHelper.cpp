@@ -59,3 +59,10 @@ std::string resolvePath(std::string path) {
         throw "環境変数 SRCSLICE_ROOT が設定されていません";
     }
 }
+
+std::string pathToSrcml(const char *fileName, std::string path) {
+    std::string resolvedPath = resolvePath(path);
+    std::string srcStr = readFileAsStr(resolvedPath.c_str());
+    std::string srcmlStr = StringToSrcML(fileName, srcStr);
+    return srcmlStr;
+}

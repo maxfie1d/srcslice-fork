@@ -37,3 +37,12 @@ void OutputCompare(const CFuncSet &lhsSet, const CFuncSet &rhsSet);
  * @return
  */
 std::string resolvePath(std::string path);
+
+
+/**
+ * ファイル名からsrcML形式に文字列まで一気に処理する
+ * @param fileName
+ * @param path
+ * @return
+ */
+std::string pathToSrcml(const char *fileName, std::string path);
