@@ -6,6 +6,8 @@
 
 std::string readFileAsStr(const char *filename);
 
+std::string StringToSrcML(const char *file_name, const std::string str);
+
 /**
  * スライス結果の比較をコンソールに出力します
  * @tparam T
@@ -24,3 +26,6 @@ void OutputCompare(const T &lhsSet, const T &rhsSet) {
     }
     std::cerr << "}" << std::endl;
 }
+
+typedef std::unordered_set<std::pair<std::string, unsigned int>, NameLineNumberPairHash> CFuncSet;
+void OutputCompare(const CFuncSet &lhsSet, const CFuncSet &rhsSet);
