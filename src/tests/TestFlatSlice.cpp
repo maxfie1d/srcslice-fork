@@ -27,6 +27,7 @@
 #include <cassert>
 #include <fstream>
 #include "TestFlatSlice.hpp"
+#include "TestHelper.h"
 
 /// <summary>
 /// Utility function that trims from the right of a string. For now it's just solving a weird issue with srcML
@@ -92,6 +93,7 @@ void OutputCompare(const T &lhsSet, const T &rhsSet) {
 }
 
 bool TestPrimitiveTypes() {
+//    std::string srcStr = readFileAsStr("../../src/tests/samples/basic/FlatSliceOne.cpp");
     std::string srcmlStr = StringToSrcML("testsrcSlice.cpp", FlatSlicePrograms::FlatSliceOne());
 
     try {
@@ -516,16 +518,6 @@ bool TestDotAndMemberAccess() {
     }
 }
 
-std::string readFileAsStr(const char *filename) {
-    std::ifstream stream(filename);
-    if (stream.fail()) {
-        std::cerr << "ファイルの読み込みに失敗しました" << std::endl;
-        return NULL;
-    } else {
-        std::string str((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
-        return str;
-    }
-}
 
 void testApp1() {
     const char *path = "../../src/tests/samples/app1.c";
