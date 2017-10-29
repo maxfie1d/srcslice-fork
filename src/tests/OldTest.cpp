@@ -19,34 +19,10 @@
  */
 
 #include <srcSliceHandler.hpp>
-#include <srcSAXController.hpp>
-#include <time.h>
-#include <map>
-#include <iostream>
-#include <srcml.h>
-#include <cassert>
-#include <fstream>
-#include "TestFlatSlice.hpp"
-#include "TestHelper.h"
+#include <gtest/gtest.h>
 
 
-
-
-void testApp1() {
-    const char *path = "../../src/tests/samples/app1.c";
-    std::string content = readFileAsStr(path);
-    std::cout << content << std::endl;
-}
-
-int main(int argc, char **argv) {
-    // Extra content at the end of the document になってしまう。
-    // 確かにsrcmL形式に変換された文字列を見てみると変な文字が末尾にある。
-    // srcmlのバイナリで変換したものには見られないので、srcslice内の処理が
-    // 何かが起きていると思われる。
-
-    std::cout << "TestApp1 を実行します" << std::endl;
-    testApp1();
-
+TEST(oldtest, oldtest) {
     //srcTypeNS::srcType typeDict;
     //typeDict.ReadArchiveFile(argv[1]);
     //typeDict.SerializeMap(SerializeToCppUMap);

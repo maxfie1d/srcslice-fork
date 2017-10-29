@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 #include <srcSlice.hpp>
-#include "TestFlatSlice.hpp"
 #include "TestHelper.h"
 
 TEST(SliceTest, TestPrimitiveTypes) {
