@@ -4,8 +4,9 @@
 #include "TestHelper.h"
 
 TEST(SliceTest, TestPrimitiveTypes) {
-    std::string srcStr = readFileAsStr("../../src/tests/samples/basic/FlatSliceOne.cpp");
-    std::string srcmlStr = StringToSrcML("testsrcSlice.cpp", FlatSlicePrograms::FlatSliceOne());
+    std::string resolvedPath = resolvePath(std::string("/src/tests/samples/basic/FlatSliceOne.cpp"));
+    std::string srcStr = readFileAsStr(resolvedPath.c_str());
+    std::string srcmlStr = StringToSrcML("testsrcSlice.cpp", srcStr);
 
     try {
         //Run srcSlice

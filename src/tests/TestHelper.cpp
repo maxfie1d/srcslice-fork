@@ -47,3 +47,15 @@ void OutputCompare(const CFuncSet &lhsSet, const CFuncSet &rhsSet) {
     }
     std::cerr << "}" << std::endl;
 }
+
+std::string resolvePath(std::string path) {
+    // CLion からだと、なぜか std::getenv が機能しない
+//    const char *base = "/home/n-isida/github/srcslice-fork";
+    const char *base = std::getenv("SRCSLICE_ROOT");
+    if (base) {
+        std::string resolved = std::string(base) + path;
+        return resolved;
+    } else {
+        throw "環境変数 SRCSLICE_ROOT が設定されていません";
+    }
+}

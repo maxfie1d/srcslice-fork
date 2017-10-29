@@ -28,4 +28,12 @@ void OutputCompare(const T &lhsSet, const T &rhsSet) {
 }
 
 typedef std::unordered_set<std::pair<std::string, unsigned int>, NameLineNumberPairHash> CFuncSet;
+
 void OutputCompare(const CFuncSet &lhsSet, const CFuncSet &rhsSet);
+
+/**
+ * 相対パスを解決します
+ * @param path
+ * @return
+ */
+std::string resolvePath(std::string path);
