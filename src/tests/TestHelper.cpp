@@ -13,6 +13,23 @@ std::string readFileAsStr(const char *filename) {
     }
 }
 
+/// <summary>
+/// srcml の出力結果の末尾に不明な文字が含まれる
+/// ことがあるのでそれを除く関数
+/// Utility function that trims from the right of a string. For now it's just solving a weird issue with srcML
+/// and garbage text ending up at the end of the cstring it returns.
+/// </summary>
+inline char *TrimFromEnd(char *s, size_t len) {
+    for (int i = len - 1; i > 0; --i) {
+        if (s[i] != '>') {
+            s[i] = 0;
+        } else {
+            return s;
+        }
+    }
+    return nullptr;
+}
+
 std::string StringToSrcML(const char *file_name, const std::string str) {
     struct srcml_archive *archive;
     struct srcml_unit *unit;
@@ -30,7 +47,7 @@ std::string StringToSrcML(const char *file_name, const std::string str) {
     srcml_unit_free(unit);
     srcml_archive_close(archive);
     srcml_archive_free(archive);
-    //TrimFromEnd(ch, size);
+    TrimFromEnd(ch, size);
     return std::string(ch);
 }
 

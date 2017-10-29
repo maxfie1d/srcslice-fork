@@ -29,20 +29,7 @@
 #include "TestFlatSlice.hpp"
 #include "TestHelper.h"
 
-/// <summary>
-/// Utility function that trims from the right of a string. For now it's just solving a weird issue with srcML
-/// and garbage text ending up at the end of the cstring it returns.
-/// </summary>
-inline char *TrimFromEnd(char *s, size_t len) {
-    for (int i = len - 1; i > 0; --i) {
-        if (s[i] != '>') {
-            s[i] = 0;
-        } else {
-            return s;
-        }
-    }
-    return nullptr;
-}
+
 
 
 void testApp1() {
