@@ -207,7 +207,7 @@ bool TestPrimitiveTypes() {
         }
 
     } catch (SAXError e) {
-        std::cerr << "ERROR: " << e.message;
+        std::cerr << "ERROR: " << e.message << std::endl;
     }
     return true;
 }
@@ -381,7 +381,7 @@ bool TestDecl() {
         std::cerr << "================= COMPLETE =================" << std::endl;
 
     } catch (SAXError e) {
-        std::cerr << "ERROR: " << e.message;
+        std::cerr << "ERROR: " << e.message << std::endl;
     }
     return true;
 }
@@ -475,7 +475,7 @@ bool TestExpr() {
         std::cerr << "================= COMPLETE =================" << std::endl;
 
     } catch (SAXError e) {
-        std::cerr << "ERROR: " << e.message;
+        std::cerr << "ERROR: " << e.message << std::endl;
     }
     return true;
 }
@@ -512,7 +512,7 @@ bool TestDotAndMemberAccess() {
         }
         std::cerr << "================= COMPLETE =================" << std::endl;
     } catch (SAXError e) {
-        std::cerr << "ERROR: " << e.message;
+        std::cerr << "ERROR: " << e.message << std::endl;
     }
 }
 
@@ -538,11 +538,16 @@ int main(int argc, char **argv) {
     // 確かにsrcmL形式に変換された文字列を見てみると変な文字が末尾にある。
     // srcmlのバイナリで変換したものには見られないので、srcslice内の処理が
     // 何かが起きていると思われる。
-    //    TestPrimitiveTypes();
 
+    std::cout << "TestPrimitiveTypes を実行します" << std::endl;
+    TestPrimitiveTypes();
+
+    std::cout << "TestDecl を実行します" << std::endl;
     TestDecl();
+    std::cout << "TestExpr を実行します" << std::endl;
     TestExpr();
 
+    std::cout << "TestApp1 を実行します" << std::endl;
     testApp1();
 
     // 2017.10.19
