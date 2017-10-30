@@ -175,6 +175,30 @@ private:
 
     SliceProfile *Find(const std::string &varName);
 
+    /**
+     * triggerFieldOr, triggerFiledAnd
+     * triggerFiled の or, and条件を表現する
+     * C++11の可変長テンプレートを使った可変長引数関数を使っている
+     */
+
+    inline bool triggerFieldOr() {
+        return false;
+    }
+
+    template<typename Head, typename... Rest>
+    bool triggerFieldOr(Head first, Rest ... rest) {
+        return triggerField[first] || triggerFieldOr(rest...);
+    }
+
+    inline bool triggerFieldAnd() {
+        return true;
+    }
+
+    template<typename Head, typename ...Rest>
+    bool triggerFieldAnd(Head first, Rest ...rest) {
+        return triggerField[first] && triggerFieldAnd(rest...);
+    }
+
 public:
     void ComputeInterprocedural(const std::string &);
 
@@ -217,12 +241,12 @@ public:
                     ++triggerField[expr_stmt];
                 }},
                 {"parameter_list",   [this]() {
-                    if ((triggerField[function] || triggerField[functiondecl] || triggerField[constructor]) &&
-                        !(triggerField[functionblock] || triggerField[parameter_list] || triggerField[macro])) {
+                    if (triggerFieldOr(function, functiondecl, constructor)
+                        && !triggerFieldOr(functionblock, parameter_list, macro)) {
                         GetFunctionData();
                     }
-                    if (triggerField[function] &&
-                        !(triggerField[functionblock] || triggerField[type] || triggerField[parameter_list])) {
+                    if (triggerField[function]
+                        && !triggerFieldOr(functionblock, type, parameter_list)) {
                         FunctionIt = FileIt->second.insert(std::make_pair(functionTmplt.functionName, VarMap())).first;
                     }
                     if (triggerField[constructordecl]) { //For the case where we need to get a constructor decl
@@ -350,7 +374,7 @@ public:
 
                 }},
                 {"block",            [this]() {
-                    if ((triggerField[function] || triggerField[constructor])) {
+                    if (triggerFieldOr(function, constructor)) {
                         ++triggerField[functionblock];
                     }
                     if (triggerField[classn]) {
@@ -360,7 +384,7 @@ public:
                 }},
                 {"init",             [this]() {
                     //This one is only called if we see init. If there's no init, it's safely ignored.
-                    if (triggerField[decl_stmt] && (triggerField[constructor] || triggerField[function])) {
+                    if (triggerField[decl_stmt] && triggerFieldOr(constructor, function)) {
                         GetDeclStmtData();
                         sawinit = true;
                     }
@@ -474,8 +498,7 @@ public:
                 }},
 
                 {"argument_list",    [this]() {
-                    if (triggerField[decl] && triggerField[decl_stmt] &&
-                        (!triggerField[init] || triggerField[argument] || triggerField[macro])) {
+                    if (triggerFieldAnd(decl, decl_stmt) && (!triggerField[init] || triggerFieldOr(argument, macro))) {
                         GetDeclStmtData();
                     }
                     numArgs = 0;
@@ -543,8 +566,7 @@ public:
                     --triggerField[classn];
                 }},
                 {"parameter",        [this]() {
-                    if (triggerField[parameter_list] && triggerField[param] &&
-                        !(triggerField[type] || triggerField[functionblock] || triggerField[templates])) {
+                    if (triggerFieldAnd(parameter_list, param) && !triggerFieldOr(type, functionblock, templates)) {
                         GetParamName();
                     }
                     potentialAlias = false;
@@ -577,7 +599,7 @@ public:
                     //The logic for exprassign and op is basically that we want to know when we've hit the left and right hand side of expr stmt
                     //expr assign is set when we see =. Everything read up to that point is lhs. exprop is any other operator. When I see that
                     //I know that we're probably in a member call chain a->b->c etc. I don't care about b and c, so expr op helps skip those.
-                    if (triggerField[expr_stmt] || triggerField[condition]) {
+                    if (triggerFieldOr(expr_stmt, condition)) {
 
                         useExprStmt.first.clear();
 
@@ -591,8 +613,9 @@ public:
                             //foundexprlhs = true;
                         }
                     }
-                    if (!(sawgeneric || currentDeclCtor.first.empty()) && triggerField[decl_stmt] &&
-                        triggerField[argument] && (!triggerField[init])) {
+                    if (!(sawgeneric || currentDeclCtor.first.empty())
+                        && triggerFieldAnd(decl_stmt, argument)
+                        && !triggerField[init]) {
                         //std::cerr<<"Call from op"<<std::endl;
                         //GetDeclStmtData();
                         ProcessDeclCtor(); //-- to process decl_stmts that use constructor syntax
@@ -606,7 +629,7 @@ public:
                     --triggerField[op];
                 }},
                 {"block",            [this]() {
-                    if ((triggerField[function] || triggerField[constructor])) {
+                    if (triggerFieldOr(function, constructor)) {
                         --triggerField[functionblock];
                     }
                     if (triggerField[classn]) {
@@ -621,8 +644,9 @@ public:
                     currentDeclArg.first.clear(); //get rid of the name of the var that came before it for ctor calls like: object(InitVarable)
                     currentCallArgData.first.clear();
                     calledFunctionName.clear();
-                    if (!(sawgeneric || currentDeclCtor.first.empty()) && triggerField[decl_stmt] &&
-                        triggerField[argument] && !triggerField[init]) {
+                    if (!(sawgeneric || currentDeclCtor.first.empty())
+                        && triggerFieldAnd(decl_stmt, argument)
+                        && !triggerField[init]) {
                         //std::cerr<<"Call from arg"<<std::endl;
                         //GetDeclStmtData();
                         ProcessDeclCtor(); //-- to process decl_stmts that use constructor syntax
@@ -635,10 +659,9 @@ public:
                     --triggerField[literal];
                 }},
                 {"modifier",         [this]() {
-                    if (triggerField[decl_stmt] && triggerField[decl]) { //only care about modifiers in decls
+                    if (triggerFieldAnd(decl_stmt, decl)) { //only care about modifiers in decls
                         potentialAlias = true;
-                    } else if (triggerField[function] && triggerField[parameter_list] && triggerField[param] &&
-                               triggerField[decl]) {
+                    } else if (triggerFieldAnd(function, parameter_list, param, decl)) {
                         potentialAlias = true;
                     }
                     --triggerField[modifier];
@@ -647,7 +670,7 @@ public:
                     --triggerField[templates];
                 }},
                 {"decl",             [this]() {
-                    if (!sawinit && triggerField[decl_stmt] && (triggerField[constructor] || triggerField[function])) {
+                    if (!sawinit && triggerField[decl_stmt] && triggerFieldOr(constructor, function)) {
                         //only run if we didn't run it during init
                         GetDeclStmtData();
                     }
@@ -655,26 +678,25 @@ public:
                     --triggerField[decl];
                 }},
                 {"type",             [this]() {
-                    if ((triggerField[type] && triggerField[decl_stmt] &&
-                         (triggerField[function] || triggerField[constructor]) &&
-                         !(triggerField[modifier] || triggerField[argument_list]))) {
+                    if (triggerFieldAnd(type, decl_stmt)
+                        && triggerFieldOr(function, constructor)
+                        && !triggerFieldOr(modifier, argument_list)) {
                         //Get the type -- news
                         currentSliceProfile.variableType = currentDeclType.first;
                         currentDeclType.first.clear();
                     }
-                    if (triggerField[type] && triggerField[parameter_list] && triggerField[param] &&
-                        triggerField[decl] && !(triggerField[functionblock] || triggerField[templates])) {
+                    if (triggerFieldAnd(type, parameter_list, param, decl) &&
+                        !triggerFieldOr(functionblock, templates)) {
                         GetParamType();
                     }
-                    if (triggerField[function] && triggerField[type] &&
-                        !(triggerField[functionblock] || triggerField[argument_list] || triggerField[templates] ||
-                          triggerField[parameter_list])) {
+                    if (triggerFieldAnd(function, type)
+                        && !triggerFieldOr(functionblock, argument_list, templates, parameter_list)) {
                         //get functionr ret type  -- news
                         functionTmplt.returnType = currentFunctionReturnType.first;
                         currentFunctionReturnType.first.clear();
                     }
-                    if (triggerField[functiondecl] && triggerField[type] &&
-                        !(triggerField[parameter_list] || triggerField[member_list])) {
+                    if (triggerFieldAnd(functiondecl, type)
+                        && !triggerFieldOr(parameter_list, member_list)) {
                         //get function decl return type
                         functionTmplt.returnType = currentFunctionDecl.first;
                     }
@@ -688,13 +710,13 @@ public:
                         callArgData.push(currentCallArgData);
                     }
                     //Get function arguments
-                    if (triggerField[call] || (triggerField[decl_stmt] && triggerField[argument_list])) {
+                    if (triggerField[call] || triggerFieldAnd(decl_stmt, argument_list)) {
                         GetCallData();//issue with statements like object(var)
                         while (!callArgData.empty())
                             callArgData.pop();
                     }
-                    if (triggerField[expr] &&
-                        (triggerField[expr_stmt] || triggerField[condition] || triggerField[return_stmt])) {
+                    if (triggerField[expr]
+                        && triggerFieldOr(expr_stmt, condition, return_stmt)) {
                         if (exprassign) {
                             ProcessExprStmtPostAssign();
                             useExprStack.clear(); //found an assignment so throw everything off of the other stack TODO: Potential better way?
@@ -708,9 +730,9 @@ public:
                             }
                         }
                     }
-                    if (triggerField[init] && triggerField[decl] &&
-                        (triggerField[decl_stmt] || triggerField[control]) &&
-                        !(triggerField[type] || triggerField[argument_list])) {
+                    if (triggerFieldAnd(init, decl)
+                        && triggerFieldOr(decl_stmt, control)
+                        && !triggerFieldOr(type, argument_list)) {
                         if (triggerField[call] && !memberAccess) {
                             ProcessDeclStmt();
                         } else if (!triggerField[call] && !memberAccess) {
