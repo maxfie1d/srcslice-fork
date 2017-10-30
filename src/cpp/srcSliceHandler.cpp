@@ -57,6 +57,7 @@ SliceProfile *srcSliceHandler::Find(const std::string &varName) {
 void srcSliceHandler::ProcessConstructorDecl() {
     auto sp = Find(currentDeclArg.first);
     if (sp) {
+        std::cout << "dvars#1: " << varIt->second.variableName << std::endl;
         sp->dvars.insert(varIt->second.variableName);
     }
 }
@@ -86,6 +87,7 @@ void srcSliceHandler::ProcessDeclStmt() {
             varIt->second.lastInsertedAlias = varIt->second.aliases.insert(sp->variableName).first;
         } else {
             // dvars{} と use{} に追加する
+            std::cout << "dvars#2: " << varIt->second.variableName << std::endl;
             sp->dvars.insert(varIt->second.variableName);
             std::cout << "use#2: " << currentDeclInit.second << std::endl;
             sp->use.insert(currentDeclInit.second);
@@ -327,6 +329,7 @@ void srcSliceHandler::ProcessExprStmtPostAssign() {
                     // エイリアスではないので、dvarである
                     //It is not potentially a reference and if it is, it must not have been dereferenced
                     //it's not an alias so it's a dvar
+                    std::cout << "dvars#3: " << lhs->variableName << std::endl;
                     sprIt->dvars.insert(lhs->variableName);
                 } else {
                     // it is an alias, so save that this is the most recent alias and insert it into rhs alias list
@@ -345,6 +348,7 @@ void srcSliceHandler::ProcessExprStmtPostAssign() {
                         //Maybe make into a pointer. Figure out why I need it.
                         auto spaIt = FunctionIt->second.find(*(sprIt->lastInsertedAlias));
                         if (spaIt != FunctionIt->second.end()) {
+                            std::cout << "dvars#4: " << lhs->variableName << std::endl;
                             spaIt->second.dvars.insert(lhs->variableName);
                             std::cout << "use#5: " << currentExprStmt.second << std::endl;
                             spaIt->second.use.insert(currentExprStmt.second);
@@ -387,6 +391,7 @@ void srcSliceHandler::ProcessDeclCtor() {
         lhs->use.insert(currentDecl.second);
         SliceProfile *rhs = Find(currentDeclCtor.first);
         if (rhs) {
+            std::cout << "dvars#5: " << lhs->variableName << std::endl;
             rhs->dvars.insert(lhs->variableName);
             std::cout << "use#8: " << currentDecl.second << std::endl;
             rhs->use.insert(currentDecl.second);
