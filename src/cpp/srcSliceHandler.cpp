@@ -103,6 +103,7 @@ void srcSliceHandler::ProcessDeclStmt() {
         if (!inFor) {
             return;
         } else {
+            std::cout << "ここかな? #3" << std::endl;
             varIt = FunctionIt->second.insert(
                     std::make_pair(currentDeclInit.first, std::move(currentSliceProfile))).first;
             std::cout << "def#1: " << currentDeclInit.second << std::endl;
@@ -173,6 +174,7 @@ void srcSliceHandler::GetParamName() {
     // 参考: http://kaworu.jpn.org/cpp/std::move
 
     // function-var-mapに新しく追加する
+    std::cout << "ここかな? #4: " << currentSliceProfile.variableName << std::endl;
     varIt = FunctionIt->second.insert(std::make_pair(currentParam.first, std::move(currentSliceProfile))).first;
     // def{} に引数の行番号を追加する
     std::cout << "def#2: " << currentParam.second << std::endl;
@@ -258,6 +260,7 @@ void srcSliceHandler::GetDeclStmtData() {
         currentSliceProfile.potentialAlias = potentialAlias;
         currentSliceProfile.isGlobal = inGlobalScope;
         if (!inGlobalScope) {
+            std::cout << "ここかな? #5:" << currentSliceProfile.variableName << std::endl;
             auto pair = std::make_pair(currentSliceProfile.variableName, std::move(currentSliceProfile));
             varIt = FunctionIt->second.insert(pair).first;
             // def{} 現在の宣言の行番号を追加する
@@ -266,6 +269,7 @@ void srcSliceHandler::GetDeclStmtData() {
             varIt->second.def.insert(currentDecl.second);
         } else {
             //TODO: Handle def use for globals
+            std::cout << "ここかな? #6" << std::endl;
             sysDict->globalMap.insert(std::make_pair(currentSliceProfile.variableName, std::move(currentSliceProfile)));
         }
         currentDecl.first.clear();
@@ -297,6 +301,7 @@ void srcSliceHandler::ProcessExprStmtPreAssign() {
             currentSliceProfile.potentialAlias = false;
             currentSliceProfile.isGlobal = inGlobalScope;
 
+            std::cout << "ここかな? #7: " << currentSliceProfile.variableName << std::endl;
             varIt = FunctionIt->second.insert(std::make_pair(lhsExprStmt.first, std::move(currentSliceProfile))).first;
             std::cout << "def#4: " << lhsExprStmt.second << std::endl;
 
@@ -424,6 +429,7 @@ void srcSliceHandler::ComputeInterprocedural(const std::string &f) {
                     //std::unordered_set<NameLineNumberPair, NameLineNumberPairHash>::iterator - auto
                     for (auto itCF = it->second.cfunctions.begin(); itCF != it->second.cfunctions.end(); ++itCF) {
                         unsigned int argumentIndex = itCF->second;
+                        std::cout << "ここかな? #2" << std::endl;
                         SliceProfile Spi = ArgumentProfile(itCF->first, argumentIndex, it);
                         SetUnion(it->second.use, Spi.def);
                         SetUnion(it->second.use, Spi.use);
@@ -451,6 +457,8 @@ void srcSliceHandler::ComputeInterprocedural(const std::string &f) {
 */
 SliceProfile srcSliceHandler::ArgumentProfile(std::string fname, unsigned int parameterIndex, VarMap::iterator vIt) {
     //TODO varIt is a hack here. Fix. We shouldn't need to pass an extra param to do this.
+    std::cout << "ここかな? #1" << std::endl;
+
     SliceProfile Spi;
     auto gFuncIt = sysDict->fileFunctionTable.find(fname);
     if (gFuncIt != sysDict->fileFunctionTable.end()) {

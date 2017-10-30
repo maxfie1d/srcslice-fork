@@ -151,6 +151,9 @@ struct srcSlice {
     }
 
     bool Insert(const SliceProfile &np) {
+
+        std::cout << "インサート" << std::endl;
+
         if (dictionary.currentContext.ln == -1) { //TODO: Make better
             throw std::runtime_error("Context not set"); //for now, std exception
         } else {
