@@ -143,6 +143,7 @@ void srcSliceHandler::GetCallData() {
                 std::cout << "use#3: " << callArgData.top().second << std::endl;
                 sp->use.insert(callArgData.top().second);
                 sp->index = numArgs;
+                std::cout << "cfuncs#1: " << nameOfCurrentClldFcn.top() << std::endl;
                 sp->cfunctions.insert(std::make_pair(nameOfCurrentClldFcn.top(), numArgs));
             }
         }
