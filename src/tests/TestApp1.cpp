@@ -12,7 +12,10 @@ TEST(SliceTest, TestApp1) {
             assert(sslice.SetContext("app1.c", "main", 3));
             auto a_slice = sslice.Find("a").second;
 
+            // def{} のテスト
             ASSERT_EQ(a_slice.def, std::set<unsigned int>({6, 7}));
+            // use{} のテスト
+            ASSERT_EQ(a_slice.use, std::set<unsigned int>({7, 9}));
         }
 
     } catch (SAXError e) {

@@ -79,6 +79,7 @@ void srcSliceHandler::ProcessDeclStmt() {
     if (sawnew) { sawnew = false; }
     if (sp) {
         varIt->second.slines.insert(currentDeclInit.second); //varIt is lhs
+        std::cout << "use#1: " << currentDeclInit.second << std::endl;
         sp->use.insert(currentDeclInit.second);
         //new operator of the form int i = new int(tmp); screws around with aliasing
         if (varIt->second.potentialAlias && !sawnew) {
@@ -86,6 +87,7 @@ void srcSliceHandler::ProcessDeclStmt() {
         } else {
             // dvars{} と use{} に追加する
             sp->dvars.insert(varIt->second.variableName);
+            std::cout << "use#2: " << currentDeclInit.second << std::endl;
             sp->use.insert(currentDeclInit.second);
         }
     } else {
@@ -136,6 +138,7 @@ void srcSliceHandler::GetCallData() {
             auto sp = Find(callArgData.top().first);
             if (sp) {
                 sp->slines.insert(callArgData.top().second);
+                std::cout << "use#3: " << callArgData.top().second << std::endl;
                 sp->use.insert(callArgData.top().second);
                 sp->index = numArgs;
                 sp->cfunctions.insert(std::make_pair(nameOfCurrentClldFcn.top(), numArgs));
@@ -330,6 +333,7 @@ void srcSliceHandler::ProcessExprStmtPostAssign() {
                     // エイリアスなので、最も最近のエイリアスを右辺のエイリアスリストに追加して保存する
                     lhs->lastInsertedAlias = lhs->aliases.insert(sprIt->variableName).first;
                 }
+                std::cout << "use#4 " << currentExprStmt.second << std::endl;
                 sprIt->use.insert(currentExprStmt.second);
                 // ひとつにまとめます。もし他のもののエイリアスであるなら、もう一方を更新します。
                 //Union things together. If this was an alias of anoter thing, update the other thing
@@ -342,6 +346,7 @@ void srcSliceHandler::ProcessExprStmtPostAssign() {
                         auto spaIt = FunctionIt->second.find(*(sprIt->lastInsertedAlias));
                         if (spaIt != FunctionIt->second.end()) {
                             spaIt->second.dvars.insert(lhs->variableName);
+                            std::cout << "use#5: " << currentExprStmt.second << std::endl;
                             spaIt->second.use.insert(currentExprStmt.second);
                             spaIt->second.slines.insert(currentExprStmt.second);
                         }
@@ -359,12 +364,11 @@ void srcSliceHandler::ProcessExprStmtPostAssign() {
 void srcSliceHandler::ProcessExprStmtNoAssign() {
     for (NameLineNumberPair pair : useExprStack) {
         SliceProfile *useProfile = Find(pair.first);
-        if (!useProfile) {
-            continue;
-        } else {
+        if (useProfile) {
             // 他の2つの式文の関数と同様同じ語に対して実行しています。
             //it's running on the same word as the other two exprstmt functions
             // use{} に追加
+            std::cout << "use#6: " << pair.second << std::endl;
             useProfile->use.insert(pair.second);
         }
     }
@@ -379,10 +383,12 @@ void srcSliceHandler::ProcessDeclCtor() {
     if (!lhs) {
         return;
     } else {
+        std::cout << "use#7: " << currentDecl.second << std::endl;
         lhs->use.insert(currentDecl.second);
         SliceProfile *rhs = Find(currentDeclCtor.first);
         if (rhs) {
             rhs->dvars.insert(lhs->variableName);
+            std::cout << "use#8: " << currentDecl.second << std::endl;
             rhs->use.insert(currentDecl.second);
         }
     }
