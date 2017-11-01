@@ -200,7 +200,8 @@ private:
         return triggerField[first] && triggerFieldAnd(rest...);
     }
 
-    std::shared_ptr<spdlog::logger> _logger = spdlog::stdout_logger_mt("console");
+    std::shared_ptr<spdlog::logger> _logger = spdlog::get("console") ? spdlog::get("console")
+                                                                     : spdlog::stdout_logger_mt("console");
 
 public:
     void ComputeInterprocedural(const std::string &);
@@ -977,7 +978,7 @@ public:
                 }
             } else {
                 if (!exprop) { //haven't seen any operator (including =)
-                    lhsExprStmt.first.append(str);
+                    lhsExprStmt.first = std::string(str);
                     if (triggerField[return_stmt]) {
                         NameLineNumberPair strLine = std::make_pair(str, currentExprStmt.second);
                         useExprStack.push_back(strLine); //catch expr_stmts like return temp + temp;
