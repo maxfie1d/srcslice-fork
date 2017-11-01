@@ -530,8 +530,7 @@ public:
                     functionTmplt.clear();
 
                     if (triggerField[function] &&
-                        !(triggerField[functionblock] || triggerField[templates] || triggerField[parameter_list] ||
-                          triggerField[type] || triggerField[argument_list])) {
+                        !triggerFieldOr(functionblock, templates, parameter_list, type, argument_list)) {
                         currentFunctionBody.first.clear();
                     }
 
@@ -870,22 +869,21 @@ public:
      */
     virtual void charactersUnit(const char *ch, int len) {
 
-        if ((triggerField[decl_stmt] || triggerField[expr_stmt]) && triggerField[call] &&
-            (triggerField[name]) && triggerField[argument_list] &&
-            !(triggerField[index] || triggerField[op] || triggerField[preproc])) {
+        if (triggerFieldOr(decl_stmt, expr_stmt) &&
+            triggerFieldAnd(call, name, argument_list) &&
+            !triggerFieldOr(index, op, preproc)) {
             currentCallArgData.first.append(ch, len);
         }
-        if (((triggerField[function] || triggerField[constructor] || triggerField[destructor]) && triggerField[name])
-            && !(triggerField[functionblock] || triggerField[parameter_list] || triggerField[argument_list] ||
-                 triggerField[argument_list_template] || triggerField[type]
-                 || triggerField[index] || triggerField[preproc] || triggerField[op] || triggerField[macro])) {
+        if (triggerFieldOr(function, constructor, destructor) && triggerField[name] &&
+            !triggerFieldOr(functionblock, parameter_list, argument_list, argument_list_template, type, index, preproc,
+                            op, macro)) {
             currentFunctionBody.first.append(ch, len);
             //std::cerr<<currentFunctionBody.first<<std::endl;
         }
-        if (triggerField[type] && triggerField[function]
-            && !(triggerField[functionblock] || triggerField[op] || triggerField[argument_list] ||
-                 triggerField[argument_list_template] || triggerField[templates] || triggerField[parameter_list] ||
-                 triggerField[macro] || triggerField[preproc])) {
+        if (triggerFieldAnd(type, function)
+            &&
+            !triggerFieldAnd(functionblock, op, argument_list, argument_list_template, templates, parameter_list, macro,
+                             preproc)) {
 
             if (!triggerField[modifier]) {
                 currentFunctionReturnType.first = std::string(ch, len);
@@ -893,35 +891,28 @@ public:
                 currentFunctionReturnType.first.append(ch, len);
             }
         }
-        if ((triggerField[functiondecl] || triggerField[constructordecl]) && triggerField[name] &&
-            !((triggerField[functionblock] || triggerField[parameter_list] || triggerField[argument_list] ||
-               triggerField[argument_list_template] || triggerField[type]
-               || triggerField[index] || triggerField[preproc] || triggerField[op] || triggerField[macro]))) {
+        if (triggerFieldOr(functiondecl, constructordecl) && triggerField[name] &&
+            !triggerFieldOr(functionblock, parameter_list, argument_list, argument_list_template, type, index, preproc,
+                            op, macro)) {
             currentFunctionDecl.first.append(ch, len);
         }
-        if ((triggerField[param] &&
-             (triggerField[function] || triggerField[functiondecl] || triggerField[constructor]) && triggerField[name])
-            && !(triggerField[type] || triggerField[argument_list] || triggerField[templates] || triggerField[macro] ||
-                 triggerField[preproc])) {
+        if (triggerField[param] && triggerFieldOr(function, functiondecl, constructor) && triggerField[name]
+            && !triggerFieldOr(type, argument_list, templates, macro, preproc)) {
             currentParam.first.append(ch, len);
         }
-        if ((triggerField[param] &&
-             (triggerField[function] || triggerField[functiondecl] || triggerField[constructor])) &&
-            triggerField[name] && triggerField[type]
-            && !(triggerField[argument_list] || triggerField[templates] || triggerField[op] || triggerField[macro] ||
-                 triggerField[preproc])) {
+        if (triggerField[param] && triggerFieldOr(function, functiondecl, constructor) && triggerFieldAnd(name, type)
+            && !(triggerFieldOr(argument_list, templates, op, macro, preproc))) {
             currentParamType.first = std::string(ch, len);
         }
-        if ((triggerField[type] && triggerField[decl_stmt] && triggerField[name] &&
-             !(triggerField[argument_list] || triggerField[modifier] || triggerField[op] || triggerField[macro] ||
-               triggerField[preproc]))) {
+        if (triggerFieldAnd(type, decl_stmt, name) &&
+            !triggerFieldOr(argument_list, modifier, op, macro, preproc)) {
             currentDeclType.first = std::string(ch, len);
         }
         //this is to handle lhs of decl stmts and rhs of decl stmts
-        if ((triggerField[name] || triggerField[op]) && (triggerField[decl_stmt] || triggerField[control]) &&
+        if (triggerFieldOr(name, op) &&
+            triggerFieldOr(decl_stmt, control) &&
             triggerField[decl] &&
-            !(triggerField[argument_list] || triggerField[index] || triggerField[preproc] || triggerField[type] ||
-              triggerField[macro])) {
+            !triggerFieldOr(argument_list, index, preproc, type, macro)) {
             if (triggerField[init]) {
                 if (!triggerField[call] && !memberAccess) {//if it's not in a call then we can do like normal
                     currentDeclInit.first.append(ch, len);
@@ -940,19 +931,18 @@ public:
             }
         }
         //this is to handle lhs of decl stmts and rhs of decl stmts
-        if (!sawgeneric && (triggerField[name]) && triggerField[decl_stmt] && triggerField[argument_list] &&
-            triggerField[decl] &&
-            !(triggerField[op] || triggerField[index] || triggerField[preproc] || triggerField[type] ||
-              triggerField[macro])) {
+        if (!sawgeneric &&
+            triggerFieldAnd(name, decl_stmt, argument_list, decl) &&
+            !triggerFieldOr(op, index, preproc, type, macro)) {
             currentDeclCtor.first.append(ch, len);
         }
         if (triggerField[op]) {
             currentOperator.append(ch, len);
         }
         //This only handles expr statments of the form a = b. Anything without = in it is skipped here -- Not entirely true anymore
-        if ((triggerField[name] || triggerField[op]) && triggerField[expr] &&
-            (triggerField[expr_stmt] || triggerField[condition] || triggerField[return_stmt]) &&
-            !(triggerField[index] || triggerField[preproc])) {
+        if (triggerFieldOr(name, op) && triggerField[expr] &&
+            triggerFieldOr(expr_stmt, condition, return_stmt) &&
+            !triggerFieldOr(index, preproc)) {
             std::string str = std::string(ch, len);
             //std::cerr<<"str: "<<str<<currentExprStmt.second<<std::endl;
             //kind of a hack here; currentOperator basically tells me if the operator was actually assignment
@@ -990,12 +980,11 @@ public:
         if (triggerField[call]) {
             calledFunctionName.append(ch, len);
         }
-        if (triggerField[decl_stmt] && triggerField[decl] && triggerField[argument_list] && triggerField[argument] &&
-            triggerField[expr] &&
+        if (triggerFieldAnd(decl_stmt, decl, argument_list, argument, expr) &&
             !triggerField[type]) {
             currentDeclArg.first.append(ch, len);
         }
-        if (!triggerField[classblock] && (triggerField[name] && triggerField[classn])) {
+        if (!triggerField[classblock] && triggerFieldAnd(name, classn)) {
             currentClassName.first.append(ch, len);
         }
     }
