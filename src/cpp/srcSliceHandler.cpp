@@ -57,7 +57,7 @@ SliceProfile *srcSliceHandler::Find(const std::string &varName) {
 void srcSliceHandler::ProcessConstructorDecl() {
     auto sp = Find(currentDeclArg.first);
     if (sp) {
-        std::cout << "dvars#1: " << varIt->second.variableName << std::endl;
+        this->_logger->debug("dvars#1: {}", varIt->second.variableName);
         sp->dvars.insert(varIt->second.variableName);
     }
 }
@@ -80,16 +80,16 @@ void srcSliceHandler::ProcessDeclStmt() {
     if (sawnew) { sawnew = false; }
     if (sp) {
         varIt->second.slines.insert(currentDeclInit.second); //varIt is lhs
-        this->_logger-> debug("use#1: %d", currentDeclInit.second);
+        this->_logger-> debug("use#1: {}", currentDeclInit.second);
         sp->use.insert(currentDeclInit.second);
         //new operator of the form int i = new int(tmp); screws around with aliasing
         if (varIt->second.potentialAlias && !sawnew) {
             varIt->second.lastInsertedAlias = varIt->second.aliases.insert(sp->variableName).first;
         } else {
             // dvars{} と use{} に追加する
-            this->_logger->debug("dvars#2: %s", varIt->second.variableName);
+            this->_logger->debug("dvars#2: {}", varIt->second.variableName);
             sp->dvars.insert(varIt->second.variableName);
-            this->_logger->debug("use#2: %d", currentDeclInit.second);
+            this->_logger->debug("use#2: {}", currentDeclInit.second);
             sp->use.insert(currentDeclInit.second);
         }
     } else {
@@ -105,7 +105,7 @@ void srcSliceHandler::ProcessDeclStmt() {
         } else {
             varIt = FunctionIt->second.insert(
                     std::make_pair(currentDeclInit.first, std::move(currentSliceProfile))).first;
-            this->_logger->debug("def#1: %d", currentDeclInit.second);
+            this->_logger->debug("def#1: {}", currentDeclInit.second);
             varIt->second.def.insert(currentDeclInit.second);
         }
     }
@@ -140,10 +140,10 @@ void srcSliceHandler::GetCallData() {
             auto sp = Find(callArgData.top().first);
             if (sp) {
                 sp->slines.insert(callArgData.top().second);
-                this->_logger->debug("use#3: %d", callArgData.top().second);
+                this->_logger->debug("use#3: {}", callArgData.top().second);
                 sp->use.insert(callArgData.top().second);
                 sp->index = numArgs;
-                this->_logger->debug("cfuncs#1: %s", nameOfCurrentClldFcn.top());
+                this->_logger->debug("cfuncs#1: {}", nameOfCurrentClldFcn.top());
                 sp->cfunctions.insert(std::make_pair(nameOfCurrentClldFcn.top(), numArgs));
             }
         }
@@ -175,7 +175,7 @@ void srcSliceHandler::GetParamName() {
     // function-var-mapに新しく追加する
     varIt = FunctionIt->second.insert(std::make_pair(currentParam.first, std::move(currentSliceProfile))).first;
     // def{} に引数の行番号を追加する
-    this->_logger->debug("def#2: ", currentParam.second);
+    this->_logger->debug("def#2: {}", currentParam.second);
     varIt->second.def.insert(currentParam.second);
 
     currentParam.first.clear();
@@ -261,7 +261,7 @@ void srcSliceHandler::GetDeclStmtData() {
             auto pair = std::make_pair(currentSliceProfile.variableName, std::move(currentSliceProfile));
             varIt = FunctionIt->second.insert(pair).first;
             // def{} 現在の宣言の行番号を追加する
-            this->_logger->debug("def#3: %d", currentDecl.second);
+            this->_logger->debug("def#3: {}", currentDecl.second);
 
             varIt->second.def.insert(currentDecl.second);
         } else {
@@ -299,12 +299,12 @@ void srcSliceHandler::ProcessExprStmtPreAssign() {
 
             std::cout << "ここかな? #7: " << currentSliceProfile.variableName << std::endl;
             varIt = FunctionIt->second.insert(std::make_pair(lhsExprStmt.first, std::move(currentSliceProfile))).first;
-            this->_logger->debug("def#4: %d", lhsExprStmt.second);
+            this->_logger->debug("def#4: {}", lhsExprStmt.second);
 
             varIt->second.def.insert(lhsExprStmt.second);
         } else {
             // 左辺のdef{}に追加する
-            this->_logger->debug("def#5: %d", lhsExprStmt.second);
+            this->_logger->debug("def#5: {}", lhsExprStmt.second);
 
             lhs->def.insert(lhsExprStmt.second);
         }
@@ -331,14 +331,14 @@ void srcSliceHandler::ProcessExprStmtPostAssign() {
                     // エイリアスではないので、dvarである
                     //It is not potentially a reference and if it is, it must not have been dereferenced
                     //it's not an alias so it's a dvar
-                    this->_logger->debug("dvars#3: %s", lhs->variableName);
+                    this->_logger->debug("dvars#3: {}", lhs->variableName);
                     sprIt->dvars.insert(lhs->variableName);
                 } else {
                     // it is an alias, so save that this is the most recent alias and insert it into rhs alias list
                     // エイリアスなので、最も最近のエイリアスを右辺のエイリアスリストに追加して保存する
                     lhs->lastInsertedAlias = lhs->aliases.insert(sprIt->variableName).first;
                 }
-                this->_logger->debug("use#4: %d", currentExprStmt.second);
+                this->_logger->debug("use#4: {}", currentExprStmt.second);
                 sprIt->use.insert(currentExprStmt.second);
                 // ひとつにまとめます。もし他のもののエイリアスであるなら、もう一方を更新します。
                 //Union things together. If this was an alias of anoter thing, update the other thing
@@ -350,9 +350,9 @@ void srcSliceHandler::ProcessExprStmtPostAssign() {
                         //Maybe make into a pointer. Figure out why I need it.
                         auto spaIt = FunctionIt->second.find(*(sprIt->lastInsertedAlias));
                         if (spaIt != FunctionIt->second.end()) {
-                            this->_logger->debug("dvars#4: %s", lhs->variableName);
+                            this->_logger->debug("dvars#4: {}", lhs->variableName);
                             spaIt->second.dvars.insert(lhs->variableName);
-                            this->_logger->debug("use#5: %s", currentExprStmt.second);
+                            this->_logger->debug("use#5: {}", currentExprStmt.second);
                             spaIt->second.use.insert(currentExprStmt.second);
                             spaIt->second.slines.insert(currentExprStmt.second);
                         }
@@ -374,7 +374,7 @@ void srcSliceHandler::ProcessExprStmtNoAssign() {
             // 他の2つの式文の関数と同様同じ語に対して実行しています。
             //it's running on the same word as the other two exprstmt functions
             // use{} に追加
-            this->_logger->debug("use#6: %d", pair.second);
+            this->_logger->debug("use#6: {}", pair.second);
             useProfile->use.insert(pair.second);
         }
     }
@@ -389,13 +389,13 @@ void srcSliceHandler::ProcessDeclCtor() {
     if (!lhs) {
         return;
     } else {
-        this->_logger->debug("use#7: %d", currentDecl.second);
+        this->_logger->debug("use#7: {}", currentDecl.second);
         lhs->use.insert(currentDecl.second);
         SliceProfile *rhs = Find(currentDeclCtor.first);
         if (rhs) {
-            this->_logger->debug("dvars#5: %s", lhs->variableName);
+            this->_logger->debug("dvars#5: {}", lhs->variableName);
             rhs->dvars.insert(lhs->variableName);
-            this->_logger->debug("use#8: %d", currentDecl.second);
+            this->_logger->debug("use#8: {}", currentDecl.second);
             rhs->use.insert(currentDecl.second);
         }
     }

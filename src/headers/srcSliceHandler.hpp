@@ -200,8 +200,7 @@ private:
         return triggerField[first] && triggerFieldAnd(rest...);
     }
 
-    std::shared_ptr<spdlog::logger> _logger = spdlog::get("console") ? spdlog::get("console")
-                                                                     : spdlog::stdout_logger_mt("console");
+    std::shared_ptr<spdlog::logger> _logger;
 
 public:
     void ComputeInterprocedural(const std::string &);
@@ -211,6 +210,17 @@ public:
 
     srcSliceHandler(SliceDictionary *dict) {
         sysDict = dict;
+
+        // ロガーを初期化する
+        this->_logger = spdlog::get("console")
+                        ? spdlog::get("console")
+                        : spdlog::stdout_logger_mt("console");
+#ifdef DEBUG
+        spdlog::set_level(spdlog::level::debug);
+#else
+        spdlog::set_level(spdlog::level::err);
+#endif
+
         numArgs = 0;
         declIndex = 0;
 
