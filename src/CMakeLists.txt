@@ -10,4 +10,4 @@ link_directories($ENV{HOME}/github/srcml-fork/build/bin)
 
 add_executable(srcSlice ${SRCSLICEHANDLER_SOURCE} ${SRCSLICEHANDLER_INCLUDE})
 
-target_link_libraries(srcSlice srcsax_static ${LIBXML2_LIBRARIES})
+target_link_libraries(srcSlice srcsax_static ${LIBXML2_LIBRARIES} pthread)

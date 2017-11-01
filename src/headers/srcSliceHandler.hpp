@@ -31,6 +31,7 @@
 #include <sstream>
 #include <stack>
 #include <functional>
+#include <spdlog/spdlog.h>
 
 class srcSliceHandler : public srcSAXHandler {
 private:
@@ -198,6 +199,8 @@ private:
     bool triggerFieldAnd(Head first, Rest ...rest) {
         return triggerField[first] && triggerFieldAnd(rest...);
     }
+
+    std::shared_ptr<spdlog::logger> _logger = spdlog::stdout_logger_mt("console");
 
 public:
     void ComputeInterprocedural(const std::string &);
@@ -953,6 +956,7 @@ public:
             //std::cerr<<"str: "<<str<<currentExprStmt.second<<std::endl;
             //kind of a hack here; currentOperator basically tells me if the operator was actually assignment
             //or some kinda compare operator like <=. Important to know which one I just saw since I need to assign to use or def.
+            // std::string::back() -> 末尾の文字を返す関数
             if (str.back() == '=' && currentOperator.size() < 2) {
                 exprassign = true;
                 exprop = false; //assumed above in "operator" that I wouldn't see =. This takes care of when I assume wrong.
