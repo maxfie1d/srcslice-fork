@@ -3,7 +3,7 @@
 #include "TestHelper.h"
 
 TEST(SliceTest, TestPrimitiveTypes) {
-    std::string srcmlStr = pathToSrcml("testsrcSlice.cpp","/src/tests/samples/basic/FlatSliceOne.cpp");
+    std::string srcmlStr = pathToSrcml("testsrcSlice.cpp", "/src/tests/samples/basic/FlatSliceOne.cpp");
 
     try {
         //Run srcSlice
@@ -39,7 +39,7 @@ TEST(SliceTest, TestPrimitiveTypes) {
             auto sumSlice = sslice.Find("sum");
 
             std::set<unsigned int> defanswer = {10, 17};
-            std::set<unsigned int> useanswer = {1, 2, 3, 5, 6, 13, 15};
+            std::set<unsigned int> useanswer = {1, 2, 3, 5, 6, 13, 15, 17};
             CFuncSet cfuncanswer;
             cfuncanswer.insert(std::make_pair("fun", 1));
             cfuncanswer.insert(std::make_pair("foo", 1));
@@ -52,7 +52,7 @@ TEST(SliceTest, TestPrimitiveTypes) {
             ASSERT_EQ(sumSlice.second.use, useanswer);
             ASSERT_EQ(sumSlice.second.cfunctions, cfuncanswer);
             ASSERT_EQ(sumSlice.second.aliases.empty(), true);
-            ASSERT_EQ(sumSlice.second.dvars.empty(), true);
+            ASSERT_EQ(sumSlice.second.dvars, std::unordered_set<std::string>({"sum"}));
             std::cerr << "================= COMPLETE =================" << std::endl;
         }
         {

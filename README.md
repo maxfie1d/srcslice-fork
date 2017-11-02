@@ -1,3 +1,13 @@
+## ファイル構成
+
+### src/tests
+
+テストソースのあるディレクトリ。
+
+* src/tests/samples/issue*
+    * Issue番号に該当する現象を再現する
+
+
 # メモ
 
 ```bash

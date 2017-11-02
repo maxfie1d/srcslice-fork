@@ -80,7 +80,7 @@ void srcSliceHandler::ProcessDeclStmt() {
     if (sawnew) { sawnew = false; }
     if (sp) {
         varIt->second.slines.insert(currentDeclInit.second); //varIt is lhs
-        this->_logger-> debug("use#1: {}", currentDeclInit.second);
+        this->_logger->debug("use#1: {}", currentDeclInit.second);
         sp->use.insert(currentDeclInit.second);
         //new operator of the form int i = new int(tmp); screws around with aliasing
         if (varIt->second.potentialAlias && !sawnew) {
@@ -325,37 +325,35 @@ void srcSliceHandler::ProcessExprStmtPostAssign() {
         if (sprIt) {
             // 左値は右値に依存する
             //lvalue depends on this rvalue
-            if (lhs->variableName != sprIt->variableName) {
-                if (!lhs->potentialAlias || dereferenced) {
-                    // 潜在的には参照ではない。もしそうなら、非参照されてはならない。
-                    // エイリアスではないので、dvarである
-                    //It is not potentially a reference and if it is, it must not have been dereferenced
-                    //it's not an alias so it's a dvar
-                    this->_logger->debug("dvars#3: {}", lhs->variableName);
-                    sprIt->dvars.insert(lhs->variableName);
-                } else {
-                    // it is an alias, so save that this is the most recent alias and insert it into rhs alias list
-                    // エイリアスなので、最も最近のエイリアスを右辺のエイリアスリストに追加して保存する
-                    lhs->lastInsertedAlias = lhs->aliases.insert(sprIt->variableName).first;
-                }
-                this->_logger->debug("use#4: {}", currentExprStmt.second);
-                sprIt->use.insert(currentExprStmt.second);
-                // ひとつにまとめます。もし他のもののエイリアスであるなら、もう一方を更新します。
-                //Union things together. If this was an alias of anoter thing, update the other thing
-                if (sprIt->potentialAlias && !dereferenced) {
-                    if (!sprIt->aliases.empty()) {
-                        // 問題は最後のエイリアスがイテレータであり他の関数で参照できてしまうことです。
-                        // おそらくポインタに加工します。なぜ必要か分かりました。
-                        //problem  because last alias is an iterator and can reference things in other functions.
-                        //Maybe make into a pointer. Figure out why I need it.
-                        auto spaIt = FunctionIt->second.find(*(sprIt->lastInsertedAlias));
-                        if (spaIt != FunctionIt->second.end()) {
-                            this->_logger->debug("dvars#4: {}", lhs->variableName);
-                            spaIt->second.dvars.insert(lhs->variableName);
-                            this->_logger->debug("use#5: {}", currentExprStmt.second);
-                            spaIt->second.use.insert(currentExprStmt.second);
-                            spaIt->second.slines.insert(currentExprStmt.second);
-                        }
+            if (!lhs->potentialAlias || dereferenced) {
+                // 潜在的には参照ではない。もしそうなら、被参照されてはならない。
+                // エイリアスではないので、dvarである
+                //It is not potentially a reference and if it is, it must not have been dereferenced
+                //it's not an alias so it's a dvar
+                this->_logger->debug("dvars#3: {}", lhs->variableName);
+                sprIt->dvars.insert(lhs->variableName);
+            } else {
+                // it is an alias, so save that this is the most recent alias and insert it into rhs alias list
+                // エイリアスなので、最も最近のエイリアスを右辺のエイリアスリストに追加して保存する
+                lhs->lastInsertedAlias = lhs->aliases.insert(sprIt->variableName).first;
+            }
+            this->_logger->debug("use#4: {}", currentExprStmt.second);
+            sprIt->use.insert(currentExprStmt.second);
+            // ひとつにまとめます。もし他のもののエイリアスであるなら、もう一方を更新します。
+            //Union things together. If this was an alias of anoter thing, update the other thing
+            if (sprIt->potentialAlias && !dereferenced) {
+                if (!sprIt->aliases.empty()) {
+                    // 問題は最後のエイリアスがイテレータであり他の関数で参照できてしまうことです。
+                    // おそらくポインタに加工します。なぜ必要か分かりました。
+                    //problem  because last alias is an iterator and can reference things in other functions.
+                    //Maybe make into a pointer. Figure out why I need it.
+                    auto spaIt = FunctionIt->second.find(*(sprIt->lastInsertedAlias));
+                    if (spaIt != FunctionIt->second.end()) {
+                        this->_logger->debug("dvars#4: {}", lhs->variableName);
+                        spaIt->second.dvars.insert(lhs->variableName);
+                        this->_logger->debug("use#5: {}", currentExprStmt.second);
+                        spaIt->second.use.insert(currentExprStmt.second);
+                        spaIt->second.slines.insert(currentExprStmt.second);
                     }
                 }
             }

@@ -75,7 +75,7 @@ TEST(SliceTest, TestExpr) {
             assert(sslice.SetContext("testsrcSlice.cpp", "main", 1));
             auto var1Slice = sslice.Find("var1");
             std::set<unsigned int> defanswer = {2, 3};
-            std::set<unsigned int> useanswer = {5, 6, 8, 10};
+            std::set<unsigned int> useanswer = {3, 5, 6, 8, 10};
             CFuncSet cfuncanswer;
             cfuncanswer.insert(std::make_pair("foo", 2));
 
@@ -87,7 +87,7 @@ TEST(SliceTest, TestExpr) {
             ASSERT_EQ(var1Slice.second.use, useanswer);
             ASSERT_EQ(var1Slice.second.cfunctions, cfuncanswer);
             ASSERT_EQ(var1Slice.second.aliases.empty(), true);
-            ASSERT_EQ(var1Slice.second.dvars.empty(), true);
+            ASSERT_EQ(var1Slice.second.dvars, std::unordered_set<std::string>({"var1"}));
         }
         std::cerr << "================= COMPLETE =================" << std::endl;
 
