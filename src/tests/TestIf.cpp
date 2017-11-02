@@ -2,7 +2,7 @@
 #include <srcSlice.hpp>
 #include "TestHelper.h"
 
-TEST(SliceTest, TestWhile) {
+TEST(SliceTest, TestIf) {
     std::string srcmlStr = pathToSrcml("if.c", "/src/tests/samples/if.c");
 
     try {

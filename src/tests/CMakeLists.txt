@@ -17,8 +17,16 @@ include_directories($ENV{HOME}/github/srcml-fork/src/libsrcml)
 link_directories($ENV{HOME}/github/srcml-fork/build/bin)
 
 add_executable(srcslicetest ${SRCSLICEHANDLER_SOURCE2} ${SRCSLICEHANDLER_INCLUDE}
-        TempTest.cpp TestPrimitiveTypesSlice.cpp TestDeclSlice.cpp TestExprSlice.cpp
-        TestDotAndMemberAccessSlice.cpp TestApp1.cpp TestHelper.cpp TestHelper.h)
+        TempTest.cpp
+        TestPrimitiveTypesSlice.cpp
+        TestDeclSlice.cpp
+        TestExprSlice.cpp
+        TestDotAndMemberAccessSlice.cpp
+        TestApp1.cpp
+        TestIf.cpp
+        TestWhile.cpp
+        TestIssue2.cpp
+        TestHelper.cpp TestHelper.h)
 add_executable(ex_srcslicetest ${SRCSLICEHANDLER_SOURCE2} ${SRCSLICEHANDLER_INCLUDE}
         ${TESTCASES} TestHelper.cpp TestHelper.h)
 
