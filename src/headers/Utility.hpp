@@ -46,6 +46,10 @@ struct SliceDictionary {
                 : fileName(file), functionName(func), ln(line), currentFile(fileIt), currentFunc(funcIt) {}
     };
 
+    /**
+     * おそらくグローバルスコープの変数を
+     * 格納するための辞書
+     */
     VarMap globalMap;
     std::unordered_map<std::string, ClassProfile> classTable;
     std::unordered_map<std::string, FunctionData> fileFunctionTable;

@@ -87,7 +87,11 @@ private:
 
     bool isConstructor;
 
-    /*bool to tell us when we're not in a function*/
+
+    /**
+     * 関数内にいないこと(つまりグローバルスコープ内)を示すフラグです
+     * bool to tell us when we're not in a function
+     */
     bool inGlobalScope;
     bool isACallName;
 
@@ -397,11 +401,21 @@ public:
                     ++triggerField[block];
                 }},
                 {"init",             [this]() {
+
+//                    bool v = triggerField[decl_stmt] && triggerFieldOr(constructor, function);
+//                    if (!v) {
+//                        std::cout << "decl_stmt: " << triggerField[decl_stmt] << std::endl;
+//                        std::cout << "constructor: " << triggerField[constructor] << std::endl;
+//                        std::cout << "function: " << triggerField[function] << std::endl;
+//                    }
                     //This one is only called if we see init. If there's no init, it's safely ignored.
-                    if (triggerField[decl_stmt] && triggerFieldOr(constructor, function)) {
+                    if (triggerField[decl_stmt] /* && triggerFieldOr(constructor, function) */ ) {
                         GetDeclStmtData();
                         sawinit = true;
                     }
+//                    else {
+//                        std::cout << "なに無視しとんねん: " << currentDecl.first << std::endl;
+//                    }
                     memberAccess = false;
                     currentDecl.first.clear();
                     ++triggerField[init];

@@ -22,7 +22,7 @@ struct srcSlice {
 
     int size() const { return dictionary.ffvMap.size(); }
 
-    void dump_slice_dictionary_ffvMap(){
+    void dump_slice_dictionary_ffvMap() {
         for (auto v : dictionary.ffvMap) {
             std::cout << v.first << std::endl;
             for (auto v2: v.second) {
@@ -75,7 +75,8 @@ struct srcSlice {
     }
 
     //Definition of find that assumes the user didn't give a context (They should just give a context, though, tbh).
-    std::pair<bool, SliceProfile> Find(std::string flename, std::string funcname, std::string varname, int lineNumber) const {
+    std::pair<bool, SliceProfile>
+    Find(std::string flename, std::string funcname, std::string varname, int lineNumber) const {
         FileFunctionVarMap::const_iterator ffvmIt = dictionary.ffvMap.find(flename);
         if (ffvmIt != dictionary.ffvMap.end()) {
             FunctionVarMap::const_iterator fvmIt = ffvmIt->second.find(funcname);
@@ -110,8 +111,15 @@ struct srcSlice {
             VarMap::const_iterator it = dictionary.currentContext.currentFunc->second.find(varname);
             if (it != dictionary.currentContext.currentFunc->second.end()) {
                 return std::make_pair(true, it->second);
+            } else {
+                // グローバルの方を探索する
+                VarMap::const_iterator v_it = dictionary.globalMap.find(varname);
+                if (v_it != dictionary.globalMap.end()) {
+                    return std::make_pair(true, v_it->second);
+                } else {
+                    return std::make_pair(false, SliceProfile());
+                }
             }
-            return std::make_pair(false, SliceProfile());
         }
     }
 
