@@ -297,7 +297,7 @@ void srcSliceHandler::ProcessExprStmtPreAssign() {
             currentSliceProfile.potentialAlias = false;
             currentSliceProfile.isGlobal = inGlobalScope;
 
-            std::cout << "ここかな? #7: " << currentSliceProfile.variableName << std::endl;
+            this->_logger->debug("ここかな? #7: {}", currentSliceProfile.variableName);
             varIt = FunctionIt->second.insert(std::make_pair(lhsExprStmt.first, std::move(currentSliceProfile))).first;
             this->_logger->debug("def#4: {}", lhsExprStmt.second);
 
