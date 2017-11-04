@@ -175,6 +175,12 @@ void srcSliceToCsv(const srcSlice &handler) {
             }
         }
     }
+
+    // globalMap も出力するようにする
+    auto globalMap = handler.dictionary.globalMap;
+    for (auto vmIt = std::begin(globalMap); vmIt != std::end(globalMap); ++vmIt) {
+        std::cout << varmap_pair_to_string(vmIt->first, "__GLOBAL__", vmIt) << std::endl;
+    }
 }
 
 /**
