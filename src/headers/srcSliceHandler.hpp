@@ -213,6 +213,7 @@ public:
     unsigned int lineNum;
 
     srcSliceHandler(SliceDictionary *dict) {
+        // スライス情報を格納する辞書への参照を得る
         sysDict = dict;
 
         // ロガーを初期化する
