@@ -97,60 +97,89 @@ void TestSlice(const FileFunctionVarMap &mp, srcSliceHandler handler) {
     }
 }
 
-void srcSliceToCsv(const srcSlice &handler) {
+std::string join(const char *delimiter, std::vector<std::string> source) {
+    std::stringstream ss;
+    for (size_t i = 0; i < source.size(); ++i) {
+        if (i != 0) {
+            ss << delimiter;
+        }
+        ss << source[i];
+    }
+    return ss.str();
+}
+
+template<typename T>
+std::vector<std::string> set_to_vector(std::set<T> source) {
+    auto vec = std::vector<T>(std::begin(source), std::end(source));
+    std::vector<std::string> out;
+    std::transform(
+            std::begin(vec),
+            std::end(vec),
+            std::back_inserter(out), [](T x) { return std::to_string(x); });
+    return out;
+}
+
+template<typename T, typename Mapper>
+std::vector<std::string> unordered_set_to_vector(std::unordered_set<T> source, Mapper mapper) {
+    auto vec = std::vector<T>(std::begin(source), std::end(source));
+    std::vector<std::string> out;
+    std::transform(
+            std::begin(vec),
+            std::end(vec),
+            std::back_inserter(out), mapper);
+    return out;
+}
+
+std::string varmap_pair_to_string(std::string file_name, std::string function_name, VarMap::const_iterator vmIt) {
     std::string str;
-    for (FileFunctionVarMap::const_iterator ffvmIt = handler.dictionary.ffvMap.begin(); ffvmIt != handler.dictionary.ffvMap.end(); ++ffvmIt) {
+    std::string varname = vmIt->first;
+
+    std::vector<std::string> container;
+    container.push_back(file_name);
+    container.push_back(function_name);
+    container.push_back(varname);
+    container.push_back("def{" + join(",", set_to_vector<unsigned int>(vmIt->second.def)) + "}");
+    container.push_back("use{" + join(",", set_to_vector<unsigned int>(vmIt->second.use)) + "}");
+    container.push_back("dvars{" + join(",", unordered_set_to_vector<std::string>
+            (vmIt->second.dvars, [](std::string x) { return x; })) + "}");
+    container.push_back("pointers{" + join(",", unordered_set_to_vector<std::string>(vmIt->second.aliases,
+                                                                                     [](std::string x) { return x; })) +
+                        "}");
+
+    str.append(join(",", container));
+
+    // 余計ややこしくなりそうなので元のコードのままで保留
+    str.append(",cfuncs{");
+    for (auto cfunc : vmIt->second.cfunctions) {
+        std::stringstream ststrm;
+        ststrm << cfunc.second;
+        str.append(cfunc.first).append("{").append(ststrm.str()).append("},");
+    }
+    if (str.at(str.length() - 1) == ',')
+        str.erase(str.length() - 1);
+    str.append("}");
+
+    return str;
+}
+
+void srcSliceToCsv(const srcSlice &handler) {
+    for (FileFunctionVarMap::const_iterator ffvmIt = handler.dictionary.ffvMap.begin();
+         ffvmIt != handler.dictionary.ffvMap.end(); ++ffvmIt) {
         //auto fileNameIt = handler.dictionary.fileTable.find(ffvmIt->first);
         //if(fileNameIt != handler.dictionary.fileTable.end())
         for (FunctionVarMap::const_iterator fvmIt = ffvmIt->second.begin(); fvmIt != ffvmIt->second.end(); ++fvmIt) {
             //auto functionNameIt = handler.dictionary.functionTable.find();
             for (VarMap::const_iterator vmIt = fvmIt->second.begin(); vmIt != fvmIt->second.end(); ++vmIt) {
-                str.append(ffvmIt->first).append(",").append(fvmIt->first).append(",").append(vmIt->first);
-                str.append(",def{");
-                for (unsigned int def : vmIt->second.def) {
-                    std::stringstream ststrm;
-                    ststrm << def;
-                    str.append(ststrm.str()).append(",");
-                }
-                if (str.at(str.length() - 1) == ',')
-                    str.erase(str.length() - 1);
-                str.append("},");
-                str.append("use{");
-                for (unsigned int use : vmIt->second.use) {
-                    std::stringstream ststrm;
-                    ststrm << use;
-                    str.append(ststrm.str()).append(",");
-                }
-                if (str.at(str.length() - 1) == ',')
-                    str.erase(str.length() - 1);
-                str.append("},");
-                str.append("dvars{");
-                for (std::string dv : vmIt->second.dvars) {
-                    str.append(dv.append(","));
-                }
-                if (str.at(str.length() - 1) == ',')
-                    str.erase(str.length() - 1);
-                str.append("},");
-                str.append("pointers{");
-                for (std::string al : vmIt->second.aliases) {
-                    str.append(al.append(","));
-                }
-                if (str.at(str.length() - 1) == ',')
-                    str.erase(str.length() - 1);
-                str.append("},");
-                str.append("cfuncs{");
-                for (auto cfunc : vmIt->second.cfunctions) {
-                    std::stringstream ststrm;
-                    ststrm << cfunc.second;
-                    str.append(cfunc.first).append("{").append(ststrm.str()).append("},");
-                }
-                if (str.at(str.length() - 1) == ',')
-                    str.erase(str.length() - 1);
-                str.append("}");
+                std::string str = varmap_pair_to_string(ffvmIt->first, fvmIt->first, vmIt);
                 std::cout << str << std::endl;
-                str.clear();
             }
         }
+    }
+
+    // globalMap も出力するようにする
+    auto globalMap = handler.dictionary.globalMap;
+    for (auto vmIt = std::begin(globalMap); vmIt != std::end(globalMap); ++vmIt) {
+        std::cout << varmap_pair_to_string(vmIt->second.file, vmIt->second.function, vmIt) << std::endl;
     }
 }
 

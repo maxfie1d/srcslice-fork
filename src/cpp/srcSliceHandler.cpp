@@ -22,11 +22,9 @@
 #include <Utility.hpp>
 
 
-
 /**
  * 関係なし
- */
-/**
+ *
  *Find
  *Find function takes a variable name and searches first the local table to the function it was in
  *and if it's not found there, then it searches the global table to see if it's in there.
@@ -241,8 +239,6 @@ void srcSliceHandler::AssignProfile() {
  * 宣言文のデータを取得する
  * 宣言文の型と名前を取得するために正確なコンストレインを知る。
  * 新しいslice-profileを作成し、宣言文についての情報をストアする。
- */
-/**
 * GetDeclStmtData
 * Knows proper constraints for obtaining DeclStmt type and name.
 * creates a new slice profile and stores data about decl statement inside.
@@ -257,6 +253,8 @@ void srcSliceHandler::GetDeclStmtData() {
         currentSliceProfile.variableName = currentDecl.first;
         currentSliceProfile.potentialAlias = potentialAlias;
         currentSliceProfile.isGlobal = inGlobalScope;
+
+        this->_logger->debug("ここやん！: {}, {}", currentSliceProfile.variableName, inGlobalScope);
         if (!inGlobalScope) {
             auto pair = std::make_pair(currentSliceProfile.variableName, std::move(currentSliceProfile));
             varIt = FunctionIt->second.insert(pair).first;
@@ -266,7 +264,11 @@ void srcSliceHandler::GetDeclStmtData() {
             varIt->second.def.insert(currentDecl.second);
         } else {
             //TODO: Handle def use for globals
-            sysDict->globalMap.insert(std::make_pair(currentSliceProfile.variableName, std::move(currentSliceProfile)));
+            // グローバルマップに追加
+            currentSliceProfile.function = "__GLOBAL__";
+            currentSliceProfile.def.insert(currentDecl.second);
+            auto varmap_pair = std::make_pair(currentSliceProfile.variableName, std::move(currentSliceProfile));
+            sysDict->globalMap.insert(varmap_pair);
         }
         currentDecl.first.clear();
     }
@@ -277,8 +279,7 @@ void srcSliceHandler::GetDeclStmtData() {
  * 式文(2017.10.29: おそらく代入文のことだと思われる)全体を取得し、はじめに左辺と右辺に分けることにより処理します。
  * マップの中に見つかった場合左辺の行番号を保存するように処理します。
  * 左辺を処理したら、alias, dvars, 関数呼び出しのために右辺を処理します。
- */
-/**
+ *
  * ProcessExprStmtPreAssign
  * Get entire expression statement and then process by first splitting to lhs and rhs.
  * Process the lhs by saving its slines if it can be found in the map.

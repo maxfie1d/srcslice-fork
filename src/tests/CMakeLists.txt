@@ -3,7 +3,7 @@ file(GLOB SRCSLICEHANDLER_SOURCE2 ../cpp/srcSlice*.cpp)
 file(GLOB SRCSLICEHANDLER_INCLUDE ../headers/*.hpp)
 file(GLOB SRCSLICETEST_SOURCE *.cpp)
 file(GLOB SRCSLICETEST_INCLUDE *.hpp)
-file(GLOB TESTCASES TestApp3-2.cpp)
+file(GLOB TESTCASES TestGlobalIssue3.cpp)
 
 link_directories(/usr/local/lib/)
 
@@ -26,6 +26,7 @@ add_executable(srcslicetest ${SRCSLICEHANDLER_SOURCE2} ${SRCSLICEHANDLER_INCLUDE
         TestIf.cpp
         TestWhile.cpp
         TestIssue2.cpp
+        TestGlobalIssue3.cpp
         TestHelper.cpp TestHelper.h)
 add_executable(ex_srcslicetest ${SRCSLICEHANDLER_SOURCE2} ${SRCSLICEHANDLER_INCLUDE}
         ${TESTCASES} TestHelper.cpp TestHelper.h)
