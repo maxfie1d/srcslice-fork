@@ -264,7 +264,8 @@ void srcSliceHandler::GetDeclStmtData() {
             varIt->second.def.insert(currentDecl.second);
         } else {
             //TODO: Handle def use for globals
-            // ここでdef{}にいれる必要がある気がする
+            // グローバルマップに追加
+            currentSliceProfile.function = "__GLOBAL__";
             currentSliceProfile.def.insert(currentDecl.second);
             auto varmap_pair = std::make_pair(currentSliceProfile.variableName, std::move(currentSliceProfile));
             sysDict->globalMap.insert(varmap_pair);
