@@ -130,19 +130,21 @@ std::vector<std::string> unordered_set_to_vector(std::unordered_set<T> source, M
     return out;
 }
 
-std::string varmap_pair_to_string(std::string file_name, std::string function_name, VarMap::const_iterator vmIt) {
+std::string
+varmap_pair_to_string(std::string file_name, std::string function_name, std::pair<std::string, SliceProfile> *vmIt) {
     std::string str;
     std::string varname = vmIt->first;
+    auto sp = vmIt->second;
 
     std::vector<std::string> container;
     container.push_back(file_name);
     container.push_back(function_name);
     container.push_back(varname);
-    container.push_back("def{" + join(",", set_to_vector<unsigned int>(vmIt->second.def)) + "}");
-    container.push_back("use{" + join(",", set_to_vector<unsigned int>(vmIt->second.use)) + "}");
+    container.push_back("def{" + join(",", set_to_vector<unsigned int>(sp.def)) + "}");
+    container.push_back("use{" + join(",", set_to_vector<unsigned int>(sp.use)) + "}");
     container.push_back("dvars{" + join(",", unordered_set_to_vector<std::string>
-            (vmIt->second.dvars, [](std::string x) { return x; })) + "}");
-    container.push_back("pointers{" + join(",", unordered_set_to_vector<std::string>(vmIt->second.aliases,
+            (sp.dvars, [](std::string x) { return x; })) + "}");
+    container.push_back("pointers{" + join(",", unordered_set_to_vector<std::string>(sp.aliases,
                                                                                      [](std::string x) { return x; })) +
                         "}");
 
@@ -150,7 +152,7 @@ std::string varmap_pair_to_string(std::string file_name, std::string function_na
 
     // 余計ややこしくなりそうなので元のコードのままで保留
     str.append(",cfuncs{");
-    for (auto cfunc : vmIt->second.cfunctions) {
+    for (auto cfunc : sp.cfunctions) {
         std::stringstream ststrm;
         ststrm << cfunc.second;
         str.append(cfunc.first).append("{").append(ststrm.str()).append("},");
@@ -163,23 +165,35 @@ std::string varmap_pair_to_string(std::string file_name, std::string function_na
 }
 
 void srcSliceToCsv(const srcSlice &handler) {
-    for (FileFunctionVarMap::const_iterator ffvmIt = handler.dictionary.ffvMap.begin();
-         ffvmIt != handler.dictionary.ffvMap.end(); ++ffvmIt) {
-        //auto fileNameIt = handler.dictionary.fileTable.find(ffvmIt->first);
-        //if(fileNameIt != handler.dictionary.fileTable.end())
-        for (FunctionVarMap::const_iterator fvmIt = ffvmIt->second.begin(); fvmIt != ffvmIt->second.end(); ++fvmIt) {
-            //auto functionNameIt = handler.dictionary.functionTable.find();
-            for (VarMap::const_iterator vmIt = fvmIt->second.begin(); vmIt != fvmIt->second.end(); ++vmIt) {
-                std::string str = varmap_pair_to_string(ffvmIt->first, fvmIt->first, vmIt);
+    // ソートする
+    std::map<std::string, FunctionVarMap> sorted_ffvMap
+            (handler.dictionary.ffvMap.begin(),
+             handler.dictionary.ffvMap.end());
+    for (auto &ffvmIt: sorted_ffvMap) {
+        // ソートする
+        std::map<std::string, VarMap> sorted_fvMap
+                (ffvmIt.second.begin(),
+                 ffvmIt.second.end());
+        for (auto fvmIt: sorted_fvMap) {
+            // ソートする
+            std::map<std::string, SliceProfile> sorted_vMap(
+                    fvmIt.second.begin(),
+                    fvmIt.second.end()
+            );
+            for (std::pair<std::string, SliceProfile> vmIt: sorted_vMap) {
+                std::string str = varmap_pair_to_string(ffvmIt.first, fvmIt.first, &vmIt);
                 std::cout << str << std::endl;
             }
         }
     }
 
-    // globalMap も出力するようにする
+    // globalMap も出力する
     auto globalMap = handler.dictionary.globalMap;
-    for (auto vmIt = std::begin(globalMap); vmIt != std::end(globalMap); ++vmIt) {
-        std::cout << varmap_pair_to_string(vmIt->second.file, vmIt->second.function, vmIt) << std::endl;
+    // ソートする
+    std::map<std::string, SliceProfile> sorted_globalMap
+            (globalMap.begin(), globalMap.end());
+    for (std::pair<std::string, SliceProfile> vmIt : sorted_globalMap) {
+        std::cout << varmap_pair_to_string(vmIt.second.file, vmIt.second.function, &vmIt) << std::endl;
     }
 }
 
