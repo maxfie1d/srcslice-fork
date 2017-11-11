@@ -19,10 +19,6 @@
  */
 
 #include <srcSliceHandler.hpp>
-#include <srcSAXController.hpp>
-#include <time.h>
-#include <map>
-#include <iostream>
 
 void TestSlice2(const VarMap &mp) {
     for (VarMap::const_iterator vmIt = mp.begin(); vmIt != mp.end(); ++vmIt) {
