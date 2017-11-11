@@ -19,6 +19,7 @@
  */
 
 #include <srcSliceHandler.hpp>
+#include <json.hpp>
 
 void TestSlice2(const VarMap &mp) {
     for (VarMap::const_iterator vmIt = mp.begin(); vmIt != mp.end(); ++vmIt) {
@@ -141,7 +142,7 @@ varmap_pair_to_string(std::string file_name, std::string function_name, std::pai
     container.push_back("dvars{" + join(',', unordered_set_to_vector<std::string>
             (sp.dvars, [](std::string x) { return x; })) + "}");
     container.push_back("pointers{" + join(',', unordered_set_to_vector<std::string>(sp.aliases,
-                                                                                           [](std::string x) { return x; })) +
+                                                                                     [](std::string x) { return x; })) +
                         "}");
 
     str.append(join('\t', container));
@@ -161,6 +162,8 @@ varmap_pair_to_string(std::string file_name, std::string function_name, std::pai
 }
 
 void srcSliceToCsv(const srcSlice &handler) {
+    std::stringstream ss;
+
     // ソートする
     std::map<std::string, FunctionVarMap> sorted_ffvMap
             (handler.dictionary.ffvMap.begin(),
@@ -177,8 +180,8 @@ void srcSliceToCsv(const srcSlice &handler) {
                     fvmIt.second.end()
             );
             for (std::pair<std::string, SliceProfile> vmIt: sorted_vMap) {
-                std::string str = varmap_pair_to_string(ffvmIt.first, fvmIt.first, &vmIt);
-                std::cout << str << std::endl;
+                std::string row = varmap_pair_to_string(ffvmIt.first, fvmIt.first, &vmIt);
+                ss << row << std::endl;
             }
         }
     }
@@ -189,8 +192,19 @@ void srcSliceToCsv(const srcSlice &handler) {
     std::map<std::string, SliceProfile> sorted_globalMap
             (globalMap.begin(), globalMap.end());
     for (std::pair<std::string, SliceProfile> vmIt : sorted_globalMap) {
-        std::cout << varmap_pair_to_string(vmIt.second.file, vmIt.second.function, &vmIt) << std::endl;
+        std::string row = varmap_pair_to_string(vmIt.second.file, vmIt.second.function, &vmIt);
+        ss << row << std::endl;
     }
+
+    // 変数と関数の解析結果を両方出力するために
+    // JSON形式で出力することにした
+    // ただし値部分はCSV形式のままなので大した変化はない
+    using json = nlohmann::json;
+
+    json j;
+    j["vars"] = ss.str();
+    j["funcs"] = "まだ実装できてないねん、ごめんな";
+    std::cout << j.dump(4) << std::endl;
 }
 
 /**
