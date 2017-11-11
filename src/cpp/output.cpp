@@ -97,7 +97,7 @@ void TestSlice(const FileFunctionVarMap &mp, srcSliceHandler handler) {
     }
 }
 
-std::string join(const char *delimiter, std::vector<std::string> source) {
+std::string join(const char delimiter, std::vector<std::string> source) {
     std::stringstream ss;
     for (size_t i = 0; i < source.size(); ++i) {
         if (i != 0) {
@@ -140,24 +140,24 @@ varmap_pair_to_string(std::string file_name, std::string function_name, std::pai
     container.push_back(file_name);
     container.push_back(function_name);
     container.push_back(varname);
-    container.push_back("def{" + join(",", set_to_vector<unsigned int>(sp.def)) + "}");
-    container.push_back("use{" + join(",", set_to_vector<unsigned int>(sp.use)) + "}");
-    container.push_back("dvars{" + join(",", unordered_set_to_vector<std::string>
+    container.push_back("def{" + join(',', set_to_vector<unsigned int>(sp.def)) + "}");
+    container.push_back("use{" + join(',', set_to_vector<unsigned int>(sp.use)) + "}");
+    container.push_back("dvars{" + join(',', unordered_set_to_vector<std::string>
             (sp.dvars, [](std::string x) { return x; })) + "}");
-    container.push_back("pointers{" + join(",", unordered_set_to_vector<std::string>(sp.aliases,
-                                                                                     [](std::string x) { return x; })) +
+    container.push_back("pointers{" + join(',', unordered_set_to_vector<std::string>(sp.aliases,
+                                                                                           [](std::string x) { return x; })) +
                         "}");
 
-    str.append(join(",", container));
+    str.append(join('\t', container));
 
     // 余計ややこしくなりそうなので元のコードのままで保留
-    str.append(",cfuncs{");
+    str.append("\tcfuncs{");
     for (auto cfunc : sp.cfunctions) {
         std::stringstream ststrm;
         ststrm << cfunc.second;
-        str.append(cfunc.first).append("{").append(ststrm.str()).append("},");
+        str.append(cfunc.first).append("{").append(ststrm.str()).append("}\t");
     }
-    if (str.at(str.length() - 1) == ',')
+    if (str.at(str.length() - 1) == '\t')
         str.erase(str.length() - 1);
     str.append("}");
 
