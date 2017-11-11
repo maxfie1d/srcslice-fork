@@ -35,7 +35,18 @@ typedef std::unordered_map<std::string, FunctionVarMap> FileFunctionVarMap;
 /**
  * 名前と行番号のペア
  */
-typedef std::pair<std::string, unsigned int> NameLineNumberPair;
+struct NameAndLineNumber {
+    std::string name;
+    unsigned int lineNumber;
+
+    // 形名に()をつけると、デフォルト値が入ることになるぞ！
+
+    NameAndLineNumber(std::string name = std::string(),
+                       unsigned int lineNumber = 0) {
+        this->name = name;
+        this->lineNumber = lineNumber;
+    }
+};
 
 struct NameLineNumberPairHash {
 public:
