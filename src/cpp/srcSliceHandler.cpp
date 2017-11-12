@@ -33,8 +33,8 @@
  *@return Pointer to Slice Profile or null.
  */
 SliceProfile *srcSliceHandler::Find(const std::string &varName) {
-    auto sp = FunctionIt->second.find(varName);
-    if (sp != FunctionIt->second.end()) {
+    auto sp = FunctionVarMapItr->second.find(varName);
+    if (sp != FunctionVarMapItr->second.end()) {
         return &(sp->second);
     } else { //check global map
         auto sp2 = sysDict->globalMap.find(varName);
@@ -101,7 +101,7 @@ void srcSliceHandler::ProcessDeclStmt() {
         if (!inFor) {
             return;
         } else {
-            varIt = FunctionIt->second.insert(
+            varIt = FunctionVarMapItr->second.insert(
                     std::make_pair(currentDeclInit.name, std::move(currentSliceProfile))).first;
             this->_logger->debug("def#1: {}", currentDeclInit.lineNumber);
             varIt->second.def.insert(currentDeclInit.lineNumber);
@@ -160,23 +160,29 @@ void srcSliceHandler::GetParamType() {
  */
 void srcSliceHandler::GetParamName() {
     // 現在のslice-profileのインデックス、ファイル名、関数名、変数名などをセットする
-    currentSliceProfile.index = declIndex;
-    currentSliceProfile.file = fileName;
-    currentSliceProfile.function = functionTmplt.functionName;
-    currentSliceProfile.variableName = currentParam.name;
-    currentSliceProfile.potentialAlias = potentialAlias;
-    currentSliceProfile.isGlobal = inGlobalScope;
 
-    // std::move はやや難しいが、短くいうと所有権を移動する役割がある
-    // 参考: http://kaworu.jpn.org/cpp/std::move
+    // int main(void)などの場合でパラメータが"void"であるとき
+    // パラメータは空なのでスキップする
+    if (currentSliceProfile.variableType != "void") {
+        currentSliceProfile.index = declIndex;
+        currentSliceProfile.file = fileName;
+        currentSliceProfile.function = functionTmplt.functionName;
+        currentSliceProfile.variableName = currentParam.name;
+        currentSliceProfile.potentialAlias = potentialAlias;
+        currentSliceProfile.isGlobal = inGlobalScope;
 
-    // function-var-mapに新しく追加する
-    varIt = FunctionIt->second.insert(std::make_pair(currentParam.name, std::move(currentSliceProfile))).first;
-    // def{} に引数の行番号を追加する
-    this->_logger->debug("def#2: {}", currentParam.lineNumber);
-    varIt->second.def.insert(currentParam.lineNumber);
+        // std::move はやや難しいが、短くいうと所有権を移動する役割がある
+        // 参考: http://kaworu.jpn.org/cpp/std::move
 
-    currentParam.name.clear();
+        // function-var-mapに新しく追加する
+        varIt = FunctionVarMapItr->second.insert(
+                std::make_pair(currentParam.name, std::move(currentSliceProfile))).first;
+        // def{} に引数の行番号を追加する
+        this->_logger->debug("def#2: {}", currentParam.lineNumber);
+        varIt->second.def.insert(currentParam.lineNumber);
+
+        currentParam.name.clear();
+    }
 }
 
 /**
@@ -257,7 +263,7 @@ void srcSliceHandler::GetDeclStmtData() {
         this->_logger->debug("ここやん！: {}, {}", currentSliceProfile.variableName, inGlobalScope);
         if (!inGlobalScope) {
             auto pair = std::make_pair(currentSliceProfile.variableName, std::move(currentSliceProfile));
-            varIt = FunctionIt->second.insert(pair).first;
+            varIt = FunctionVarMapItr->second.insert(pair).first;
             // def{} 現在の宣言の行番号を追加する
             this->_logger->debug("def#3: {}", currentDecl.lineNumber);
 
@@ -299,7 +305,8 @@ void srcSliceHandler::ProcessExprStmtPreAssign() {
             currentSliceProfile.isGlobal = inGlobalScope;
 
             this->_logger->debug("ここかな? #7: {}", currentSliceProfile.variableName);
-            varIt = FunctionIt->second.insert(std::make_pair(lhsExprStmt.name, std::move(currentSliceProfile))).first;
+            varIt = FunctionVarMapItr->second.insert(
+                    std::make_pair(lhsExprStmt.name, std::move(currentSliceProfile))).first;
             this->_logger->debug("def#4: {}", lhsExprStmt.lineNumber);
 
             varIt->second.def.insert(lhsExprStmt.lineNumber);
@@ -348,8 +355,8 @@ void srcSliceHandler::ProcessExprStmtPostAssign() {
                     // おそらくポインタに加工します。なぜ必要か分かりました。
                     //problem  because last alias is an iterator and can reference things in other functions.
                     //Maybe make into a pointer. Figure out why I need it.
-                    auto spaIt = FunctionIt->second.find(*(sprIt->lastInsertedAlias));
-                    if (spaIt != FunctionIt->second.end()) {
+                    auto spaIt = FunctionVarMapItr->second.find(*(sprIt->lastInsertedAlias));
+                    if (spaIt != FunctionVarMapItr->second.end()) {
                         this->_logger->debug("dvars#4: {}", lhs->variableName);
                         spaIt->second.dvars.insert(lhs->variableName);
                         this->_logger->debug("use#5: {}", currentExprStmt.lineNumber);
@@ -415,11 +422,11 @@ void srcSliceHandler::ComputeInterprocedural(const std::string &f) {
         std::cerr << "CAN'T FIND FILE" << std::endl;
         return;
     } else {
-        FunctionIt = (FileIt)->second.begin();
+        FunctionVarMapItr = (FileIt)->second.begin();
         FunctionVarMap::iterator FunctionItEnd = FileIt->second.end();
 
-        for (; FunctionIt != FunctionItEnd; ++FunctionIt) {
-            for (VarMap::iterator it = FunctionIt->second.begin(); it != FunctionIt->second.end(); ++it) {
+        for (; FunctionVarMapItr != FunctionItEnd; ++FunctionVarMapItr) {
+            for (VarMap::iterator it = FunctionVarMapItr->second.begin(); it != FunctionVarMapItr->second.end(); ++it) {
                 if (!it->second.visited) {
                     //std::unordered_set<NameAndLineNumber, NameLineNumberPairHash>::iterator - auto
                     for (auto itCF = it->second.cfunctions.begin(); itCF != it->second.cfunctions.end(); ++itCF) {

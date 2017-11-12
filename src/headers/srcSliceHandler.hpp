@@ -82,7 +82,7 @@ private:
      *be updated as the file is parsed*/
     std::unordered_map<std::string, ClassProfile>::iterator classIt;
     FileFunctionVarMap::iterator FileIt;
-    FunctionVarMap::iterator FunctionIt;
+    FunctionVarMap::iterator FunctionVarMapItr;
     VarMap::iterator varIt;
 
     bool isConstructor;
@@ -266,7 +266,7 @@ public:
                     }
                     if (triggerField[function]
                         && !triggerFieldOr(functionblock, type, parameter_list)) {
-                        FunctionIt = FileIt->second.insert(std::make_pair(functionTmplt.functionName, VarMap())).first;
+                        FunctionVarMapItr = FileIt->second.insert(std::make_pair(functionTmplt.functionName, VarMap())).first;
                     }
                     if (triggerField[constructordecl]) { //For the case where we need to get a constructor decl
                         ProcessConstructorDecl();
@@ -831,7 +831,7 @@ public:
 
         // GLOBALスコープのものはここで作られる
         //for globals. Makes a bad assumption about where globals are. Fix.
-        FunctionIt = FileIt->second.insert(std::make_pair("GLOBAL", VarMap())).first;
+        FunctionVarMapItr = FileIt->second.insert(std::make_pair("GLOBAL", VarMap())).first;
     }
 
     /**

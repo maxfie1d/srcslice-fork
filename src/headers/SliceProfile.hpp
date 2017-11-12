@@ -42,7 +42,7 @@ struct NameAndLineNumber {
     // 形名に()をつけると、デフォルト値が入ることになるぞ！
 
     NameAndLineNumber(std::string name = std::string(),
-                       unsigned int lineNumber = 0) {
+                      unsigned int lineNumber = 0) {
         this->name = name;
         this->lineNumber = lineNumber;
     }
@@ -85,37 +85,77 @@ class SliceProfile {
 public:
     SliceProfile() : index(0), visited(false), potentialAlias(false), dereferenced(false), isGlobal(false) {}
 
-    SliceProfile(unsigned int idx, std::string fle, std::string fcn, unsigned int sline, std::string name,
-                 bool alias = 0, bool global = 0) :
-            index(idx), file(fle), function(fcn), potentialAlias(alias), variableName(name), isGlobal(global) {
+    SliceProfile(unsigned int idx,
+                 std::string fle,
+                 std::string fcn,
+                 unsigned int sline,
+                 std::string name,
+                 bool alias = false,
+                 bool global = false)
+            : index(idx), file(fle), function(fcn), potentialAlias(alias), variableName(name), isGlobal(global) {
         dereferenced = false;
         visited = false;
     }
 
     unsigned int index;
-    std::string file;
-    std::string function;
-
     std::unordered_set<std::string>::iterator lastInsertedAlias;
-
     bool potentialAlias;
     bool dereferenced;
-
     bool isGlobal;
     bool visited;
 
+    /**
+     * その変数が存在するソースファイルのパス
+     */
+    std::string file;
+
+    /**
+     * その変数が存在する関数の名前
+     */
+    std::string function;
+
+    /**
+     * 変数名
+     */
     std::string variableName;
+
+    /**
+     * 変数の型
+     */
     std::string variableType;
+
+    /**
+     * なにこれ
+     */
     std::unordered_set<std::string> memberVariables;
+
     /**
      * Deprecated
      */
     std::unordered_set<unsigned int> slines;
 
+    /**
+     * defされる行番号の集合
+     */
     std::set<unsigned int> def;
+
+    /**
+     * useされる行番号の集合
+     */
     std::set<unsigned int> use;
 
+    /**
+     * cfuncs{}
+     */
     std::unordered_set<std::pair<std::string, unsigned int>, NameLineNumberPairHash> cfunctions;
+
+    /**
+     * dvars{}
+     */
     std::unordered_set<std::string> dvars;
+
+    /**
+     * pointers{}
+     */
     std::unordered_set<std::string> aliases;
 };
