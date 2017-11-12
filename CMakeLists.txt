@@ -32,8 +32,13 @@ enable_testing()
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMake)
 include(srcslice)
 
-include_directories(src/headers src/cpp
-	src/srcSAX/src/srcsax src/srcSAX/src/cpp src/srcSAX/src/windows)
+include_directories(
+        src/headers
+        src/cpp
+        src/srcSAX/src/srcsax
+        src/srcSAX/src/cpp
+        src/srcSAX/src/windows
+        src/lib)
 
 add_subdirectory(src)
 add_subdirectory(src/tests)

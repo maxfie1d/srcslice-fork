@@ -33,8 +33,8 @@
  *@return Pointer to Slice Profile or null.
  */
 SliceProfile *srcSliceHandler::Find(const std::string &varName) {
-    auto sp = FunctionIt->second.find(varName);
-    if (sp != FunctionIt->second.end()) {
+    auto sp = FunctionVarMapItr->second.find(varName);
+    if (sp != FunctionVarMapItr->second.end()) {
         return &(sp->second);
     } else { //check global map
         auto sp2 = sysDict->globalMap.find(varName);
@@ -53,7 +53,7 @@ SliceProfile *srcSliceHandler::Find(const std::string &varName) {
  *Processes decls of the form object(arg,arg)
  */
 void srcSliceHandler::ProcessConstructorDecl() {
-    auto sp = Find(currentDeclArg.first);
+    auto sp = Find(currentDeclArg.name);
     if (sp) {
         this->_logger->debug("dvars#1: {}", varIt->second.variableName);
         sp->dvars.insert(varIt->second.variableName);
@@ -73,13 +73,13 @@ void srcSliceHandler::ProcessConstructorDecl() {
 *corner case at new operator because new makes an object even if its argument is an alias.
 */
 void srcSliceHandler::ProcessDeclStmt() {
-    if (currentDeclInit.first == "") { return; } //No nameless profiles.
-    auto sp = Find(currentDeclInit.first);
+    if (currentDeclInit.name == "") { return; } //No nameless profiles.
+    auto sp = Find(currentDeclInit.name);
     if (sawnew) { sawnew = false; }
     if (sp) {
-        varIt->second.slines.insert(currentDeclInit.second); //varIt is lhs
-        this->_logger->debug("use#1: {}", currentDeclInit.second);
-        sp->use.insert(currentDeclInit.second);
+        varIt->second.slines.insert(currentDeclInit.lineNumber); //varIt is lhs
+        this->_logger->debug("use#1: {}", currentDeclInit.lineNumber);
+        sp->use.insert(currentDeclInit.lineNumber);
         //new operator of the form int i = new int(tmp); screws around with aliasing
         if (varIt->second.potentialAlias && !sawnew) {
             varIt->second.lastInsertedAlias = varIt->second.aliases.insert(sp->variableName).first;
@@ -87,8 +87,8 @@ void srcSliceHandler::ProcessDeclStmt() {
             // dvars{} と use{} に追加する
             this->_logger->debug("dvars#2: {}", varIt->second.variableName);
             sp->dvars.insert(varIt->second.variableName);
-            this->_logger->debug("use#2: {}", currentDeclInit.second);
-            sp->use.insert(currentDeclInit.second);
+            this->_logger->debug("use#2: {}", currentDeclInit.lineNumber);
+            sp->use.insert(currentDeclInit.lineNumber);
         }
     } else {
         // for ループにおける初期化(init)は一般的な宣言文のハンドリングと異なる
@@ -101,15 +101,15 @@ void srcSliceHandler::ProcessDeclStmt() {
         if (!inFor) {
             return;
         } else {
-            varIt = FunctionIt->second.insert(
-                    std::make_pair(currentDeclInit.first, std::move(currentSliceProfile))).first;
-            this->_logger->debug("def#1: {}", currentDeclInit.second);
-            varIt->second.def.insert(currentDeclInit.second);
+            varIt = FunctionVarMapItr->second.insert(
+                    std::make_pair(currentDeclInit.name, std::move(currentSliceProfile))).first;
+            this->_logger->debug("def#1: {}", currentDeclInit.lineNumber);
+            varIt->second.def.insert(currentDeclInit.lineNumber);
         }
     }
 
     // 現在の宣言初期化をクリア
-    currentDeclInit.first.clear();
+    currentDeclInit.name.clear();
 }
 
 /**
@@ -135,11 +135,11 @@ void srcSliceHandler::GetCallData() {
         if (!callArgData.empty()) {
             // 関数呼び出しで使われる変数のslice-profileがあるか?
             //check to find sp for the variable being called on fcn
-            auto sp = Find(callArgData.top().first);
+            auto sp = Find(callArgData.top().name);
             if (sp) {
-                sp->slines.insert(callArgData.top().second);
-                this->_logger->debug("use#3: {}", callArgData.top().second);
-                sp->use.insert(callArgData.top().second);
+                sp->slines.insert(callArgData.top().lineNumber);
+                this->_logger->debug("use#3: {}", callArgData.top().lineNumber);
+                sp->use.insert(callArgData.top().lineNumber);
                 sp->index = numArgs;
                 this->_logger->debug("cfuncs#1: {}", nameOfCurrentClldFcn.top());
                 sp->cfunctions.insert(std::make_pair(nameOfCurrentClldFcn.top(), numArgs));
@@ -150,8 +150,8 @@ void srcSliceHandler::GetCallData() {
 
 void srcSliceHandler::GetParamType() {
     // 現在のslice-profileに変数の型をセットする
-    currentSliceProfile.variableType = currentParamType.first;
-    currentParamType.first.clear();
+    currentSliceProfile.variableType = currentParamType.name;
+    currentParamType.name.clear();
 }
 
 /**
@@ -160,23 +160,29 @@ void srcSliceHandler::GetParamType() {
  */
 void srcSliceHandler::GetParamName() {
     // 現在のslice-profileのインデックス、ファイル名、関数名、変数名などをセットする
-    currentSliceProfile.index = declIndex;
-    currentSliceProfile.file = fileName;
-    currentSliceProfile.function = functionTmplt.functionName;
-    currentSliceProfile.variableName = currentParam.first;
-    currentSliceProfile.potentialAlias = potentialAlias;
-    currentSliceProfile.isGlobal = inGlobalScope;
 
-    // std::move はやや難しいが、短くいうと所有権を移動する役割がある
-    // 参考: http://kaworu.jpn.org/cpp/std::move
+    // int main(void)などの場合でパラメータが"void"であるとき
+    // パラメータは空なのでスキップする
+    if (currentSliceProfile.variableType != "void") {
+        currentSliceProfile.index = declIndex;
+        currentSliceProfile.file = fileName;
+        currentSliceProfile.function = functionTmplt.functionName;
+        currentSliceProfile.variableName = currentParam.name;
+        currentSliceProfile.potentialAlias = potentialAlias;
+        currentSliceProfile.isGlobal = inGlobalScope;
 
-    // function-var-mapに新しく追加する
-    varIt = FunctionIt->second.insert(std::make_pair(currentParam.first, std::move(currentSliceProfile))).first;
-    // def{} に引数の行番号を追加する
-    this->_logger->debug("def#2: {}", currentParam.second);
-    varIt->second.def.insert(currentParam.second);
+        // std::move はやや難しいが、短くいうと所有権を移動する役割がある
+        // 参考: http://kaworu.jpn.org/cpp/std::move
 
-    currentParam.first.clear();
+        // function-var-mapに新しく追加する
+        varIt = FunctionVarMapItr->second.insert(
+                std::make_pair(currentParam.name, std::move(currentSliceProfile))).first;
+        // def{} に引数の行番号を追加する
+        this->_logger->debug("def#2: {}", currentParam.lineNumber);
+        varIt->second.def.insert(currentParam.lineNumber);
+
+        currentParam.name.clear();
+    }
 }
 
 /**
@@ -194,10 +200,10 @@ void srcSliceHandler::GetFunctionData() {
     if (isConstructor) {
         std::stringstream ststrm;
         ststrm << constructorNum;
-        currentFunctionBody.first += ststrm.str(); //number the constructor. Find a better way than stringstreams someday.
+        currentFunctionBody.name += ststrm.str(); //number the constructor. Find a better way than stringstreams someday.
     }
-    functionTmplt.functionName = currentFunctionBody.first;
-    currentFunctionBody.first.clear();
+    functionTmplt.functionName = currentFunctionBody.name;
+    currentFunctionBody.name.clear();
 }
 
 /**
@@ -205,7 +211,7 @@ void srcSliceHandler::GetFunctionData() {
  * 関数宣言データを取得する
  */
 void srcSliceHandler::GetFunctionDeclData() {
-    functionTmplt.params.push_back(currentParamType.first);
+    functionTmplt.params.push_back(currentParamType.name);
 }
 
 /**
@@ -222,7 +228,7 @@ void srcSliceHandler::AssignProfile() {
         currentSliceProfile.function = functionTmplt.functionName;
     }
     if (currentSliceProfile.variableName.empty()) {
-        currentSliceProfile.variableName = currentDecl.first;
+        currentSliceProfile.variableName = currentDecl.name;
         //std::cerr<<currentDecl.first<<std::endl;
     }
     if (!currentSliceProfile.potentialAlias) {
@@ -244,33 +250,33 @@ void srcSliceHandler::AssignProfile() {
 * creates a new slice profile and stores data about decl statement inside.
 */
 void srcSliceHandler::GetDeclStmtData() {
-    if (currentDecl.first.empty()) {
+    if (currentDecl.name.empty()) {
         return;
     } else {
         currentSliceProfile.index = declIndex;
         currentSliceProfile.file = fileName;
         currentSliceProfile.function = functionTmplt.functionName;
-        currentSliceProfile.variableName = currentDecl.first;
+        currentSliceProfile.variableName = currentDecl.name;
         currentSliceProfile.potentialAlias = potentialAlias;
         currentSliceProfile.isGlobal = inGlobalScope;
 
         this->_logger->debug("ここやん！: {}, {}", currentSliceProfile.variableName, inGlobalScope);
         if (!inGlobalScope) {
             auto pair = std::make_pair(currentSliceProfile.variableName, std::move(currentSliceProfile));
-            varIt = FunctionIt->second.insert(pair).first;
+            varIt = FunctionVarMapItr->second.insert(pair).first;
             // def{} 現在の宣言の行番号を追加する
-            this->_logger->debug("def#3: {}", currentDecl.second);
+            this->_logger->debug("def#3: {}", currentDecl.lineNumber);
 
-            varIt->second.def.insert(currentDecl.second);
+            varIt->second.def.insert(currentDecl.lineNumber);
         } else {
             //TODO: Handle def use for globals
             // グローバルマップに追加
             currentSliceProfile.function = "__GLOBAL__";
-            currentSliceProfile.def.insert(currentDecl.second);
+            currentSliceProfile.def.insert(currentDecl.lineNumber);
             auto varmap_pair = std::make_pair(currentSliceProfile.variableName, std::move(currentSliceProfile));
             sysDict->globalMap.insert(varmap_pair);
         }
-        currentDecl.first.clear();
+        currentDecl.name.clear();
     }
 }
 
@@ -287,27 +293,28 @@ void srcSliceHandler::GetDeclStmtData() {
  * for any aliases, dvars, or function calls.
  */
 void srcSliceHandler::ProcessExprStmtPreAssign() {
-    if (!lhsExprStmt.first.empty()) {
-        SliceProfile *lhs = Find(lhsExprStmt.first);
+    if (!lhsExprStmt.name.empty()) {
+        SliceProfile *lhs = Find(lhsExprStmt.name);
         if (!lhs) {
             // 新しく左辺のslice-profileを作成しストアする
             currentSliceProfile.index = -1;
             currentSliceProfile.file = fileName;
             currentSliceProfile.function = functionTmplt.functionName;
-            currentSliceProfile.variableName = lhsExprStmt.first;
+            currentSliceProfile.variableName = lhsExprStmt.name;
             currentSliceProfile.potentialAlias = false;
             currentSliceProfile.isGlobal = inGlobalScope;
 
             this->_logger->debug("ここかな? #7: {}", currentSliceProfile.variableName);
-            varIt = FunctionIt->second.insert(std::make_pair(lhsExprStmt.first, std::move(currentSliceProfile))).first;
-            this->_logger->debug("def#4: {}", lhsExprStmt.second);
+            varIt = FunctionVarMapItr->second.insert(
+                    std::make_pair(lhsExprStmt.name, std::move(currentSliceProfile))).first;
+            this->_logger->debug("def#4: {}", lhsExprStmt.lineNumber);
 
-            varIt->second.def.insert(lhsExprStmt.second);
+            varIt->second.def.insert(lhsExprStmt.lineNumber);
         } else {
             // 左辺のdef{}に追加する
-            this->_logger->debug("def#5: {}", lhsExprStmt.second);
+            this->_logger->debug("def#5: {}", lhsExprStmt.lineNumber);
 
-            lhs->def.insert(lhsExprStmt.second);
+            lhs->def.insert(lhsExprStmt.lineNumber);
         }
     }
 }
@@ -322,7 +329,7 @@ void srcSliceHandler::ProcessExprStmtPostAssign() {
     } else {
         // 右辺のslice-profileを検索する
         //find the sp for the rhs
-        auto sprIt = Find(currentExprStmt.first);
+        auto sprIt = Find(currentExprStmt.name);
         if (sprIt) {
             // 左値は右値に依存する
             //lvalue depends on this rvalue
@@ -338,8 +345,8 @@ void srcSliceHandler::ProcessExprStmtPostAssign() {
                 // エイリアスなので、最も最近のエイリアスを右辺のエイリアスリストに追加して保存する
                 lhs->lastInsertedAlias = lhs->aliases.insert(sprIt->variableName).first;
             }
-            this->_logger->debug("use#4: {}", currentExprStmt.second);
-            sprIt->use.insert(currentExprStmt.second);
+            this->_logger->debug("use#4: {}", currentExprStmt.lineNumber);
+            sprIt->use.insert(currentExprStmt.lineNumber);
             // ひとつにまとめます。もし他のもののエイリアスであるなら、もう一方を更新します。
             //Union things together. If this was an alias of anoter thing, update the other thing
             if (sprIt->potentialAlias && !dereferenced) {
@@ -348,13 +355,13 @@ void srcSliceHandler::ProcessExprStmtPostAssign() {
                     // おそらくポインタに加工します。なぜ必要か分かりました。
                     //problem  because last alias is an iterator and can reference things in other functions.
                     //Maybe make into a pointer. Figure out why I need it.
-                    auto spaIt = FunctionIt->second.find(*(sprIt->lastInsertedAlias));
-                    if (spaIt != FunctionIt->second.end()) {
+                    auto spaIt = FunctionVarMapItr->second.find(*(sprIt->lastInsertedAlias));
+                    if (spaIt != FunctionVarMapItr->second.end()) {
                         this->_logger->debug("dvars#4: {}", lhs->variableName);
                         spaIt->second.dvars.insert(lhs->variableName);
-                        this->_logger->debug("use#5: {}", currentExprStmt.second);
-                        spaIt->second.use.insert(currentExprStmt.second);
-                        spaIt->second.slines.insert(currentExprStmt.second);
+                        this->_logger->debug("use#5: {}", currentExprStmt.lineNumber);
+                        spaIt->second.use.insert(currentExprStmt.lineNumber);
+                        spaIt->second.slines.insert(currentExprStmt.lineNumber);
                     }
                 }
             }
@@ -367,14 +374,14 @@ void srcSliceHandler::ProcessExprStmtPostAssign() {
  * 代入(assign)なしの式文を処理します。
  */
 void srcSliceHandler::ProcessExprStmtNoAssign() {
-    for (NameLineNumberPair pair : useExprStack) {
-        SliceProfile *useProfile = Find(pair.first);
+    for (auto pair : useExprStack) {
+        SliceProfile *useProfile = Find(pair.name);
         if (useProfile) {
             // 他の2つの式文の関数と同様同じ語に対して実行しています。
             //it's running on the same word as the other two exprstmt functions
             // use{} に追加
-            this->_logger->debug("use#6: {}", pair.second);
-            useProfile->use.insert(pair.second);
+            this->_logger->debug("use#6: {}", pair.lineNumber);
+            useProfile->use.insert(pair.lineNumber);
         }
     }
 }
@@ -384,18 +391,18 @@ void srcSliceHandler::ProcessExprStmtNoAssign() {
  * 宣言コンストラクタ?を処理します。
  */
 void srcSliceHandler::ProcessDeclCtor() {
-    SliceProfile *lhs = Find(currentDecl.first);
+    SliceProfile *lhs = Find(currentDecl.name);
     if (!lhs) {
         return;
     } else {
-        this->_logger->debug("use#7: {}", currentDecl.second);
-        lhs->use.insert(currentDecl.second);
-        SliceProfile *rhs = Find(currentDeclCtor.first);
+        this->_logger->debug("use#7: {}", currentDecl.lineNumber);
+        lhs->use.insert(currentDecl.lineNumber);
+        SliceProfile *rhs = Find(currentDeclCtor.name);
         if (rhs) {
             this->_logger->debug("dvars#5: {}", lhs->variableName);
             rhs->dvars.insert(lhs->variableName);
-            this->_logger->debug("use#8: {}", currentDecl.second);
-            rhs->use.insert(currentDecl.second);
+            this->_logger->debug("use#8: {}", currentDecl.lineNumber);
+            rhs->use.insert(currentDecl.lineNumber);
         }
     }
 }
@@ -415,13 +422,13 @@ void srcSliceHandler::ComputeInterprocedural(const std::string &f) {
         std::cerr << "CAN'T FIND FILE" << std::endl;
         return;
     } else {
-        FunctionIt = (FileIt)->second.begin();
+        FunctionVarMapItr = (FileIt)->second.begin();
         FunctionVarMap::iterator FunctionItEnd = FileIt->second.end();
 
-        for (; FunctionIt != FunctionItEnd; ++FunctionIt) {
-            for (VarMap::iterator it = FunctionIt->second.begin(); it != FunctionIt->second.end(); ++it) {
+        for (; FunctionVarMapItr != FunctionItEnd; ++FunctionVarMapItr) {
+            for (VarMap::iterator it = FunctionVarMapItr->second.begin(); it != FunctionVarMapItr->second.end(); ++it) {
                 if (!it->second.visited) {
-                    //std::unordered_set<NameLineNumberPair, NameLineNumberPairHash>::iterator - auto
+                    //std::unordered_set<NameAndLineNumber, NameLineNumberPairHash>::iterator - auto
                     for (auto itCF = it->second.cfunctions.begin(); itCF != it->second.cfunctions.end(); ++itCF) {
                         unsigned int argumentIndex = itCF->second;
                         SliceProfile Spi = ArgumentProfile(itCF->first, argumentIndex, it);

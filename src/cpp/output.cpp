@@ -19,10 +19,7 @@
  */
 
 #include <srcSliceHandler.hpp>
-#include <srcSAXController.hpp>
-#include <time.h>
-#include <map>
-#include <iostream>
+#include <json.hpp>
 
 void TestSlice2(const VarMap &mp) {
     for (VarMap::const_iterator vmIt = mp.begin(); vmIt != mp.end(); ++vmIt) {
@@ -145,7 +142,7 @@ varmap_pair_to_string(std::string file_name, std::string function_name, std::pai
     container.push_back("dvars{" + join(',', unordered_set_to_vector<std::string>
             (sp.dvars, [](std::string x) { return x; })) + "}");
     container.push_back("pointers{" + join(',', unordered_set_to_vector<std::string>(sp.aliases,
-                                                                                           [](std::string x) { return x; })) +
+                                                                                     [](std::string x) { return x; })) +
                         "}");
 
     str.append(join('\t', container));
@@ -164,11 +161,18 @@ varmap_pair_to_string(std::string file_name, std::string function_name, std::pai
     return str;
 }
 
-void srcSliceToCsv(const srcSlice &handler) {
+/**
+ * 変数テーブルを作成します
+ * @param dictionary スライスディクショナリ
+ * @return 変数テーブルをCSV形式で表した文字列
+ */
+std::string create_variable_table(SliceDictionary dictionary) {
+    std::stringstream ss;
+
     // ソートする
     std::map<std::string, FunctionVarMap> sorted_ffvMap
-            (handler.dictionary.ffvMap.begin(),
-             handler.dictionary.ffvMap.end());
+            (dictionary.ffvMap.begin(),
+             dictionary.ffvMap.end());
     for (auto &ffvmIt: sorted_ffvMap) {
         // ソートする
         std::map<std::string, VarMap> sorted_fvMap
@@ -181,20 +185,67 @@ void srcSliceToCsv(const srcSlice &handler) {
                     fvmIt.second.end()
             );
             for (std::pair<std::string, SliceProfile> vmIt: sorted_vMap) {
-                std::string str = varmap_pair_to_string(ffvmIt.first, fvmIt.first, &vmIt);
-                std::cout << str << std::endl;
+                std::string row = varmap_pair_to_string(ffvmIt.first, fvmIt.first, &vmIt);
+                ss << row << std::endl;
             }
         }
     }
 
     // globalMap も出力する
-    auto globalMap = handler.dictionary.globalMap;
+    auto globalMap = dictionary.globalMap;
     // ソートする
     std::map<std::string, SliceProfile> sorted_globalMap
             (globalMap.begin(), globalMap.end());
     for (std::pair<std::string, SliceProfile> vmIt : sorted_globalMap) {
-        std::cout << varmap_pair_to_string(vmIt.second.file, vmIt.second.function, &vmIt) << std::endl;
+        std::string row = varmap_pair_to_string(vmIt.second.file, vmIt.second.function, &vmIt);
+        ss << row << std::endl;
     }
+
+    return ss.str();
+}
+
+/**
+ * 関数テーブルを作成します
+ * @param dictionary スライスディクショナリ
+ * @return 関数テーブルをCSV形式で表した文字列
+ */
+std::string create_function_table(SliceDictionary dictionary) {
+    std::stringstream ss;
+
+    // ヘッダを出力する
+    std::vector<std::string> header({"id", "func_name", "kind", "file_path", "declare_range"});
+    ss << join('\t', header) << std::endl;
+
+    // すべての関数について
+    for (auto func_pair: dictionary.fileFunctionTable) {
+        auto func_data = func_pair.second;
+
+        // FIXME: 関数IDを実装する
+        std::string id = "9999";
+        std::string func_name = func_data.functionName;
+        // TODO: 関数の種類を識別できるようにする
+        std::string kind = "user-defined";
+        std::string file_path = func_data.fileName;
+        // FIXME: 関数の定義範囲を取得できるようにする
+        std::string declare_range = func_data.declareRange.to_string();
+
+        std::vector<std::string> vec({id, func_name, kind, file_path, declare_range});
+        std::string row = join('\t', vec);
+        ss << row << std::endl;
+    }
+    return ss.str();
+}
+
+void srcSliceToCsv(const srcSlice &handler) {
+    // 変数と関数の解析結果を両方出力するために
+    // JSON形式で出力することにした
+    // ただし値部分はCSV形式のままなので大した変化はない
+    using json = nlohmann::json;
+
+    json j;
+    j["vars"] = create_variable_table(handler.dictionary);
+    j["funcs"] = create_function_table(handler.dictionary);
+    std::cout << j.dump(4) << std::endl;
 }
 
 /**

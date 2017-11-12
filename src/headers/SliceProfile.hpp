@@ -25,6 +25,7 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <set>
+#include "srcSliceTypes.h"
 
 class SliceProfile;
 
@@ -32,10 +33,6 @@ typedef std::unordered_map<std::string, SliceProfile> VarMap;
 typedef std::unordered_map<std::string, VarMap> FunctionVarMap;
 typedef std::unordered_map<std::string, FunctionVarMap> FileFunctionVarMap;
 
-/**
- * 名前と行番号のペア
- */
-typedef std::pair<std::string, unsigned int> NameLineNumberPair;
 
 struct NameLineNumberPairHash {
 public:
@@ -45,23 +42,49 @@ public:
     }
 };
 
+/**
+ * 関数のデータを格納する構造体
+ */
 struct FunctionData {
+    /**
+     * 返り値の型
+     */
+    std::string returnType;
+
+    /**
+     * 関数名
+     */
+    std::string functionName;
+
+    /**
+     * 関数の定義されているソースファイルのパス
+     */
+    std::string fileName;
+
+    /**
+     * vectorのsizeは引数の数であり、内容は引数の型である
+     * size of vector is # of arguments. String is type of argument.
+     */
+    std::vector<std::string> params;
+
+    /**
+     * 関数が定義されている範囲
+     */
+    ProgramRange declareRange;
+
+    /**
+     * コンストラクタ
+     */
     FunctionData() {
-        functionLineNumber = 0;
     }
 
+    /**
+     * 返り値の型と関数名をクリアします
+     */
     void clear() {
         returnType.clear();
         functionName.clear();
     }
-
-    std::string returnType;
-    std::string functionName;
-    std::string fileName;
-
-    std::vector<std::string> params; //size of vector is # of arguments. String is type of argument.
-
-    unsigned int functionLineNumber;
 };
 
 struct ClassProfile {
@@ -74,37 +97,77 @@ class SliceProfile {
 public:
     SliceProfile() : index(0), visited(false), potentialAlias(false), dereferenced(false), isGlobal(false) {}
 
-    SliceProfile(unsigned int idx, std::string fle, std::string fcn, unsigned int sline, std::string name,
-                 bool alias = 0, bool global = 0) :
-            index(idx), file(fle), function(fcn), potentialAlias(alias), variableName(name), isGlobal(global) {
+    SliceProfile(unsigned int idx,
+                 std::string fle,
+                 std::string fcn,
+                 unsigned int sline,
+                 std::string name,
+                 bool alias = false,
+                 bool global = false)
+            : index(idx), file(fle), function(fcn), potentialAlias(alias), variableName(name), isGlobal(global) {
         dereferenced = false;
         visited = false;
     }
 
     unsigned int index;
-    std::string file;
-    std::string function;
-
     std::unordered_set<std::string>::iterator lastInsertedAlias;
-
     bool potentialAlias;
     bool dereferenced;
-
     bool isGlobal;
     bool visited;
 
+    /**
+     * その変数が存在するソースファイルのパス
+     */
+    std::string file;
+
+    /**
+     * その変数が存在する関数の名前
+     */
+    std::string function;
+
+    /**
+     * 変数名
+     */
     std::string variableName;
+
+    /**
+     * 変数の型
+     */
     std::string variableType;
+
+    /**
+     * なにこれ
+     */
     std::unordered_set<std::string> memberVariables;
+
     /**
      * Deprecated
      */
     std::unordered_set<unsigned int> slines;
 
+    /**
+     * defされる行番号の集合
+     */
     std::set<unsigned int> def;
+
+    /**
+     * useされる行番号の集合
+     */
     std::set<unsigned int> use;
 
+    /**
+     * cfuncs{}
+     */
     std::unordered_set<std::pair<std::string, unsigned int>, NameLineNumberPairHash> cfunctions;
+
+    /**
+     * dvars{}
+     */
     std::unordered_set<std::string> dvars;
+
+    /**
+     * pointers{}
+     */
     std::unordered_set<std::string> aliases;
 };
