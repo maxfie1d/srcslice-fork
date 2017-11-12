@@ -15,6 +15,10 @@ struct ProgramRange {
         this->startLine = startLine;
         this->endLine = startLine;
     }
+
+    std::string to_string() {
+        return std::to_string(this->startLine) + "-" + std::to_string(this->endLine);
+    }
 };
 
 /**

@@ -450,7 +450,7 @@ public:
                     // <function><type><name>とタグが続いた時だけ
                     // 関数の行番号を設定する
                     if (triggerFieldAnd(function, type, name)) {
-                        functionTmplt.functionLineNumber = lineNum;
+                        functionTmplt.declareRange.startLine = lineNum;
                     }
                 }},
                 {"macro",            [this]() {
@@ -558,7 +558,7 @@ public:
 
                     // 関数の終了行を設定し、
                     // 関数を辞書に登録する
-                    functionTmplt.endLine = lineNum;
+                    functionTmplt.declareRange.endLine = lineNum;
                     sysDict->fileFunctionTable.insert(std::make_pair(functionTmplt.functionName, functionTmplt));
 
                     functionTmplt.clear();

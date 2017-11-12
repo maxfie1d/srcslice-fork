@@ -25,6 +25,7 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <set>
+#include "srcSliceTypes.h"
 
 class SliceProfile;
 
@@ -67,17 +68,14 @@ struct FunctionData {
     std::vector<std::string> params;
 
     /**
-     * 関数の定義されている行番号? (ただし間違ってる)
+     * 関数が定義されている範囲
      */
-    unsigned int functionLineNumber;
-
-    unsigned  int endLine;
+    ProgramRange declareRange;
 
     /**
      * コンストラクタ
      */
     FunctionData() {
-        functionLineNumber = 0;
     }
 
     /**
