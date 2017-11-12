@@ -71,6 +71,7 @@ struct FunctionData {
      */
     unsigned int functionLineNumber;
 
+    unsigned  int endLine;
 
     /**
      * コンストラクタ

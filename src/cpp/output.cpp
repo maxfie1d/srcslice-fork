@@ -227,7 +227,7 @@ std::string create_function_table(SliceDictionary dictionary) {
         std::string kind = "user-defined";
         std::string file_path = func_data.fileName;
         // FIXME: 関数の定義範囲を取得できるようにする
-        std::string declare_range = std::to_string(func_data.functionLineNumber) + "-9999";
+        std::string declare_range = std::to_string(func_data.functionLineNumber) + "-" + std::to_string(func_data.endLine);
 
         std::vector<std::string> vec({id, func_name, kind, file_path, declare_range});
         std::string row = join('\t', vec);

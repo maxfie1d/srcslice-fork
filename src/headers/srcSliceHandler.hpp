@@ -556,6 +556,9 @@ public:
                     declIndex = 0;
                     inGlobalScope = true;
 
+                    // 関数の終了行を設定し、
+                    // 関数を辞書に登録する
+                    functionTmplt.endLine = lineNum;
                     sysDict->fileFunctionTable.insert(std::make_pair(functionTmplt.functionName, functionTmplt));
 
                     functionTmplt.clear();
@@ -1040,7 +1043,6 @@ public:
     virtual void endElement(const char *localname, const char *prefix, const char *URI) {
         std::string lname(localname);
         std::string lnspace;
-        lineNum = 0;
         if (prefix) {
             lnspace.append(prefix);
         }
