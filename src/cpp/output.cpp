@@ -137,26 +137,22 @@ varmap_pair_to_string(std::string file_name, std::string function_name, std::pai
     container.push_back(file_name);
     container.push_back(function_name);
     container.push_back(varname);
-    container.push_back("def{" + join(',', set_to_vector<unsigned int>(sp.def)) + "}");
-    container.push_back("use{" + join(',', set_to_vector<unsigned int>(sp.use)) + "}");
-    container.push_back("dvars{" + join(',', unordered_set_to_vector<std::string>
-            (sp.dvars, [](std::string x) { return x; })) + "}");
-    container.push_back("pointers{" + join(',', unordered_set_to_vector<std::string>(sp.aliases,
-                                                                                     [](std::string x) { return x; })) +
-                        "}");
+    container.push_back(join(',', set_to_vector<unsigned int>(sp.def)));
+    container.push_back(join(',', set_to_vector<unsigned int>(sp.use)));
+    container.push_back(join(',', unordered_set_to_vector<std::string>(sp.dvars, [](std::string x) { return x; })));
+    container.push_back(join(',', unordered_set_to_vector<std::string>(sp.aliases, [](std::string x) { return x; })));
 
     str.append(join('\t', container));
 
     // 余計ややこしくなりそうなので元のコードのままで保留
-    str.append("\tcfuncs{");
+    str.append("\t");
     for (auto cfunc : sp.cfunctions) {
         std::stringstream ststrm;
         ststrm << cfunc.second;
-        str.append(cfunc.first).append("{").append(ststrm.str()).append("}\t");
+        str.append(cfunc.first).append("{").append(ststrm.str()).append("},");
     }
-    if (str.at(str.length() - 1) == '\t')
+    if (str.at(str.length() - 1) == ',')
         str.erase(str.length() - 1);
-    str.append("}");
 
     return str;
 }
@@ -168,6 +164,10 @@ varmap_pair_to_string(std::string file_name, std::string function_name, std::pai
  */
 std::string create_variable_table(SliceDictionary dictionary) {
     std::stringstream ss;
+
+    // ヘッダを出力する
+    std::vector<std::string> header({"file", "func", "var", "def", "use", "dvars", "pointers", "cfuncs"});
+    ss << join('\t', header) << std::endl;
 
     // ソートする
     std::map<std::string, FunctionVarMap> sorted_ffvMap
