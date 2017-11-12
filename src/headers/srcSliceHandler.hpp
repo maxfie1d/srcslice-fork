@@ -32,6 +32,7 @@
 #include <stack>
 #include <functional>
 #include <spdlog/spdlog.h>
+#include "srcSliceTypes.h"
 
 class srcSliceHandler : public srcSAXHandler {
 private:
@@ -266,7 +267,8 @@ public:
                     }
                     if (triggerField[function]
                         && !triggerFieldOr(functionblock, type, parameter_list)) {
-                        FunctionVarMapItr = FileIt->second.insert(std::make_pair(functionTmplt.functionName, VarMap())).first;
+                        FunctionVarMapItr = FileIt->second.insert(
+                                std::make_pair(functionTmplt.functionName, VarMap())).first;
                     }
                     if (triggerField[constructordecl]) { //For the case where we need to get a constructor decl
                         ProcessConstructorDecl();
@@ -434,8 +436,22 @@ public:
                 }},
                 {"name",             [this]() {
                     ++triggerField[name];
-                    functionTmplt.functionLineNumber = useExprStmt.lineNumber = lhsExprStmt.lineNumber = currentCallArgData.lineNumber = currentParam.lineNumber = currentParamType.lineNumber =
-                    currentFunctionBody.lineNumber = currentDecl.lineNumber = currentExprStmt.lineNumber = currentFunctionDecl.lineNumber = currentDeclInit.lineNumber = lineNum;
+                    useExprStmt.lineNumber
+                            = lhsExprStmt.lineNumber
+                            = currentCallArgData.lineNumber
+                            = currentParam.lineNumber
+                            = currentParamType.lineNumber
+                            = currentFunctionBody.lineNumber
+                            = currentDecl.lineNumber
+                            = currentExprStmt.lineNumber
+                            = currentFunctionDecl.lineNumber
+                            = currentDeclInit.lineNumber
+                            = lineNum;
+                    // <function><type><name>とタグが続いた時だけ
+                    // 関数の行番号を設定する
+                    if (triggerFieldAnd(function, type, name)) {
+                        functionTmplt.functionLineNumber = lineNum;
+                    }
                 }},
                 {"macro",            [this]() {
                     ++triggerField[macro];
@@ -848,11 +864,19 @@ public:
      * SAX handler function for start of an element.
      * Overide for desired behaviour.
     */
-    virtual void startElement(const char *localname, const char *prefix, const char *URI,
-                              int num_namespaces, const struct srcsax_namespace *namespaces, int num_attributes,
-                              const struct srcsax_attribute *attributes) {
+    virtual void startElement(
+            const char *localname,
+            const char *prefix,
+            const char *URI,
+            int num_namespaces,
+            const struct srcsax_namespace *namespaces,
+            int num_attributes,
+            const struct srcsax_attribute *attributes) {
         std::string name;
         if (num_attributes) {
+            // ここで行番号を取っている
+            // 単純に条件をtrueにするだけではだめだった
+            // ここをうまく解決しよう
             lineNum = strtoul(attributes[0].value, NULL, 0);
             name = attributes[0].value;
         }

@@ -32,21 +32,6 @@ typedef std::unordered_map<std::string, SliceProfile> VarMap;
 typedef std::unordered_map<std::string, VarMap> FunctionVarMap;
 typedef std::unordered_map<std::string, FunctionVarMap> FileFunctionVarMap;
 
-/**
- * 名前と行番号のペア
- */
-struct NameAndLineNumber {
-    std::string name;
-    unsigned int lineNumber;
-
-    // 形名に()をつけると、デフォルト値が入ることになるぞ！
-
-    NameAndLineNumber(std::string name = std::string(),
-                      unsigned int lineNumber = 0) {
-        this->name = name;
-        this->lineNumber = lineNumber;
-    }
-};
 
 struct NameLineNumberPairHash {
 public:
@@ -60,18 +45,6 @@ public:
  * 関数のデータを格納する構造体
  */
 struct FunctionData {
-    FunctionData() {
-        functionLineNumber = 0;
-    }
-
-    /**
-     * 返り値の型と関数名をクリアします
-     */
-    void clear() {
-        returnType.clear();
-        functionName.clear();
-    }
-
     /**
      * 返り値の型
      */
@@ -97,6 +70,22 @@ struct FunctionData {
      * 関数の定義されている行番号? (ただし間違ってる)
      */
     unsigned int functionLineNumber;
+
+
+    /**
+     * コンストラクタ
+     */
+    FunctionData() {
+        functionLineNumber = 0;
+    }
+
+    /**
+     * 返り値の型と関数名をクリアします
+     */
+    void clear() {
+        returnType.clear();
+        functionName.clear();
+    }
 };
 
 struct ClassProfile {
