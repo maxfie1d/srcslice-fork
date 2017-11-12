@@ -216,23 +216,22 @@ std::string create_function_table(SliceDictionary dictionary) {
     std::vector<std::string> header({"id", "func_name", "kind", "file_path", "declare_range"});
     ss << join('\t', header) << std::endl;
 
-    // すべてのファイルについて
-    for (auto file: dictionary.ffvMap) {
-        // すべての関数について
-        for (auto func: file.second) {
-            // FIXME: 関数IDを実装する
-            std::string id = "9999";
-            std::string func_name = func.first;
-            // TODO: 関数の種類を識別できるようにする
-            std::string kind = "user-defined";
-            std::string file_path = "xxxx.c";
-            // FIXME: 関数の定義範囲を取得できるようにする
-            std::string declare_range = "1-9999";
+    // すべての関数について
+    for (auto func_pair: dictionary.fileFunctionTable) {
+        auto func_data = func_pair.second;
 
-            std::vector<std::string> vec({id, func_name, kind, file_path, declare_range});
-            std::string row = join('\t', vec);
-            ss << row << std::endl;
-        }
+        // FIXME: 関数IDを実装する
+        std::string id = "9999";
+        std::string func_name = func_data.functionName;
+        // TODO: 関数の種類を識別できるようにする
+        std::string kind = "user-defined";
+        std::string file_path = func_data.fileName;
+        // FIXME: 関数の定義範囲を取得できるようにする
+        std::string declare_range = std::to_string(func_data.functionLineNumber) + "-9999";
+
+        std::vector<std::string> vec({id, func_name, kind, file_path, declare_range});
+        std::string row = join('\t', vec);
+        ss << row << std::endl;
     }
     return ss.str();
 }

@@ -56,22 +56,46 @@ public:
     }
 };
 
+/**
+ * 関数のデータを格納する構造体
+ */
 struct FunctionData {
     FunctionData() {
         functionLineNumber = 0;
     }
 
+    /**
+     * 返り値の型と関数名をクリアします
+     */
     void clear() {
         returnType.clear();
         functionName.clear();
     }
 
+    /**
+     * 返り値の型
+     */
     std::string returnType;
+
+    /**
+     * 関数名
+     */
     std::string functionName;
+
+    /**
+     * 関数の定義されているソースファイルのパス
+     */
     std::string fileName;
 
-    std::vector<std::string> params; //size of vector is # of arguments. String is type of argument.
+    /**
+     * vectorのsizeは引数の数であり、内容は引数の型である
+     * size of vector is # of arguments. String is type of argument.
+     */
+    std::vector<std::string> params;
 
+    /**
+     * 関数の定義されている行番号? (ただし間違ってる)
+     */
     unsigned int functionLineNumber;
 };
 
