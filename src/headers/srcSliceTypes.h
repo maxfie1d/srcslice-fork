@@ -1,5 +1,7 @@
 #pragma once
 
+#include <climits>
+
 /**
  * ソースファイルにおける範囲を行番号で表す
  * 行番号は1行目を1と表す(one-based)
