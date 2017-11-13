@@ -134,9 +134,11 @@ varmap_pair_to_string(std::string file_name, std::string function_name, std::pai
     auto sp = vmIt->second;
 
     std::vector<std::string> container;
-    container.push_back(file_name);
+    // def{}のうち最小の値を変数のある行番号としている
+    unsigned int lineNumber = *sp.def.begin();
+    container.push_back(file_name + ":" + std::to_string(lineNumber));
     container.push_back(function_name);
-    container.push_back(varname);
+    container.push_back(sp.variableType + " " + varname);
     container.push_back(join(',', set_to_vector<unsigned int>(sp.def)));
     container.push_back(join(',', set_to_vector<unsigned int>(sp.use)));
     container.push_back(join(',', unordered_set_to_vector<std::string>(sp.dvars, [](std::string x) { return x; })));
