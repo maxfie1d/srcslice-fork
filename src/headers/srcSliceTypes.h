@@ -7,15 +7,41 @@
  * 行番号は1行目を1と表す(one-based)
  */
 struct ProgramRange {
+
+    static const unsigned int DEFAULT_VALUE = UINT_MAX;
+
     unsigned int startLine;
     unsigned int endLine;
 
     ProgramRange(
-            unsigned int startLine = UINT_MAX,
-            unsigned int endLine = UINT_MAX
+            unsigned int startLine = DEFAULT_VALUE,
+            unsigned int endLine = DEFAULT_VALUE
     ) {
         this->startLine = startLine;
         this->endLine = startLine;
+    }
+
+    /**
+     * 開始行はセットされているか
+     * @return
+     */
+    bool isStartLineSet() {
+        return this->startLine != DEFAULT_VALUE;
+    }
+
+    /**
+     * 終了行はセットされているか
+     * @return
+     */
+    bool isEndLineSet() {
+        return this->endLine != DEFAULT_VALUE;
+    }
+
+    /**
+     * 開始行と終了行を初期化する
+     */
+    void clear() {
+        this->startLine = this->endLine = DEFAULT_VALUE;
     }
 
     std::string to_string() {

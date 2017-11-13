@@ -447,9 +447,10 @@ public:
                             = currentFunctionDecl.lineNumber
                             = currentDeclInit.lineNumber
                             = lineNum;
-                    // <function><type><name>とタグが続いた時だけ
-                    // 関数の行番号を設定する
-                    if (triggerFieldAnd(function, type, name)) {
+                    // <function><type><name>とタグが続いた時で
+                    // まだ開始行がセットされていない時だけ行番号を設定する
+                    if (triggerFieldAnd(function, type, name)
+                        && !functionTmplt.declareRange.isStartLineSet()) {
                         functionTmplt.declareRange.startLine = lineNum;
                     }
                 }},
