@@ -850,8 +850,8 @@ public:
         //classIt = sysDict->classTable.insert(std::make_pair("GLOBAL", ClassProfile())).first;
 
         // GLOBALスコープのものはここで作られる
-        //for globals. Makes a bad assumption about where globals are. Fix.
-        FunctionVarMapItr = FileIt->second.insert(std::make_pair("GLOBAL", VarMap())).first;
+        // for globals. Makes a bad assumption about where globals are. Fix.
+        // FunctionVarMapItr = FileIt->second.insert(std::make_pair("GLOBAL", VarMap())).first;
     }
 
     /**
