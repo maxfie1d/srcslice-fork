@@ -79,11 +79,12 @@ struct FunctionData {
     }
 
     /**
-     * 返り値の型と関数名をクリアします
+     * 返り値の型と関数名と宣言範囲をクリアします
      */
     void clear() {
         returnType.clear();
         functionName.clear();
+        declareRange.clear();
     }
 };
 
