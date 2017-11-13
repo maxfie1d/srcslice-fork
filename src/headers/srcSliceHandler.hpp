@@ -717,7 +717,7 @@ public:
                 }},
                 {"type",             [this]() {
                     if (triggerFieldAnd(type, decl_stmt)
-                        && triggerFieldOr(function, constructor)
+                        // && triggerFieldOr(function, constructor) // この条件があるとグローバル変数の型名がセットされない
                         && !triggerFieldOr(modifier, argument_list)) {
                         //Get the type -- news
                         currentSliceProfile.variableType = currentDeclType.name;
