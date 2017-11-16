@@ -28,6 +28,7 @@ add_executable(srcslicetest ${SRCSLICEHANDLER_SOURCE2} ${SRCSLICEHANDLER_INCLUDE
         TestIssue2.cpp
         TestGlobalIssue3.cpp
         TestConstTypes.cpp
+        TestArrayType.cpp
         TestHelper.cpp TestHelper.h)
 add_executable(ex_srcslicetest ${SRCSLICEHANDLER_SOURCE2} ${SRCSLICEHANDLER_INCLUDE}
         ${TESTCASES} TestHelper.cpp TestHelper.h)

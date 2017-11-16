@@ -131,7 +131,7 @@ private:
     NameAndLineNumber currentFunctionReturnType;
 
     NameAndLineNumber currentDecl;
-    NameAndLineNumber currentDeclTypeSpecifier;
+    NameAndLineNumber currentTypeSpecifier;
     NameAndLineNumber currentDeclType;
 
     /**
@@ -723,7 +723,7 @@ public:
                         //Get the type -- news
                         currentSliceProfile.variableType = currentDeclType.name;
                         currentDeclType.name.clear();
-                        currentDeclTypeSpecifier.name.clear();
+                        currentTypeSpecifier.name.clear();
                     }
                     if (triggerFieldAnd(type, parameter_list, param, decl) &&
                         !triggerFieldOr(functionblock, templates)) {
@@ -941,7 +941,9 @@ public:
                             op, macro)) {
             currentFunctionDecl.name.append(ch, len);
         }
-        if (triggerField[param] && triggerFieldOr(function, functiondecl, constructor) && triggerField[name]
+        if (triggerField[param]
+            && triggerFieldOr(function, functiondecl, constructor)
+            && triggerField[name]
             && !triggerFieldOr(type, argument_list, templates, macro, preproc)) {
             currentParam.name.append(ch, len);
         }
@@ -949,26 +951,26 @@ public:
             && triggerFieldOr(function, functiondecl, constructor)
             && triggerFieldAnd(name, type)
             && !(triggerFieldOr(argument_list, templates, op, macro, preproc))) {
-            currentParamType.name = currentDeclTypeSpecifier.name.empty()
+            currentParamType.name = currentTypeSpecifier.name.empty()
                                     ? std::string(ch, len)
-                                    : currentDeclTypeSpecifier.name + " " + std::string(ch, len);
+                                    : currentTypeSpecifier.name + " " + std::string(ch, len);
         }
         if (triggerFieldAnd(type, decl_stmt, name) &&
             !triggerFieldOr(argument_list, modifier, op, macro, preproc)) {
-            currentDeclType.name = currentDeclTypeSpecifier.name.empty()
+            currentDeclType.name = currentTypeSpecifier.name.empty()
                                    ? std::string(ch, len)
-                                   : currentDeclTypeSpecifier.name + " " + std::string(ch, len);
+                                   : currentTypeSpecifier.name + " " + std::string(ch, len);
         }
         if (triggerFieldAnd(decl, type, specifier)
                 ) {
             // const な変数の時、specifierがconstになるので補足する
-            currentDeclTypeSpecifier.name = std::string(ch, len);
+            currentTypeSpecifier.name = std::string(ch, len);
         }
         //this is to handle lhs of decl stmts and rhs of decl stmts
-        if (triggerFieldOr(name, op) &&
-            triggerFieldOr(decl_stmt, control) &&
-            triggerField[decl] &&
-            !triggerFieldOr(argument_list, index, preproc, type, macro)) {
+        if (triggerFieldOr(name, op)
+            && triggerFieldOr(decl_stmt, control)
+            && triggerField[decl]
+            && !triggerFieldOr(argument_list,  preproc, type, macro)) {
             if (triggerField[init]) {
                 if (!triggerField[call] && !memberAccess) {//if it's not in a call then we can do like normal
                     currentDeclInit.name.append(ch, len);
