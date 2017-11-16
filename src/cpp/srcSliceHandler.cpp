@@ -152,6 +152,7 @@ void srcSliceHandler::GetParamType() {
     // 現在のslice-profileに変数の型をセットする
     currentSliceProfile.variableType = currentParamType.name;
     currentParamType.name.clear();
+    currentDeclTypeSpecifier.name.clear();
 }
 
 /**

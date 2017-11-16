@@ -131,6 +131,7 @@ private:
     NameAndLineNumber currentFunctionReturnType;
 
     NameAndLineNumber currentDecl;
+    NameAndLineNumber currentDeclTypeSpecifier;
     NameAndLineNumber currentDeclType;
 
     /**
@@ -722,6 +723,7 @@ public:
                         //Get the type -- news
                         currentSliceProfile.variableType = currentDeclType.name;
                         currentDeclType.name.clear();
+                        currentDeclTypeSpecifier.name.clear();
                     }
                     if (triggerFieldAnd(type, parameter_list, param, decl) &&
                         !triggerFieldOr(functionblock, templates)) {
@@ -943,13 +945,24 @@ public:
             && !triggerFieldOr(type, argument_list, templates, macro, preproc)) {
             currentParam.name.append(ch, len);
         }
-        if (triggerField[param] && triggerFieldOr(function, functiondecl, constructor) && triggerFieldAnd(name, type)
+        if (triggerField[param]
+            && triggerFieldOr(function, functiondecl, constructor)
+            && triggerFieldAnd(name, type)
             && !(triggerFieldOr(argument_list, templates, op, macro, preproc))) {
-            currentParamType.name = std::string(ch, len);
+            currentParamType.name = currentDeclTypeSpecifier.name.empty()
+                                    ? std::string(ch, len)
+                                    : currentDeclTypeSpecifier.name + " " + std::string(ch, len);
         }
         if (triggerFieldAnd(type, decl_stmt, name) &&
             !triggerFieldOr(argument_list, modifier, op, macro, preproc)) {
-            currentDeclType.name = std::string(ch, len);
+            currentDeclType.name = currentDeclTypeSpecifier.name.empty()
+                                   ? std::string(ch, len)
+                                   : currentDeclTypeSpecifier.name + " " + std::string(ch, len);
+        }
+        if (triggerFieldAnd(decl, type, specifier)
+                ) {
+            // const な変数の時、specifierがconstになるので補足する
+            currentDeclTypeSpecifier.name = std::string(ch, len);
         }
         //this is to handle lhs of decl stmts and rhs of decl stmts
         if (triggerFieldOr(name, op) &&
