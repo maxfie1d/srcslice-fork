@@ -47,6 +47,11 @@ public:
  */
 struct FunctionData {
     /**
+     * 関数ID
+     */
+    std::string id;
+
+    /**
      * 返り値の型
      */
     std::string returnType;
@@ -75,17 +80,18 @@ struct FunctionData {
     /**
      * コンストラクタ
      */
-    FunctionData() {
-    }
+    FunctionData()  = default;
 
     /**
      * 返り値の型と関数名と宣言範囲をクリアします
      */
-    void clear() {
-        returnType.clear();
-        functionName.clear();
-        declareRange.clear();
-    }
+    void clear();
+
+    /**
+     * 関数IDを計算します。計算済みの場合はその値を返します
+     * @return
+     */
+    std::string computeId();
 };
 
 struct ClassProfile {
