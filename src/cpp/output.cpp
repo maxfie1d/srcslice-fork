@@ -105,14 +105,45 @@ std::string join(const char delimiter, std::vector<std::string> source) {
     return ss.str();
 }
 
+/**
+ * 関数テーブルから関数を検索して返します
+ * @param function_table
+ * @param file_path
+ * @param func_name
+ * @return
+ */
+FunctionData *find_function(FileFunctionTable* function_table, std::string file_path, std::string func_name) {
+    for (auto &func : *function_table) {
+        auto func_data = &func.second;
+        if (func_data->fileName == file_path
+            && func_data->functionName == func_name) {
+            return func_data;
+        }
+    }
+    return nullptr;
+}
+
 template<typename T>
-std::vector<std::string> set_to_vector(std::set<T> source) {
-    auto vec = std::vector<T>(std::begin(source), std::end(source));
+std::vector<std::string> set_to_vector(std::set<T> lineNumberSet) {
+    auto vec = std::vector<T>(std::begin(lineNumberSet), std::end(lineNumberSet));
     std::vector<std::string> out;
     std::transform(
             std::begin(vec),
             std::end(vec),
-            std::back_inserter(out), [](T x) { return std::to_string(x); });
+            std::back_inserter(out), [](T lineNumber) {
+                return std::to_string(lineNumber);
+            });
+    return out;
+}
+
+template<typename T1, typename T2>
+std::vector<T1> vec_transform(std::vector<T2> vec, std::function<T1(T2)> map) {
+    std::vector<std::string> out;
+    std::transform(
+            std::begin(vec),
+            std::end(vec),
+            std::back_inserter(out),
+            map);
     return out;
 }
 
@@ -128,7 +159,10 @@ std::vector<std::string> unordered_set_to_vector(std::unordered_set<T> source, M
 }
 
 std::string
-varmap_pair_to_string(std::string file_name, std::string function_name, std::pair<std::string, SliceProfile> *vmIt) {
+varmap_pair_to_string(std::string file_name,
+                      std::string function_name,
+                      std::pair<std::string, SliceProfile> *vmIt,
+                      FileFunctionTable* functionTable) {
     std::string str;
     std::string varname = vmIt->first;
     auto sp = vmIt->second;
@@ -136,16 +170,38 @@ varmap_pair_to_string(std::string file_name, std::string function_name, std::pai
     std::vector<std::string> container;
     // def{}のうち最小の値を変数のある行番号としている
     unsigned int lineNumber = *sp.def.begin();
+    // fileを出力
     container.push_back(file_name + ":" + std::to_string(lineNumber));
+    // funcを出力
     container.push_back(function_name);
+    // varを出力
     container.push_back(sp.variableType + " " + varname);
-    container.push_back(join(',', set_to_vector<unsigned int>(sp.def)));
+    // defを出力
+    auto def_line_numbers = set_to_vector<unsigned int>(sp.def);
+    // ラムダ式のラムダ導入子([]の部分)に&を入れると、
+    // それまでに登場した変数の参照をラムダ式内で利用できる
+    // 詳しくはこちら->https://cpprefjp.github.io/lang/cpp11/lambda_expressions.html
+    auto mapped = vec_transform<std::string, std::string>(def_line_numbers, [=](std::string lineNumber) {
+        auto func = find_function(functionTable, file_name, function_name);
+        auto func_id = func->computeId();
+        if (func) {
+            return lineNumber + "@" + func_id;
+        } else {
+            return lineNumber + "@<関数ID不明>";
+        }
+    });
+
+    container.push_back(join(',', mapped));
+    // useを出力
     container.push_back(join(',', set_to_vector<unsigned int>(sp.use)));
+    // dvarsを出力
     container.push_back(join(',', unordered_set_to_vector<std::string>(sp.dvars, [](std::string x) { return x; })));
+    // pointersを出力
     container.push_back(join(',', unordered_set_to_vector<std::string>(sp.aliases, [](std::string x) { return x; })));
 
     str.append(join('\t', container));
 
+    // cfuncsを出力
     // 余計ややこしくなりそうなので元のコードのままで保留
     str.append("\t");
     for (auto cfunc : sp.cfunctions) {
@@ -187,7 +243,7 @@ std::string create_variable_table(SliceDictionary dictionary) {
                     fvmIt.second.end()
             );
             for (std::pair<std::string, SliceProfile> vmIt: sorted_vMap) {
-                std::string row = varmap_pair_to_string(ffvmIt.first, fvmIt.first, &vmIt);
+                std::string row = varmap_pair_to_string(ffvmIt.first, fvmIt.first, &vmIt, &dictionary.fileFunctionTable);
                 ss << row << std::endl;
             }
         }
@@ -199,7 +255,8 @@ std::string create_variable_table(SliceDictionary dictionary) {
     std::map<std::string, SliceProfile> sorted_globalMap
             (globalMap.begin(), globalMap.end());
     for (std::pair<std::string, SliceProfile> vmIt : sorted_globalMap) {
-        std::string row = varmap_pair_to_string(vmIt.second.file, vmIt.second.function, &vmIt);
+        std::string row = varmap_pair_to_string(vmIt.second.file, vmIt.second.function, &vmIt,
+                                                &dictionary.fileFunctionTable);
         ss << row << std::endl;
     }
 
@@ -222,8 +279,7 @@ std::string create_function_table(SliceDictionary dictionary) {
     for (auto func_pair: dictionary.fileFunctionTable) {
         auto func_data = func_pair.second;
 
-        // FIXME: 関数IDを実装する
-        std::string id = "9999";
+        std::string id = func_data.computeId();
         std::string func_name = func_data.functionName;
         // TODO: 関数の種類を識別できるようにする
         std::string kind = "user-defined";

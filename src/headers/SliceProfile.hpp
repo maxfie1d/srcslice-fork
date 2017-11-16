@@ -46,11 +46,13 @@ public:
  * 関数のデータを格納する構造体
  */
 struct FunctionData {
+private:
     /**
      * 関数ID
      */
     std::string id;
 
+public:
     /**
      * 返り値の型
      */

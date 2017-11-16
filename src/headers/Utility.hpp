@@ -27,6 +27,8 @@
 
 #include <SliceProfile.hpp>
 
+typedef std::unordered_map<std::string, FunctionData> FileFunctionTable;
+
 static std::set<std::string> errorset;
 struct SliceDictionary {
     //context can be used to keep track of what function you're searching in. Makes searching faster because I assume you're using that function as the context
@@ -52,7 +54,7 @@ struct SliceDictionary {
      */
     VarMap globalMap;
     std::unordered_map<std::string, ClassProfile> classTable;
-    std::unordered_map<std::string, FunctionData> fileFunctionTable;
+    FileFunctionTable fileFunctionTable;
     std::vector<std::pair<unsigned int, unsigned int>> controledges;
     Context currentContext;
     FileFunctionVarMap ffvMap;
