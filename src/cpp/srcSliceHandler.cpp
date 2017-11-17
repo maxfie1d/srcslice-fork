@@ -60,7 +60,6 @@ void srcSliceHandler::ProcessConstructorDecl() {
     }
 }
 
-
 /**
  * 宣言文を処理する関数。
  * 宣言文の右辺を取って処理します。トークンに分割してマップに対して投げます。
@@ -79,7 +78,7 @@ void srcSliceHandler::ProcessDeclStmt() {
     if (sp) {
         varIt->second.slines.insert(currentDeclInit.lineNumber); //varIt is lhs
         this->_logger->debug("use#1: {}", currentDeclInit.lineNumber);
-        sp->use.insert(currentDeclInit.lineNumber);
+        this->insertUse(sp, currentDeclInit.lineNumber);
         //new operator of the form int i = new int(tmp); screws around with aliasing
         if (varIt->second.potentialAlias && !sawnew) {
             varIt->second.lastInsertedAlias = varIt->second.aliases.insert(sp->variableName).first;
@@ -88,7 +87,7 @@ void srcSliceHandler::ProcessDeclStmt() {
             this->_logger->debug("dvars#2: {}", varIt->second.variableName);
             sp->dvars.insert(varIt->second.variableName);
             this->_logger->debug("use#2: {}", currentDeclInit.lineNumber);
-            sp->use.insert(currentDeclInit.lineNumber);
+            this->insertUse(sp, currentDeclInit.lineNumber);
         }
     } else {
         // for ループにおける初期化(init)は一般的な宣言文のハンドリングと異なる
@@ -104,7 +103,7 @@ void srcSliceHandler::ProcessDeclStmt() {
             varIt = FunctionVarMapItr->second.insert(
                     std::make_pair(currentDeclInit.name, std::move(currentSliceProfile))).first;
             this->_logger->debug("def#1: {}", currentDeclInit.lineNumber);
-            varIt->second.def.insert(currentDeclInit.lineNumber);
+            this->insertDef(sp, currentDeclInit.lineNumber);
         }
     }
 
@@ -139,7 +138,7 @@ void srcSliceHandler::GetCallData() {
             if (sp) {
                 sp->slines.insert(callArgData.top().lineNumber);
                 this->_logger->debug("use#3: {}", callArgData.top().lineNumber);
-                sp->use.insert(callArgData.top().lineNumber);
+                this->insertUse(sp, callArgData.top().lineNumber);
                 sp->index = numArgs;
                 this->_logger->debug("cfuncs#1: {}", nameOfCurrentClldFcn.top());
                 sp->cfunctions.insert(std::make_pair(nameOfCurrentClldFcn.top(), numArgs));
@@ -180,7 +179,7 @@ void srcSliceHandler::GetParamName() {
                 std::make_pair(currentParam.name, std::move(currentSliceProfile))).first;
         // def{} に引数の行番号を追加する
         this->_logger->debug("def#2: {}", currentParam.lineNumber);
-        varIt->second.def.insert(currentParam.lineNumber);
+        this->insertDef(&varIt->second, currentParam.lineNumber);
 
         currentParam.name.clear();
     }
@@ -268,12 +267,12 @@ void srcSliceHandler::GetDeclStmtData() {
             // def{} 現在の宣言の行番号を追加する
             this->_logger->debug("def#3: {}", currentDecl.lineNumber);
 
-            varIt->second.def.insert(currentDecl.lineNumber);
+            this->insertDef(&varIt->second, currentDecl.lineNumber);
         } else {
             //TODO: Handle def use for globals
             // グローバルマップに追加
             currentSliceProfile.function = "__GLOBAL__";
-            currentSliceProfile.def.insert(currentDecl.lineNumber);
+            this->insertDef(&currentSliceProfile, currentDecl.lineNumber);
             auto varmap_pair = std::make_pair(currentSliceProfile.variableName, std::move(currentSliceProfile));
             sysDict->globalMap.insert(varmap_pair);
         }
@@ -310,12 +309,12 @@ void srcSliceHandler::ProcessExprStmtPreAssign() {
                     std::make_pair(lhsExprStmt.name, std::move(currentSliceProfile))).first;
             this->_logger->debug("def#4: {}", lhsExprStmt.lineNumber);
 
-            varIt->second.def.insert(lhsExprStmt.lineNumber);
+            this->insertDef(&varIt->second, lhsExprStmt.lineNumber);
         } else {
             // 左辺のdef{}に追加する
             this->_logger->debug("def#5: {}", lhsExprStmt.lineNumber);
 
-            lhs->def.insert(lhsExprStmt.lineNumber);
+            this->insertDef(lhs, lhsExprStmt.lineNumber);
         }
     }
 }
@@ -347,7 +346,7 @@ void srcSliceHandler::ProcessExprStmtPostAssign() {
                 lhs->lastInsertedAlias = lhs->aliases.insert(sprIt->variableName).first;
             }
             this->_logger->debug("use#4: {}", currentExprStmt.lineNumber);
-            sprIt->use.insert(currentExprStmt.lineNumber);
+            this->insertUse(sprIt, currentExprStmt.lineNumber);
             // ひとつにまとめます。もし他のもののエイリアスであるなら、もう一方を更新します。
             //Union things together. If this was an alias of anoter thing, update the other thing
             if (sprIt->potentialAlias && !dereferenced) {
@@ -361,7 +360,7 @@ void srcSliceHandler::ProcessExprStmtPostAssign() {
                         this->_logger->debug("dvars#4: {}", lhs->variableName);
                         spaIt->second.dvars.insert(lhs->variableName);
                         this->_logger->debug("use#5: {}", currentExprStmt.lineNumber);
-                        spaIt->second.use.insert(currentExprStmt.lineNumber);
+                        this->insertUse(&spaIt->second, currentExprStmt.lineNumber);
                         spaIt->second.slines.insert(currentExprStmt.lineNumber);
                     }
                 }
@@ -382,7 +381,7 @@ void srcSliceHandler::ProcessExprStmtNoAssign() {
             //it's running on the same word as the other two exprstmt functions
             // use{} に追加
             this->_logger->debug("use#6: {}", pair.lineNumber);
-            useProfile->use.insert(pair.lineNumber);
+            this->insertUse(useProfile, pair.lineNumber);
         }
     }
 }
@@ -397,13 +396,13 @@ void srcSliceHandler::ProcessDeclCtor() {
         return;
     } else {
         this->_logger->debug("use#7: {}", currentDecl.lineNumber);
-        lhs->use.insert(currentDecl.lineNumber);
+        this->insertUse(lhs, currentDecl.lineNumber);
         SliceProfile *rhs = Find(currentDeclCtor.name);
         if (rhs) {
             this->_logger->debug("dvars#5: {}", lhs->variableName);
             rhs->dvars.insert(lhs->variableName);
             this->_logger->debug("use#8: {}", currentDecl.lineNumber);
-            rhs->use.insert(currentDecl.lineNumber);
+            this->insertUse(rhs, currentDecl.lineNumber);
         }
     }
 }
@@ -504,4 +503,38 @@ SliceProfile srcSliceHandler::ArgumentProfile(std::string fname, unsigned int pa
         //std::cout<<"ERROR IN ARGUMENT PROFILE WHEN ACCESSING: "<<fname<<std::endl;
     }
     return Spi;
+}
+
+std::string srcSliceHandler::getFunctionId(unsigned int lineNumber) {
+    if (this->fileName.empty() || this->functionTmplt.functionName.empty()) {
+        return "file: " + fileName + ", func: " + this->functionTmplt.functionName;
+    } else {
+        // idを作る
+        // NOTE: 関数テーブルから関数を検索してという方法もあるが
+        // 関数テーブルに関数が登録されるタイミングが関数が「閉じた」時だったので
+        // その場で関数IDだけを計算することにした
+        FunctionData fd;
+        fd.fileName = this->fileName;
+        fd.functionName = this->functionTmplt.functionName;
+        return fd.computeId();
+    }
+}
+
+/**
+ * SliceProfileのdefを追加します
+ * @param sp
+ * @param lineNumber
+ */
+void srcSliceHandler::insertDef(SliceProfile *sp, unsigned int lineNumber) {
+    sp->def.insert(ProgramPoint(lineNumber, this->getFunctionId(lineNumber)));
+
+}
+
+/**
+ * SliceProfileのuseを追加します
+ * @param sp
+ * @param lineNumber
+ */
+void srcSliceHandler::insertUse(SliceProfile *sp, unsigned int lineNumber) {
+    sp->use.insert(ProgramPoint(lineNumber, this->getFunctionId(lineNumber)));
 }

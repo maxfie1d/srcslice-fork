@@ -21,78 +21,6 @@
 #include <srcSliceHandler.hpp>
 #include <json.hpp>
 
-void TestSlice2(const VarMap &mp) {
-    for (VarMap::const_iterator vmIt = mp.begin(); vmIt != mp.end(); ++vmIt) {
-        std::cerr << "-------------------------" << std::endl;
-        std::cerr << "Variable: " << vmIt->first << std::endl;
-        std::cerr << "Slines: {";
-        for (unsigned int sl : vmIt->second.slines) {
-            std::cerr << sl << ",";
-        }
-        std::cerr << "}" << std::endl;
-        std::cerr << "dvars: {";
-        for (std::string dv : vmIt->second.dvars) {
-            std::cerr << dv << ",";
-        }
-        std::cerr << "}" << std::endl;
-        std::cerr << "is aliase for: {";
-        for (std::string al : vmIt->second.aliases) {
-            std::cerr << al << ",";
-        }
-        std::cerr << "}" << std::endl;
-        std::cerr << "cfuntions: {";
-        for (auto cfunc : vmIt->second.cfunctions) {
-            std::cerr << cfunc.first << " " << cfunc.second << ",";
-        }
-        std::cerr << "}" << std::endl;
-        std::cerr << "-------------------------" << std::endl;
-    }
-}
-
-void TestSlice(const FileFunctionVarMap &mp, srcSliceHandler handler) {
-    for (FileFunctionVarMap::const_iterator ffvmIt = mp.begin(); ffvmIt != mp.end(); ++ffvmIt) {
-        std::cerr << "FILE: " << ffvmIt->first << std::endl;
-        for (FunctionVarMap::const_iterator fvmIt = ffvmIt->second.begin(); fvmIt != ffvmIt->second.end(); ++fvmIt) {
-            std::cerr << fvmIt->first << std::endl;
-            //std::cerr<<handler.sysDict->functionTable.find(fvmIt->first)->second<<std::endl;
-            for (VarMap::const_iterator vmIt = fvmIt->second.begin(); vmIt != fvmIt->second.end(); ++vmIt) {
-                std::cerr << "-------------------------" << std::endl;
-                std::cerr << "Variable: " << vmIt->first << std::endl;
-                std::cerr << "Slines: {";
-                for (unsigned int sl : vmIt->second.slines) {
-                    std::cerr << sl << ",";
-                }
-                std::cerr << "}" << std::endl;
-                std::cerr << "variables dependant on this one: {";
-                for (std::string dv : vmIt->second.dvars) {
-                    std::cerr << dv << ",";
-                }
-                std::cerr << "}" << std::endl;
-                std::cerr << "is aliase for: {";
-                for (std::string al : vmIt->second.aliases) {
-                    std::cerr << al << ",";
-                }
-                std::cerr << "}" << std::endl;
-                std::cerr << "cfuntions: {";
-                for (auto cfunc : vmIt->second.cfunctions) {
-                    std::cerr << cfunc.first << " " << cfunc.second << ",";
-                }
-                std::cerr << "}" << std::endl;
-                std::cerr << "def: {";
-                for (auto defv : vmIt->second.def) {
-                    std::cerr << defv << ",";
-                }
-                std::cerr << "}" << std::endl;
-                std::cerr << "use: {";
-                for (auto usev : vmIt->second.use) {
-                    std::cerr << usev << ",";
-                }
-                std::cerr << "}" << std::endl;
-                std::cerr << "-------------------------" << std::endl;
-            }
-        }
-    }
-}
 
 std::string join(const char delimiter, std::vector<std::string> source) {
     std::stringstream ss;
@@ -124,20 +52,13 @@ FunctionData *find_function(FileFunctionTable* function_table, std::string file_
 }
 
 template<typename T>
-std::vector<std::string> set_to_vector(std::set<T> lineNumberSet) {
+std::vector<T> set_to_vector(std::set<T> lineNumberSet) {
     auto vec = std::vector<T>(std::begin(lineNumberSet), std::end(lineNumberSet));
-    std::vector<std::string> out;
-    std::transform(
-            std::begin(vec),
-            std::end(vec),
-            std::back_inserter(out), [](T lineNumber) {
-                return std::to_string(lineNumber);
-            });
-    return out;
+    return vec;
 }
 
 template<typename T1, typename T2>
-std::vector<T1> vec_transform(std::vector<T2> vec, std::function<T1(T2)> map) {
+std::vector<T2> vec_transform(std::vector<T1> vec, std::function<T2(T1)> map) {
     std::vector<std::string> out;
     std::transform(
             std::begin(vec),
@@ -169,7 +90,7 @@ varmap_pair_to_string(std::string file_name,
 
     std::vector<std::string> container;
     // def{}のうち最小の値を変数のある行番号としている
-    unsigned int lineNumber = *sp.def.begin();
+    unsigned int lineNumber = sp.def.begin()->lineNumber;
     // fileを出力
     container.push_back(file_name + ":" + std::to_string(lineNumber));
     // funcを出力
@@ -177,23 +98,17 @@ varmap_pair_to_string(std::string file_name,
     // varを出力
     container.push_back(sp.variableType + " " + varname);
     // defを出力
-    auto def_line_numbers = set_to_vector<unsigned int>(sp.def);
-    // ラムダ式のラムダ導入子([]の部分)に&を入れると、
-    // それまでに登場した変数の参照をラムダ式内で利用できる
-    // 詳しくはこちら->https://cpprefjp.github.io/lang/cpp11/lambda_expressions.html
-    auto mapped = vec_transform<std::string, std::string>(def_line_numbers, [=](std::string lineNumber) {
-        auto func = find_function(functionTable, file_name, function_name);
-        auto func_id = func->computeId();
-        if (func) {
-            return lineNumber + "@" + func_id;
-        } else {
-            return lineNumber + "@<関数ID不明>";
-        }
+    auto def_line_numbers = set_to_vector<ProgramPoint>(sp.def);
+    auto defs_as_string = vec_transform<ProgramPoint, std::string>(def_line_numbers, [](ProgramPoint pp) {
+        return pp.to_string();
     });
-
-    container.push_back(join(',', mapped));
+    container.push_back(join(',', defs_as_string));
     // useを出力
-    container.push_back(join(',', set_to_vector<unsigned int>(sp.use)));
+    auto use_line_numbers = set_to_vector<ProgramPoint>(sp.use);
+    auto uses_as_string = vec_transform<ProgramPoint, std::string>(use_line_numbers, [](ProgramPoint pp) {
+        return pp.to_string();
+    });
+    container.push_back(join(',', uses_as_string));
     // dvarsを出力
     container.push_back(join(',', unordered_set_to_vector<std::string>(sp.dvars, [](std::string x) { return x; })));
     // pointersを出力

@@ -206,6 +206,18 @@ private:
         return triggerField[first] && triggerFieldAnd(rest...);
     }
 
+    /**
+     * パース中にセットされるファイルパスや関数名をもとに
+     * 関数IDを取得します
+     * @param lineNumber
+     * @return
+     */
+    std::string getFunctionId(unsigned int lineNumber);
+
+    void insertDef(SliceProfile *sp, unsigned int lineNumber);
+
+    void insertUse(SliceProfile *sp, unsigned int lineNumber);
+
     std::shared_ptr<spdlog::logger> _logger;
 
 public:
@@ -558,8 +570,7 @@ public:
                     declIndex = 0;
                     inGlobalScope = true;
 
-                    // 関数の終了行を設定し、
-                    // 関数を辞書に登録する
+                    // 関数の終了行を設定し、関数を辞書に登録する
                     functionTmplt.declareRange.endLine = lineNum;
                     sysDict->fileFunctionTable.insert(std::make_pair(functionTmplt.functionName, functionTmplt));
 

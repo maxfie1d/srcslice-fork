@@ -82,7 +82,7 @@ public:
     /**
      * コンストラクタ
      */
-    FunctionData()  = default;
+    FunctionData() = default;
 
     /**
      * 返り値の型と関数名と宣言範囲をクリアします
@@ -100,6 +100,30 @@ struct ClassProfile {
     std::string className;
     std::unordered_set<std::string> memberVariables;
     //std::unordered_set<FunctionData, FunctionArgtypeArgnumHash> memberFunctions; //need to handle overloads. Can't be string.
+};
+
+struct ProgramPoint {
+    unsigned int lineNumber;
+    std::string functionId;
+
+    ProgramPoint(unsigned int lineNumber, std::string functionId) {
+        this->lineNumber = lineNumber;
+        this->functionId = functionId;
+    }
+
+    // < 演算子をオーバーライドすれば
+    // 任意の型のSet<>を作ることができる
+    bool operator<(const ProgramPoint &other) const {
+        if (this->lineNumber == other.lineNumber) {
+            return this->functionId < other.functionId;
+        } else {
+            return this->lineNumber < other.lineNumber;
+        }
+    }
+
+    std::string to_string(){
+        return std::to_string(this->lineNumber) + "@" + this->functionId;
+    }
 };
 
 class SliceProfile {
@@ -158,12 +182,12 @@ public:
     /**
      * defされる行番号の集合
      */
-    std::set<unsigned int> def;
+    std::set<ProgramPoint> def;
 
     /**
      * useされる行番号の集合
      */
-    std::set<unsigned int> use;
+    std::set<ProgramPoint> use;
 
     /**
      * cfuncs{}
