@@ -82,7 +82,7 @@ std::vector<std::string> unordered_set_to_vector(std::unordered_set<T> source, M
 std::string
 varmap_pair_to_string(std::string file_name,
                       std::string function_name,
-                      std::pair<std::string, SliceProfile> *vmIt,
+                      std::pair<const std::string, SliceProfile> *vmIt,
                       FileFunctionTable* functionTable) {
     std::string str;
     std::string varname = vmIt->first;
@@ -103,14 +103,21 @@ varmap_pair_to_string(std::string file_name,
         return pp.to_string();
     });
     container.push_back(join(',', defs_as_string));
+
     // useを出力
     auto use_line_numbers = set_to_vector<ProgramPoint>(sp.use);
     auto uses_as_string = vec_transform<ProgramPoint, std::string>(use_line_numbers, [](ProgramPoint pp) {
         return pp.to_string();
     });
     container.push_back(join(',', uses_as_string));
+
     // dvarsを出力
-    container.push_back(join(',', unordered_set_to_vector<std::string>(sp.dvars, [](std::string x) { return x; })));
+    auto dvars = set_to_vector<DvarData>(sp.dvars);
+    auto dvars_as_string =vec_transform<DvarData, std::string>(dvars, [](DvarData dd) {
+        return dd.to_string();
+    });
+    container.push_back(join(',', dvars_as_string));
+
     // pointersを出力
     container.push_back(join(',', unordered_set_to_vector<std::string>(sp.aliases, [](std::string x) { return x; })));
 
@@ -157,7 +164,7 @@ std::string create_variable_table(SliceDictionary dictionary) {
                     fvmIt.second.begin(),
                     fvmIt.second.end()
             );
-            for (std::pair<std::string, SliceProfile> vmIt: sorted_vMap) {
+            for (auto vmIt: sorted_vMap) {
                 std::string row = varmap_pair_to_string(ffvmIt.first, fvmIt.first, &vmIt, &dictionary.fileFunctionTable);
                 ss << row << std::endl;
             }
@@ -169,7 +176,7 @@ std::string create_variable_table(SliceDictionary dictionary) {
     // ソートする
     std::map<std::string, SliceProfile> sorted_globalMap
             (globalMap.begin(), globalMap.end());
-    for (std::pair<std::string, SliceProfile> vmIt : sorted_globalMap) {
+    for (auto vmIt : sorted_globalMap) {
         std::string row = varmap_pair_to_string(vmIt.second.file, vmIt.second.function, &vmIt,
                                                 &dictionary.fileFunctionTable);
         ss << row << std::endl;

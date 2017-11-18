@@ -214,9 +214,19 @@ private:
      */
     std::string getFunctionId(unsigned int lineNumber);
 
+
+    /**
+     * 変数IDを取得します
+     * @param variableName
+     * @return
+     */
+    std::string getVariableId(std::string variableName);
+
     void insertDef(SliceProfile *sp, unsigned int lineNumber);
 
     void insertUse(SliceProfile *sp, unsigned int lineNumber);
+
+    void insertDvar(SliceProfile *sp, std::string variableName);
 
     std::shared_ptr<spdlog::logger> _logger;
 

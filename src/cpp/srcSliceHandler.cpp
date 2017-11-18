@@ -56,7 +56,7 @@ void srcSliceHandler::ProcessConstructorDecl() {
     auto sp = Find(currentDeclArg.name);
     if (sp) {
         this->_logger->debug("dvars#1: {}", varIt->second.variableName);
-        sp->dvars.insert(varIt->second.variableName);
+        this->insertDvar(sp, varIt->second.variableName.c_str());
     }
 }
 
@@ -85,7 +85,8 @@ void srcSliceHandler::ProcessDeclStmt() {
         } else {
             // dvars{} と use{} に追加する
             this->_logger->debug("dvars#2: {}", varIt->second.variableName);
-            sp->dvars.insert(varIt->second.variableName);
+            this->insertDvar(sp, varIt->second.variableName.c_str());
+//            sp->dvars.insert(varIt->second.variableName);
             this->_logger->debug("use#2: {}", currentDeclInit.lineNumber);
             this->insertUse(sp, currentDeclInit.lineNumber);
         }
@@ -339,7 +340,8 @@ void srcSliceHandler::ProcessExprStmtPostAssign() {
                 //It is not potentially a reference and if it is, it must not have been dereferenced
                 //it's not an alias so it's a dvar
                 this->_logger->debug("dvars#3: {}", lhs->variableName);
-                sprIt->dvars.insert(lhs->variableName);
+                this->insertDvar(sprIt, lhs->variableName.c_str());
+//                sprIt->dvars.insert(lhs->variableName);
             } else {
                 // it is an alias, so save that this is the most recent alias and insert it into rhs alias list
                 // エイリアスなので、最も最近のエイリアスを右辺のエイリアスリストに追加して保存する
@@ -358,7 +360,8 @@ void srcSliceHandler::ProcessExprStmtPostAssign() {
                     auto spaIt = FunctionVarMapItr->second.find(*(sprIt->lastInsertedAlias));
                     if (spaIt != FunctionVarMapItr->second.end()) {
                         this->_logger->debug("dvars#4: {}", lhs->variableName);
-                        spaIt->second.dvars.insert(lhs->variableName);
+                        this->insertDvar(sprIt, lhs->variableName.c_str());
+//                        spaIt->second.dvars.insert(lhs->variableName);
                         this->_logger->debug("use#5: {}", currentExprStmt.lineNumber);
                         this->insertUse(&spaIt->second, currentExprStmt.lineNumber);
                         spaIt->second.slines.insert(currentExprStmt.lineNumber);
@@ -400,7 +403,10 @@ void srcSliceHandler::ProcessDeclCtor() {
         SliceProfile *rhs = Find(currentDeclCtor.name);
         if (rhs) {
             this->_logger->debug("dvars#5: {}", lhs->variableName);
-            rhs->dvars.insert(lhs->variableName);
+
+            // 検索する
+            this->insertDvar(rhs, lhs->variableName.c_str());
+//            rhs->dvars.insert(lhs->variableName);
             this->_logger->debug("use#8: {}", currentDecl.lineNumber);
             this->insertUse(rhs, currentDecl.lineNumber);
         }
@@ -520,6 +526,20 @@ std::string srcSliceHandler::getFunctionId(unsigned int lineNumber) {
     }
 }
 
+std::string srcSliceHandler::getVariableId(std::string variableName)  {
+    // TODO: 本来は辞書を検索してSliceProfileのインスタンスを検索するべき
+
+    if (this->fileName.empty() || this->functionTmplt.functionName.empty()) {
+        return "<unknown variable id>";
+    } else {
+        SliceProfile sp;
+        sp.file = this->fileName;
+        sp.function = this->functionTmplt.functionName;
+        sp.variableName = variableName;
+        return sp.computeVariableId();
+    }
+}
+
 /**
  * SliceProfileのdefを追加します
  * @param sp
@@ -538,3 +558,9 @@ void srcSliceHandler::insertDef(SliceProfile *sp, unsigned int lineNumber) {
 void srcSliceHandler::insertUse(SliceProfile *sp, unsigned int lineNumber) {
     sp->use.insert(ProgramPoint(lineNumber, this->getFunctionId(lineNumber)));
 }
+
+void srcSliceHandler::insertDvar(SliceProfile *sp, std::string variableName) {
+    sp->dvars.insert(DvarData(variableName, this->getVariableId(variableName)));
+}
+
+

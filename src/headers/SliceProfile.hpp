@@ -42,6 +42,39 @@ public:
     }
 };
 
+
+// 本来DvarにはVariableDataのポインタかSliceProfileのポインタを
+// 持たせたいが、SrcSliceクラスに辞書を検索するメソッドがあったりで
+// コード修正が必要なため、応急処置でDvarData構造体を作った
+struct DvarData {
+    std::string variableName;
+    std::string variableId;
+
+    DvarData(std::string variableName, std::string variableId) {
+        this->variableName = variableName;
+        this->variableId = variableId;
+    }
+
+    std::string to_string() {
+        // NOTE: どの変数という情報は保持しているが、
+        // それをどこでという情報がない気がする。
+        // というわけで行番号+関数IDの情報も追加していいかも
+        return this->variableName + "(" + this->variableId + ")";
+    }
+
+    // < 演算子をオーバーライドすれば
+    // 任意の型のSet<>を作ることができる
+    bool operator<(const DvarData &other) const {
+//        return false;
+        if (this->variableId == other.variableId) {
+            return this->variableName < other.variableName;
+        } else {
+            return this->variableId < other.variableId;
+        }
+    }
+};
+
+
 /**
  * 関数のデータを格納する構造体
  */
@@ -121,7 +154,7 @@ struct ProgramPoint {
         }
     }
 
-    std::string to_string(){
+    std::string to_string() {
         return std::to_string(this->lineNumber) + "@" + this->functionId;
     }
 };
@@ -197,10 +230,19 @@ public:
     /**
      * dvars{}
      */
-    std::unordered_set<std::string> dvars;
+    std::set<DvarData> dvars;
 
     /**
      * pointers{}
      */
     std::unordered_set<std::string> aliases;
+
+    /**
+     * 変数IDを計算して返します。計算済みの場合はその値を即座に返します。
+     * @return
+     */
+    std::string computeVariableId();
+
+private:
+    std::string id;
 };

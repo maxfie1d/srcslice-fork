@@ -123,6 +123,9 @@ struct srcSlice {
         }
     }
 
+    /*
+     * 使われていないのでコメントアウト
+
     bool Insert(std::string flename, std::string funcname, const SliceProfile &np) {
         FileFunctionVarMap::iterator ffvmIt = dictionary.ffvMap.find(flename);
         if (ffvmIt != dictionary.ffvMap.end()) {
@@ -176,5 +179,7 @@ struct srcSlice {
         }
         return false;
     }
+
+    */
 
 };
