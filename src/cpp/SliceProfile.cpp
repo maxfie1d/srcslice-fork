@@ -1,7 +1,6 @@
 #include <SliceProfile.hpp>
 #include <picosha2.h>
 
-
 std::string computeSHA256Hash(std::string source) {
     // SHA256ハッシュを求める
     // 4バイト用意すると、16進数文字列としたときに
@@ -51,4 +50,15 @@ std::string SliceProfile::computeVariableId() {
     } else {
         return this->id;
     }
+}
+
+bool CFuncData::operator<(const CFuncData &other) const {
+    return this->location < other.location;
+}
+
+std::string CFuncData::to_string() const {
+    std::stringstream ss;
+    ss << this->calledFunctionName << "(" << this->calledFunctionId << "){" << this->argIndenx << "}@" << this->location.functionId
+       << ":" << this->location.lineNumber;
+    return ss.str();
 }

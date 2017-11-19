@@ -26,6 +26,7 @@
 #include <unordered_map>
 #include <set>
 #include "srcSliceTypes.h"
+#include "ProgramPoint.hpp"
 
 class SliceProfile;
 
@@ -72,6 +73,47 @@ struct DvarData {
             return this->variableId < other.variableId;
         }
     }
+};
+
+/**
+ * cfuncsのデータを保持する構造体
+ */
+struct CFuncData {
+    /**
+     * その変数を引数として呼び出している関数
+     */
+    std::string calledFunctionName;
+
+    /**
+     * 関数ID
+     */
+    std::string calledFunctionId;
+
+    /**
+     * 何番目の引数として呼び出されたか(one-based)
+     */
+    unsigned short argIndenx;
+
+    /**
+     * 関数呼び出しが起きた場所
+     */
+    ProgramPoint location;
+
+    CFuncData(
+            std::string calledFunctionName,
+            std::string functionId,
+            unsigned short argIndenx,
+            ProgramPoint location
+    ) {
+        this->calledFunctionName = calledFunctionName;
+        this->calledFunctionId = functionId;
+        this->argIndenx = argIndenx;
+        this->location = location;
+    }
+
+    std::string to_string() const;
+
+    bool operator<(const CFuncData &other) const;
 };
 
 
@@ -135,29 +177,6 @@ struct ClassProfile {
     //std::unordered_set<FunctionData, FunctionArgtypeArgnumHash> memberFunctions; //need to handle overloads. Can't be string.
 };
 
-struct ProgramPoint {
-    unsigned int lineNumber;
-    std::string functionId;
-
-    ProgramPoint(unsigned int lineNumber, std::string functionId) {
-        this->lineNumber = lineNumber;
-        this->functionId = functionId;
-    }
-
-    // < 演算子をオーバーライドすれば
-    // 任意の型のSet<>を作ることができる
-    bool operator<(const ProgramPoint &other) const {
-        if (this->lineNumber == other.lineNumber) {
-            return this->functionId < other.functionId;
-        } else {
-            return this->lineNumber < other.lineNumber;
-        }
-    }
-
-    std::string to_string() {
-        return std::to_string(this->lineNumber) + "@" + this->functionId;
-    }
-};
 
 class SliceProfile {
 public:
@@ -175,7 +194,12 @@ public:
         visited = false;
     }
 
+    /*
+     * 何番目の引数として呼ばれたかを保持するらしい
+     * プログラム中で何度か書き換えられると思うと気持ち悪いな...
+     */
     unsigned int index;
+
     std::unordered_set<std::string>::iterator lastInsertedAlias;
     bool potentialAlias;
     bool dereferenced;
@@ -208,11 +232,6 @@ public:
     std::unordered_set<std::string> memberVariables;
 
     /**
-     * Deprecated
-     */
-    std::unordered_set<unsigned int> slines;
-
-    /**
      * defされる行番号の集合
      */
     std::set<ProgramPoint> def;
@@ -225,7 +244,7 @@ public:
     /**
      * cfuncs{}
      */
-    std::unordered_set<std::pair<std::string, unsigned int>, NameLineNumberPairHash> cfunctions;
+    std::set<CFuncData> cfunctions;
 
     /**
      * dvars{}

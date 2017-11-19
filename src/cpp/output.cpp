@@ -121,19 +121,14 @@ varmap_pair_to_string(std::string file_name,
     // pointersを出力
     container.push_back(join(',', unordered_set_to_vector<std::string>(sp.aliases, [](std::string x) { return x; })));
 
-    str.append(join('\t', container));
-
     // cfuncsを出力
-    // 余計ややこしくなりそうなので元のコードのままで保留
-    str.append("\t");
-    for (auto cfunc : sp.cfunctions) {
-        std::stringstream ststrm;
-        ststrm << cfunc.second;
-        str.append(cfunc.first).append("{").append(ststrm.str()).append("},");
-    }
-    if (str.at(str.length() - 1) == ',')
-        str.erase(str.length() - 1);
+    auto cfuncs = vec_transform<CFuncData, std::string>(set_to_vector<CFuncData>(sp.cfunctions), [](CFuncData cfd) {
+        return cfd.to_string();
+    });
+    container.push_back(join(',', cfuncs));
 
+    // タブ区切りでつなげる
+    str.append(join('\t', container));
     return str;
 }
 
