@@ -54,7 +54,11 @@ private:
     std::unordered_map<std::string, std::function<void()>> process_map;
     std::unordered_map<std::string, std::function<void()>> process_map3;
 
-    unsigned int numArgs;
+    /**
+     * 関数呼び出しでの引数のインデックス(one-based)を保持する
+     */
+    unsigned short argIndex;
+
     unsigned int declIndex;
 
     int constructorNum;
@@ -72,8 +76,12 @@ private:
      */
     FunctionData functionTmplt;
 
-    /*keeps track of which function has been called. Useful for when argument slice profiles need to be updated*/
-    std::stack<std::string> nameOfCurrentClldFcn;
+    /*
+     * どの関数が呼び出されたかをこのスタックに保持します。
+     * 引数のSliceProfileを更新する必要があるときに役立ちます。
+     * keeps track of which function has been called. Useful for when argument slice profiles need to be updated
+     */
+    std::stack<std::string> nameOfCurrentCalledFunctionStack;
 
     //Not used yet
     std::stack<unsigned int> controlFlowLineNum;
@@ -118,7 +126,11 @@ private:
 
     std::string calledFunctionName;
     std::string currentOperator;
-    std::stack<NameAndLineNumber> callArgData;
+
+    /**
+     * 関数呼び出し時の引数を保持するスタック
+     */
+    std::stack<NameAndLineNumber> callArgDataStack;
 
     /*NameLineNumberPairs and triggerfield make up the meat of this slicer; check the triggerfield for context (E.g., triggerField[init])
      *and then once you know the right tags are open, check the correct line/string pair to see what the name is
@@ -206,6 +218,37 @@ private:
         return triggerField[first] && triggerFieldAnd(rest...);
     }
 
+    /**
+     * パース中にセットされるファイルパスや関数名をもとに
+     * 関数IDを取得します
+     * @param lineNumber
+     * @return
+     */
+    std::string getFunctionId(unsigned int lineNumber);
+
+
+    /**
+     * 変数IDを取得します
+     * @param variableName
+     * @return
+     */
+    std::string getVariableId(std::string variableName);
+
+    void insertDef(SliceProfile *sp, unsigned int lineNumber);
+
+    void insertUse(SliceProfile *sp, unsigned int lineNumber);
+
+    void insertDvar(SliceProfile *sp, std::string variableName);
+
+    /**
+     * cfuncsに追加します
+     * @param sp SliceProfile
+     * @param calledFun 呼び出された関数名
+     * @param argIndex 何番目の引数として渡されたか
+     */
+    void
+    insertCFunc(SliceProfile *sp, std::string calledFunctionName, unsigned short argIndex, unsigned int lineNumber);
+
     std::shared_ptr<spdlog::logger> _logger;
 
 public:
@@ -228,7 +271,7 @@ public:
         spdlog::set_level(spdlog::level::err);
 #endif
 
-        numArgs = 0;
+        argIndex = 0;
         declIndex = 0;
 
         constructorNum = 0;
@@ -314,7 +357,7 @@ public:
                     if (triggerField[call]) {
                         if (isACallName) {
                             isACallName = false;
-                            nameOfCurrentClldFcn.push(calledFunctionName);
+                            nameOfCurrentCalledFunctionStack.push(calledFunctionName);
                             calledFunctionName.clear();
                         }
                     }
@@ -322,7 +365,7 @@ public:
 
                 {"call",             [this]() {
                     if (triggerField[call]) {//for nested calls
-                        --numArgs; //already in some sort of a call. Decrement counter to make up for the argument slot the function call took up.
+                        --argIndex; //already in some sort of a call. Decrement counter to make up for the argument slot the function call took up.
                     }
                     isACallName = true;
                     ++triggerField[call];
@@ -415,7 +458,7 @@ public:
                     ++triggerField[init];
                 }},
                 {"argument",         [this]() {
-                    ++numArgs;
+                    ++argIndex;
                     currentCallArgData.name.clear();
                     calledFunctionName.clear();
                     ++triggerField[argument];
@@ -538,19 +581,19 @@ public:
                     if (triggerFieldAnd(decl, decl_stmt) && (!triggerField[init] || triggerFieldOr(argument, macro))) {
                         GetDeclStmtData();
                     }
-                    numArgs = 0;
+                    argIndex = 0;
                     sawgeneric = false;
                     calledFunctionName.clear();
                     --triggerField[argument_list];
                 }},
 
                 {"call",             [this]() {
-                    if (!nameOfCurrentClldFcn.empty()) {
-                        nameOfCurrentClldFcn.pop();
+                    if (!nameOfCurrentCalledFunctionStack.empty()) {
+                        nameOfCurrentCalledFunctionStack.pop();
                     }
                     --triggerField[call];
                     if (triggerField[call]) {
-                        ++numArgs; //we exited a call but we're still in another call. Increment to make up for decrementing when we entered the second call.
+                        ++argIndex; //we exited a call but we're still in another call. Increment to make up for decrementing when we entered the second call.
                     }
                 }},
 
@@ -558,8 +601,7 @@ public:
                     declIndex = 0;
                     inGlobalScope = true;
 
-                    // 関数の終了行を設定し、
-                    // 関数を辞書に登録する
+                    // 関数の終了行を設定し、関数を辞書に登録する
                     functionTmplt.declareRange.endLine = lineNum;
                     sysDict->fileFunctionTable.insert(std::make_pair(functionTmplt.functionName, functionTmplt));
 
@@ -747,13 +789,13 @@ public:
                 }},
                 {"name",             [this]() {
                     if (triggerField[call] && triggerField[argument]) {
-                        callArgData.push(currentCallArgData);
+                        callArgDataStack.push(currentCallArgData);
                     }
                     //Get function arguments
                     if (triggerField[call] || triggerFieldAnd(decl_stmt, argument_list)) {
                         GetCallData();//issue with statements like object(var)
-                        while (!callArgData.empty())
-                            callArgData.pop();
+                        while (!callArgDataStack.empty())
+                            callArgDataStack.pop();
                     }
                     if (triggerField[expr]
                         && triggerFieldOr(expr_stmt, condition, return_stmt)) {
@@ -970,7 +1012,7 @@ public:
         if (triggerFieldOr(name, op)
             && triggerFieldOr(decl_stmt, control)
             && triggerField[decl]
-            && !triggerFieldOr(argument_list,  preproc, type, macro)) {
+            && !triggerFieldOr(argument_list, preproc, type, macro)) {
             if (triggerField[init]) {
                 if (!triggerField[call] && !memberAccess) {//if it's not in a call then we can do like normal
                     currentDeclInit.name.append(ch, len);

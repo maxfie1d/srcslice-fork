@@ -26,6 +26,7 @@
 #include <unordered_map>
 #include <set>
 #include "srcSliceTypes.h"
+#include "ProgramPoint.hpp"
 
 class SliceProfile;
 
@@ -42,10 +43,91 @@ public:
     }
 };
 
+
+// 本来DvarにはVariableDataのポインタかSliceProfileのポインタを
+// 持たせたいが、SrcSliceクラスに辞書を検索するメソッドがあったりで
+// コード修正が必要なため、応急処置でDvarData構造体を作った
+struct DvarData {
+    std::string variableName;
+    std::string variableId;
+
+    DvarData(std::string variableName, std::string variableId) {
+        this->variableName = variableName;
+        this->variableId = variableId;
+    }
+
+    std::string to_string() {
+        // NOTE: どの変数という情報は保持しているが、
+        // それをどこでという情報がない気がする。
+        // というわけで行番号+関数IDの情報も追加していいかも
+        return this->variableName + "(" + this->variableId + ")";
+    }
+
+    // < 演算子をオーバーライドすれば
+    // 任意の型のSet<>を作ることができる
+    bool operator<(const DvarData &other) const {
+//        return false;
+        if (this->variableId == other.variableId) {
+            return this->variableName < other.variableName;
+        } else {
+            return this->variableId < other.variableId;
+        }
+    }
+};
+
+/**
+ * cfuncsのデータを保持する構造体
+ */
+struct CFuncData {
+    /**
+     * その変数を引数として呼び出している関数
+     */
+    std::string calledFunctionName;
+
+    /**
+     * 関数ID
+     */
+    std::string calledFunctionId;
+
+    /**
+     * 何番目の引数として呼び出されたか(one-based)
+     */
+    unsigned short argIndenx;
+
+    /**
+     * 関数呼び出しが起きた場所
+     */
+    ProgramPoint location;
+
+    CFuncData(
+            std::string calledFunctionName,
+            std::string functionId,
+            unsigned short argIndenx,
+            ProgramPoint location
+    ) {
+        this->calledFunctionName = calledFunctionName;
+        this->calledFunctionId = functionId;
+        this->argIndenx = argIndenx;
+        this->location = location;
+    }
+
+    std::string to_string() const;
+
+    bool operator<(const CFuncData &other) const;
+};
+
+
 /**
  * 関数のデータを格納する構造体
  */
 struct FunctionData {
+private:
+    /**
+     * 関数ID
+     */
+    std::string id;
+
+public:
     /**
      * 返り値の型
      */
@@ -75,17 +157,18 @@ struct FunctionData {
     /**
      * コンストラクタ
      */
-    FunctionData() {
-    }
+    FunctionData() = default;
 
     /**
      * 返り値の型と関数名と宣言範囲をクリアします
      */
-    void clear() {
-        returnType.clear();
-        functionName.clear();
-        declareRange.clear();
-    }
+    void clear();
+
+    /**
+     * 関数IDを計算します。計算済みの場合はその値を返します
+     * @return
+     */
+    std::string computeId();
 };
 
 struct ClassProfile {
@@ -93,6 +176,7 @@ struct ClassProfile {
     std::unordered_set<std::string> memberVariables;
     //std::unordered_set<FunctionData, FunctionArgtypeArgnumHash> memberFunctions; //need to handle overloads. Can't be string.
 };
+
 
 class SliceProfile {
 public:
@@ -110,7 +194,12 @@ public:
         visited = false;
     }
 
+    /*
+     * 何番目の引数として呼ばれたかを保持するらしい
+     * プログラム中で何度か書き換えられると思うと気持ち悪いな...
+     */
     unsigned int index;
+
     std::unordered_set<std::string>::iterator lastInsertedAlias;
     bool potentialAlias;
     bool dereferenced;
@@ -143,32 +232,36 @@ public:
     std::unordered_set<std::string> memberVariables;
 
     /**
-     * Deprecated
-     */
-    std::unordered_set<unsigned int> slines;
-
-    /**
      * defされる行番号の集合
      */
-    std::set<unsigned int> def;
+    std::set<ProgramPoint> def;
 
     /**
      * useされる行番号の集合
      */
-    std::set<unsigned int> use;
+    std::set<ProgramPoint> use;
 
     /**
      * cfuncs{}
      */
-    std::unordered_set<std::pair<std::string, unsigned int>, NameLineNumberPairHash> cfunctions;
+    std::set<CFuncData> cfunctions;
 
     /**
      * dvars{}
      */
-    std::unordered_set<std::string> dvars;
+    std::set<DvarData> dvars;
 
     /**
      * pointers{}
      */
     std::unordered_set<std::string> aliases;
+
+    /**
+     * 変数IDを計算して返します。計算済みの場合はその値を即座に返します。
+     * @return
+     */
+    std::string computeVariableId();
+
+private:
+    std::string id;
 };

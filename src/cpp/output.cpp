@@ -21,78 +21,6 @@
 #include <srcSliceHandler.hpp>
 #include <json.hpp>
 
-void TestSlice2(const VarMap &mp) {
-    for (VarMap::const_iterator vmIt = mp.begin(); vmIt != mp.end(); ++vmIt) {
-        std::cerr << "-------------------------" << std::endl;
-        std::cerr << "Variable: " << vmIt->first << std::endl;
-        std::cerr << "Slines: {";
-        for (unsigned int sl : vmIt->second.slines) {
-            std::cerr << sl << ",";
-        }
-        std::cerr << "}" << std::endl;
-        std::cerr << "dvars: {";
-        for (std::string dv : vmIt->second.dvars) {
-            std::cerr << dv << ",";
-        }
-        std::cerr << "}" << std::endl;
-        std::cerr << "is aliase for: {";
-        for (std::string al : vmIt->second.aliases) {
-            std::cerr << al << ",";
-        }
-        std::cerr << "}" << std::endl;
-        std::cerr << "cfuntions: {";
-        for (auto cfunc : vmIt->second.cfunctions) {
-            std::cerr << cfunc.first << " " << cfunc.second << ",";
-        }
-        std::cerr << "}" << std::endl;
-        std::cerr << "-------------------------" << std::endl;
-    }
-}
-
-void TestSlice(const FileFunctionVarMap &mp, srcSliceHandler handler) {
-    for (FileFunctionVarMap::const_iterator ffvmIt = mp.begin(); ffvmIt != mp.end(); ++ffvmIt) {
-        std::cerr << "FILE: " << ffvmIt->first << std::endl;
-        for (FunctionVarMap::const_iterator fvmIt = ffvmIt->second.begin(); fvmIt != ffvmIt->second.end(); ++fvmIt) {
-            std::cerr << fvmIt->first << std::endl;
-            //std::cerr<<handler.sysDict->functionTable.find(fvmIt->first)->second<<std::endl;
-            for (VarMap::const_iterator vmIt = fvmIt->second.begin(); vmIt != fvmIt->second.end(); ++vmIt) {
-                std::cerr << "-------------------------" << std::endl;
-                std::cerr << "Variable: " << vmIt->first << std::endl;
-                std::cerr << "Slines: {";
-                for (unsigned int sl : vmIt->second.slines) {
-                    std::cerr << sl << ",";
-                }
-                std::cerr << "}" << std::endl;
-                std::cerr << "variables dependant on this one: {";
-                for (std::string dv : vmIt->second.dvars) {
-                    std::cerr << dv << ",";
-                }
-                std::cerr << "}" << std::endl;
-                std::cerr << "is aliase for: {";
-                for (std::string al : vmIt->second.aliases) {
-                    std::cerr << al << ",";
-                }
-                std::cerr << "}" << std::endl;
-                std::cerr << "cfuntions: {";
-                for (auto cfunc : vmIt->second.cfunctions) {
-                    std::cerr << cfunc.first << " " << cfunc.second << ",";
-                }
-                std::cerr << "}" << std::endl;
-                std::cerr << "def: {";
-                for (auto defv : vmIt->second.def) {
-                    std::cerr << defv << ",";
-                }
-                std::cerr << "}" << std::endl;
-                std::cerr << "use: {";
-                for (auto usev : vmIt->second.use) {
-                    std::cerr << usev << ",";
-                }
-                std::cerr << "}" << std::endl;
-                std::cerr << "-------------------------" << std::endl;
-            }
-        }
-    }
-}
 
 std::string join(const char delimiter, std::vector<std::string> source) {
     std::stringstream ss;
@@ -105,14 +33,38 @@ std::string join(const char delimiter, std::vector<std::string> source) {
     return ss.str();
 }
 
+/**
+ * 関数テーブルから関数を検索して返します
+ * @param function_table
+ * @param file_path
+ * @param func_name
+ * @return
+ */
+FunctionData *find_function(FileFunctionTable *function_table, std::string file_path, std::string func_name) {
+    for (auto &func : *function_table) {
+        auto func_data = &func.second;
+        if (func_data->fileName == file_path
+            && func_data->functionName == func_name) {
+            return func_data;
+        }
+    }
+    return nullptr;
+}
+
 template<typename T>
-std::vector<std::string> set_to_vector(std::set<T> source) {
-    auto vec = std::vector<T>(std::begin(source), std::end(source));
+std::vector<T> set_to_vector(std::set<T> lineNumberSet) {
+    auto vec = std::vector<T>(std::begin(lineNumberSet), std::end(lineNumberSet));
+    return vec;
+}
+
+template<typename T1, typename T2>
+std::vector<T2> vec_transform(std::vector<T1> vec, std::function<T2(T1)> map) {
     std::vector<std::string> out;
     std::transform(
             std::begin(vec),
             std::end(vec),
-            std::back_inserter(out), [](T x) { return std::to_string(x); });
+            std::back_inserter(out),
+            map);
     return out;
 }
 
@@ -128,34 +80,55 @@ std::vector<std::string> unordered_set_to_vector(std::unordered_set<T> source, M
 }
 
 std::string
-varmap_pair_to_string(std::string file_name, std::string function_name, std::pair<std::string, SliceProfile> *vmIt) {
+varmap_pair_to_string(std::string file_name,
+                      std::string function_name,
+                      std::pair<const std::string, SliceProfile> *vmIt,
+                      FileFunctionTable *functionTable) {
     std::string str;
     std::string varname = vmIt->first;
     auto sp = vmIt->second;
 
     std::vector<std::string> container;
     // def{}のうち最小の値を変数のある行番号としている
-    unsigned int lineNumber = *sp.def.begin();
+    unsigned int lineNumber = sp.def.begin()->lineNumber;
+    // fileを出力
     container.push_back(file_name + ":" + std::to_string(lineNumber));
+    // funcを出力
     container.push_back(function_name);
+    // varを出力
     container.push_back(sp.variableType + " " + varname);
-    container.push_back(join(',', set_to_vector<unsigned int>(sp.def)));
-    container.push_back(join(',', set_to_vector<unsigned int>(sp.use)));
-    container.push_back(join(',', unordered_set_to_vector<std::string>(sp.dvars, [](std::string x) { return x; })));
+    // defを出力
+    auto def_line_numbers = set_to_vector<ProgramPoint>(sp.def);
+    auto defs_as_string = vec_transform<ProgramPoint, std::string>(def_line_numbers, [](ProgramPoint pp) {
+        return pp.to_string();
+    });
+    container.push_back(join(',', defs_as_string));
+
+    // useを出力
+    auto use_line_numbers = set_to_vector<ProgramPoint>(sp.use);
+    auto uses_as_string = vec_transform<ProgramPoint, std::string>(use_line_numbers, [](ProgramPoint pp) {
+        return pp.to_string();
+    });
+    container.push_back(join(',', uses_as_string));
+
+    // dvarsを出力
+    auto dvars = set_to_vector<DvarData>(sp.dvars);
+    auto dvars_as_string = vec_transform<DvarData, std::string>(dvars, [](DvarData dd) {
+        return dd.to_string();
+    });
+    container.push_back(join(',', dvars_as_string));
+
+    // pointersを出力
     container.push_back(join(',', unordered_set_to_vector<std::string>(sp.aliases, [](std::string x) { return x; })));
 
+    // cfuncsを出力
+    auto cfuncs = vec_transform<CFuncData, std::string>(set_to_vector<CFuncData>(sp.cfunctions), [](CFuncData cfd) {
+        return cfd.to_string();
+    });
+    container.push_back(join(',', cfuncs));
+
+    // タブ区切りでつなげる
     str.append(join('\t', container));
-
-    // 余計ややこしくなりそうなので元のコードのままで保留
-    str.append("\t");
-    for (auto cfunc : sp.cfunctions) {
-        std::stringstream ststrm;
-        ststrm << cfunc.second;
-        str.append(cfunc.first).append("{").append(ststrm.str()).append("},");
-    }
-    if (str.at(str.length() - 1) == ',')
-        str.erase(str.length() - 1);
-
     return str;
 }
 
@@ -186,8 +159,9 @@ std::string create_variable_table(SliceDictionary dictionary) {
                     fvmIt.second.begin(),
                     fvmIt.second.end()
             );
-            for (std::pair<std::string, SliceProfile> vmIt: sorted_vMap) {
-                std::string row = varmap_pair_to_string(ffvmIt.first, fvmIt.first, &vmIt);
+            for (auto vmIt: sorted_vMap) {
+                std::string row = varmap_pair_to_string(ffvmIt.first, fvmIt.first, &vmIt,
+                                                        &dictionary.fileFunctionTable);
                 ss << row << std::endl;
             }
         }
@@ -198,8 +172,9 @@ std::string create_variable_table(SliceDictionary dictionary) {
     // ソートする
     std::map<std::string, SliceProfile> sorted_globalMap
             (globalMap.begin(), globalMap.end());
-    for (std::pair<std::string, SliceProfile> vmIt : sorted_globalMap) {
-        std::string row = varmap_pair_to_string(vmIt.second.file, vmIt.second.function, &vmIt);
+    for (auto vmIt : sorted_globalMap) {
+        std::string row = varmap_pair_to_string(vmIt.second.file, vmIt.second.function, &vmIt,
+                                                &dictionary.fileFunctionTable);
         ss << row << std::endl;
     }
 
@@ -222,8 +197,7 @@ std::string create_function_table(SliceDictionary dictionary) {
     for (auto func_pair: dictionary.fileFunctionTable) {
         auto func_data = func_pair.second;
 
-        // FIXME: 関数IDを実装する
-        std::string id = "9999";
+        std::string id = func_data.computeId();
         std::string func_name = func_data.functionName;
         // TODO: 関数の種類を識別できるようにする
         std::string kind = "user-defined";
