@@ -20,6 +20,7 @@
 
 #include <srcSliceHandler.hpp>
 #include <json.hpp>
+#include "functional.hpp"
 
 
 std::string join(const char delimiter, std::vector<std::string> source) {
@@ -49,23 +50,6 @@ FunctionData *find_function(FileFunctionTable *function_table, std::string file_
         }
     }
     return nullptr;
-}
-
-template<typename T>
-std::vector<T> set_to_vector(std::set<T> lineNumberSet) {
-    auto vec = std::vector<T>(std::begin(lineNumberSet), std::end(lineNumberSet));
-    return vec;
-}
-
-template<typename T1, typename T2>
-std::vector<T2> vec_transform(std::vector<T1> vec, std::function<T2(T1)> map) {
-    std::vector<std::string> out;
-    std::transform(
-            std::begin(vec),
-            std::end(vec),
-            std::back_inserter(out),
-            map);
-    return out;
 }
 
 template<typename T, typename Mapper>

@@ -3,7 +3,7 @@ file(GLOB SRCSLICEHANDLER_SOURCE2 ../cpp/srcSlice*.cpp ../cpp/SliceProfile.cpp)
 file(GLOB SRCSLICEHANDLER_INCLUDE ../headers/*.hpp)
 file(GLOB SRCSLICETEST_SOURCE *.cpp)
 file(GLOB SRCSLICETEST_INCLUDE *.hpp)
-file(GLOB TESTCASES TestFunctionData.cpp)
+file(GLOB TESTCASES TestIssue16.cpp)
 
 link_directories(/usr/local/lib/)
 
@@ -29,9 +29,9 @@ add_executable(srcslicetest ${SRCSLICEHANDLER_SOURCE2} ${SRCSLICEHANDLER_INCLUDE
         TestGlobalIssue3.cpp
         TestConstTypes.cpp
         TestArrayType.cpp
-        TestHelper.cpp TestHelper.h)
+        TestHelper.cpp TestHelper.hpp)
 add_executable(ex_srcslicetest ${SRCSLICEHANDLER_SOURCE2} ${SRCSLICEHANDLER_INCLUDE}
-        ${TESTCASES} TestHelper.cpp TestHelper.h)
+        ${TESTCASES} TestHelper.cpp TestHelper.hpp ../headers/functional.hpp)
 
 target_link_libraries(srcslicetest srcsax_static srcml ${LIBXML2_LIBRARIES}
         gtest gtest_main pthread)
