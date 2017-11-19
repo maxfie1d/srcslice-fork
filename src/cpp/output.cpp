@@ -40,7 +40,7 @@ std::string join(const char delimiter, std::vector<std::string> source) {
  * @param func_name
  * @return
  */
-FunctionData *find_function(FileFunctionTable* function_table, std::string file_path, std::string func_name) {
+FunctionData *find_function(FileFunctionTable *function_table, std::string file_path, std::string func_name) {
     for (auto &func : *function_table) {
         auto func_data = &func.second;
         if (func_data->fileName == file_path
@@ -83,7 +83,7 @@ std::string
 varmap_pair_to_string(std::string file_name,
                       std::string function_name,
                       std::pair<const std::string, SliceProfile> *vmIt,
-                      FileFunctionTable* functionTable) {
+                      FileFunctionTable *functionTable) {
     std::string str;
     std::string varname = vmIt->first;
     auto sp = vmIt->second;
@@ -113,7 +113,7 @@ varmap_pair_to_string(std::string file_name,
 
     // dvarsを出力
     auto dvars = set_to_vector<DvarData>(sp.dvars);
-    auto dvars_as_string =vec_transform<DvarData, std::string>(dvars, [](DvarData dd) {
+    auto dvars_as_string = vec_transform<DvarData, std::string>(dvars, [](DvarData dd) {
         return dd.to_string();
     });
     container.push_back(join(',', dvars_as_string));
@@ -160,7 +160,8 @@ std::string create_variable_table(SliceDictionary dictionary) {
                     fvmIt.second.end()
             );
             for (auto vmIt: sorted_vMap) {
-                std::string row = varmap_pair_to_string(ffvmIt.first, fvmIt.first, &vmIt, &dictionary.fileFunctionTable);
+                std::string row = varmap_pair_to_string(ffvmIt.first, fvmIt.first, &vmIt,
+                                                        &dictionary.fileFunctionTable);
                 ss << row << std::endl;
             }
         }

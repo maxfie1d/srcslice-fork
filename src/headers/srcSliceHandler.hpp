@@ -246,7 +246,8 @@ private:
      * @param calledFun 呼び出された関数名
      * @param argIndex 何番目の引数として渡されたか
      */
-    void insertCFunc(SliceProfile *sp, std::string calledFunctionName, unsigned short argIndex, unsigned int lineNumber);
+    void
+    insertCFunc(SliceProfile *sp, std::string calledFunctionName, unsigned short argIndex, unsigned int lineNumber);
 
     std::shared_ptr<spdlog::logger> _logger;
 
@@ -1011,7 +1012,7 @@ public:
         if (triggerFieldOr(name, op)
             && triggerFieldOr(decl_stmt, control)
             && triggerField[decl]
-            && !triggerFieldOr(argument_list,  preproc, type, macro)) {
+            && !triggerFieldOr(argument_list, preproc, type, macro)) {
             if (triggerField[init]) {
                 if (!triggerField[call] && !memberAccess) {//if it's not in a call then we can do like normal
                     currentDeclInit.name.append(ch, len);
