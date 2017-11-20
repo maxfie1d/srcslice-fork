@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <srcSlice.hpp>
-#include "TestHelper.h"
+#include "TestHelper.hpp"
 
 TEST(SliceTest, TestIf) {
     std::string srcmlStr = pathToSrcml("if.c", "/src/tests/samples/if.c");

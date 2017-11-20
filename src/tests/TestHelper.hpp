@@ -3,6 +3,8 @@
 #include <string>
 #include <iostream>
 #include <SliceProfile.hpp>
+#include <functional.hpp>
+#include <gtest/gtest.h>
 
 std::string readFileAsStr(const char *filename);
 
@@ -49,3 +51,6 @@ std::string resolvePath(std::string path);
  * @return
  */
 std::string pathToSrcml(const char *fileName, std::string path);
+
+void testDef(SliceProfile *sp, std::set<unsigned int> expectedDefLines);
+void testUse(SliceProfile *sp, std::set<unsigned int> expectedUseLines);

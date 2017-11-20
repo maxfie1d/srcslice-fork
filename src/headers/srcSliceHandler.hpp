@@ -118,6 +118,11 @@ private:
 
     //For for loop init
     bool inFor;
+
+
+    /**
+     * これはなに？
+     */
     std::list<NameAndLineNumber> useExprStack;
 
     bool potentialAlias;
@@ -529,16 +534,16 @@ public:
                     exprop = false;
                     exprassign = false;
 
-                    ProcessExprStmtNoAssign(); //collect data about things that were not in assignment expr_stmts
-                    useExprStack.clear(); //clear data
+                    // collect data about things that were not in assignment expr_stmts
+                    // #16のためコメントアウト
+                    // ProcessExprStmtNoAssign();
 
                     lhsLine = 0;
+                    useExprStack.clear(); //clear data
                     lhsName.clear();
                     currentExprStmt.name.clear();
                     lhsExprStmt.name.clear();
-
                     useExprStmt.name.clear();
-
                     currentCallArgData.name.clear();
                 }},
 
@@ -565,7 +570,8 @@ public:
                     exprop = false;
                     exprassign = false;
 
-                    ProcessExprStmtNoAssign(); //collect data about things that were not in assignment expr_stmts
+                    //collect data about things that were not in assignment expr_stmts
+                    ProcessExprStmtNoAssign();
                     useExprStack.clear(); //clear data
 
                     //uncategorized

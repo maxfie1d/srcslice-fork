@@ -1,4 +1,4 @@
-#include "TestHelper.h"
+#include "TestHelper.hpp"
 #include <fstream>
 #include <srcml.h>
 
@@ -85,4 +85,21 @@ std::string pathToSrcml(const char *fileName, std::string path) {
     std::string srcStr = readFileAsStr(resolvedPath.c_str());
     std::string srcmlStr = StringToSrcML(fileName, srcStr);
     return srcmlStr;
+}
+
+void testDef(SliceProfile *sp, std::set<unsigned int> expectedDefLines) {
+    auto defLines = set_transform<ProgramPoint, unsigned int>(sp->def, [](ProgramPoint pp) {
+        return pp.lineNumber;
+    });
+
+    ASSERT_EQ(defLines, expectedDefLines);
+}
+
+void testUse(SliceProfile *sp, std::set<unsigned int> expectedUseLines){
+    auto useLines = set_transform<ProgramPoint, unsigned int>(sp->use,
+    [](ProgramPoint pp){
+        return pp.lineNumber;
+    });
+
+    ASSERT_EQ(useLines, expectedUseLines);
 }
