@@ -99,7 +99,7 @@ void srcSliceHandler::ProcessDeclStmt() {
             varIt = FunctionVarMapItr->second.insert(
                     std::make_pair(currentDeclInit.name, std::move(currentSliceProfile))).first;
             this->_logger->debug("def#1: {}", currentDeclInit.lineNumber);
-            this->insertDef(sp, currentDeclInit.lineNumber);
+            this->insertDef(&varIt->second, currentDeclInit.lineNumber);
         }
     }
 
@@ -571,6 +571,12 @@ void srcSliceHandler::insertCFunc(SliceProfile *sp,
                 ProgramPoint(lineNumber, this->getFunctionId(lineNumber))
         ));
     } else {
-        throw "呼び出された関数のデータが見つかりませんでした";
+        // 関数表になければライブラリ関数ということにしている
+        sp->cfunctions.insert(CFuncData(
+                calledFunctionName,
+                "<libfunc>",
+                argIndex,
+                ProgramPoint(lineNumber, this->getFunctionId(lineNumber))
+        ));
     }
 }

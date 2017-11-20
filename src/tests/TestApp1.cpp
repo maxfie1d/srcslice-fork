@@ -12,20 +12,16 @@ TEST(SliceTest, TestApp1) {
             assert(sslice.SetContext("app1.c", "main", 3));
             auto a_slice = sslice.Find("a").second;
 
-            // def{} のテスト
-            ASSERT_EQ(a_slice.def, std::set<unsigned int>({6, 7}));
-            // use{} のテスト
-            ASSERT_EQ(a_slice.use, std::set<unsigned int>({7, 9}));
+            testDef(&a_slice, std::set<unsigned int>({6, 7}));
+            testUse(&a_slice, std::set<unsigned int>({9}));
+            assertDvarsEmpty(&a_slice);
 
-            ASSERT_EQ(a_slice.dvars.empty(), true);
-            ASSERT_EQ(a_slice.aliases.empty(), true);
-
-            // cfuncs{} のテスト
-            CFuncSet expected_cfuncs;
-            expected_cfuncs.insert(std::make_pair("printf", 2));
-            ASSERT_EQ(a_slice.cfunctions, expected_cfuncs);
+            std::set<CfuncShortData> expected_cfuncs(
+                    {
+                            CfuncShortData("printf", 2)
+                    });
+            testCfuncs(&a_slice, expected_cfuncs);
         }
-
     } catch (SAXError e) {
         FAIL();
     }

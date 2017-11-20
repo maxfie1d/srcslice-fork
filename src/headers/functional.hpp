@@ -5,6 +5,8 @@
 
 #include <functional>
 #include <algorithm>
+#include <vector>
+#include <set>
 
 template<typename T1, typename T2>
 std::vector<T2> vec_transform(std::vector<T1> vec, std::function<T2(T1)> map) {

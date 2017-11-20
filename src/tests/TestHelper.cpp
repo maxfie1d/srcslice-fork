@@ -1,6 +1,7 @@
 #include "TestHelper.hpp"
 #include <fstream>
 #include <srcml.h>
+#include <functional.hpp>
 
 std::string readFileAsStr(const char *filename) {
     std::ifstream stream(filename);
@@ -51,19 +52,17 @@ std::string StringToSrcML(const char *file_name, const std::string str) {
     return std::string(ch);
 }
 
-typedef std::unordered_set<std::pair<std::string, unsigned int>, NameLineNumberPairHash> CFuncSet;
-
-void OutputCompare(const CFuncSet &lhsSet, const CFuncSet &rhsSet) {
+void OutputCompare(const std::set<CfuncShortData> &lhsSet, const std::set<CfuncShortData> &rhsSet) {
     // NOTE: 2017.10.29 出力が邪魔なのでスキップしている
     return;
 
     std::cerr << "cfuncs: {";
     for (auto i : lhsSet) {
-        std::cerr << "{" << i.first << "," << i.second << "},";
+        std::cerr << "{" << i.calledFunctionName << "," << i.argIndex << "},";
     }
     std::cerr << "} == {";
     for (auto i : rhsSet) {
-        std::cerr << "{" << i.first << "," << i.second << "},";
+        std::cerr << "{" << i.calledFunctionName << "," << i.argIndex << "},";
     }
     std::cerr << "}" << std::endl;
 }
@@ -71,7 +70,7 @@ void OutputCompare(const CFuncSet &lhsSet, const CFuncSet &rhsSet) {
 std::string resolvePath(std::string path) {
     // CLion からだと、なぜか std::getenv が機能しない
     const char *srcslice_root = std::getenv("SRCSLICE_ROOT");
-    const char *base = srcslice_root != NULL ? srcslice_root : "/home/n-isida/github/srcslice-fork";
+    const char *base = srcslice_root != NULL ? srcslice_root : "/home/naoto/github/srcslice-fork";
     if (base) {
         std::string resolved = std::string(base) + path;
         return resolved;
@@ -95,11 +94,32 @@ void testDef(SliceProfile *sp, std::set<unsigned int> expectedDefLines) {
     ASSERT_EQ(defLines, expectedDefLines);
 }
 
-void testUse(SliceProfile *sp, std::set<unsigned int> expectedUseLines){
-    auto useLines = set_transform<ProgramPoint, unsigned int>(sp->use,
-    [](ProgramPoint pp){
-        return pp.lineNumber;
-    });
+void testUse(SliceProfile *sp, std::set<unsigned int> expectedUseLines) {
+    auto useLines = set_transform<ProgramPoint, unsigned int>
+            (sp->use,
+             [](ProgramPoint pp) {
+                 return pp.lineNumber;
+             });
 
     ASSERT_EQ(useLines, expectedUseLines);
+}
+
+void assertDvarsEmpty(SliceProfile *sp) {
+    ASSERT_EQ(sp->dvars.empty(), true);
+}
+
+void assertCfuncsEmpty(SliceProfile *sp) {
+    ASSERT_EQ(sp->cfunctions.empty(), true);
+}
+
+void testCfuncs(SliceProfile *sp, std::set<CfuncShortData> expectedCfuncs) {
+    std::set<CfuncShortData> actualCfuncs = set_transform<CFuncData, CfuncShortData>
+            (sp->cfunctions, [](CFuncData cd) {
+                return CfuncShortData(cd.calledFunctionName, cd.argIndenx);
+            });
+
+    std::cout << actualCfuncs.begin()->calledFunctionName << std::endl;
+    std::cout << actualCfuncs.begin()->argIndex << std::endl;
+
+    ASSERT_EQ(actualCfuncs, expectedCfuncs);
 }

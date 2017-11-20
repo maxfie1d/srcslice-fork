@@ -3,8 +3,34 @@
 #include <string>
 #include <iostream>
 #include <SliceProfile.hpp>
-#include <functional.hpp>
 #include <gtest/gtest.h>
+
+/**
+ * テスト用に仕方なく作った構造体
+ * 呼び出された関数名と引数のインデックスを保持する
+ */
+struct CfuncShortData {
+    std::string calledFunctionName;
+    unsigned short argIndex;
+
+    CfuncShortData(std::string calledFunctionName, unsigned short argIndex) {
+        this->calledFunctionName = calledFunctionName;
+        this->argIndex = argIndex;
+    }
+
+    bool operator<(const CfuncShortData &other) const {
+        if (this->calledFunctionName == other.calledFunctionName) {
+            return this->argIndex < other.argIndex;
+        } else {
+            return this->calledFunctionName < other.calledFunctionName;
+        }
+    }
+
+    bool operator==(const CfuncShortData &other) const {
+        return this->calledFunctionName == other.calledFunctionName
+               && this->argIndex == other.argIndex;
+    }
+};
 
 std::string readFileAsStr(const char *filename);
 
@@ -32,9 +58,7 @@ void OutputCompare(const T &lhsSet, const T &rhsSet) {
     std::cerr << "}" << std::endl;
 }
 
-typedef std::unordered_set<std::pair<std::string, unsigned int>, NameLineNumberPairHash> CFuncSet;
-
-void OutputCompare(const CFuncSet &lhsSet, const CFuncSet &rhsSet);
+void OutputCompare(const std::set<CfuncShortData> &lhsSet, const std::set<CfuncShortData> &rhsSet);
 
 /**
  * 相対パスを解決します
@@ -53,4 +77,11 @@ std::string resolvePath(std::string path);
 std::string pathToSrcml(const char *fileName, std::string path);
 
 void testDef(SliceProfile *sp, std::set<unsigned int> expectedDefLines);
+
 void testUse(SliceProfile *sp, std::set<unsigned int> expectedUseLines);
+
+void assertDvarsEmpty(SliceProfile *sp);
+
+void assertCfuncsEmpty(SliceProfile *sp);
+
+void testCfuncs(SliceProfile *sp, std::set<CfuncShortData> expectedCfuncs);
