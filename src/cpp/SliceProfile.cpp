@@ -40,7 +40,7 @@ std::string FunctionData::computeId() {
 std::string SliceProfile::computeVariableId() {
     if (this->id.empty()) {
         if (this->file.empty() || this->function.empty() || this->variableName.empty()) {
-            throw "変数IDを計算できません";
+            return "<unknown>";
         } else {
             std::string concat = this->variableName + "@" + this->function + "@" + this->file;
             std::string hex_hash = computeSHA256Hash(concat);

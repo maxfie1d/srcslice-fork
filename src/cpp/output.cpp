@@ -73,6 +73,9 @@ varmap_pair_to_string(std::string file_name,
     auto sp = vmIt->second;
 
     std::vector<std::string> container;
+
+    // idを出力
+    container.push_back(sp.computeVariableId());
     // def{}のうち最小の値を変数のある行番号としている
     unsigned int lineNumber = sp.def.begin()->lineNumber;
     // fileを出力
@@ -125,7 +128,7 @@ std::string create_variable_table(SliceDictionary dictionary) {
     std::stringstream ss;
 
     // ヘッダを出力する
-    std::vector<std::string> header({"file", "func", "var", "def", "use", "dvars", "pointers", "cfuncs"});
+    std::vector<std::string> header({"id", "file", "func", "var", "def", "use", "dvars", "pointers", "cfuncs"});
     ss << join('\t', header) << std::endl;
 
     // ソートする
