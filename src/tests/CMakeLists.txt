@@ -3,7 +3,7 @@ file(GLOB SRCSLICEHANDLER_SOURCE2 ../cpp/srcSlice*.cpp ../cpp/SliceProfile.cpp)
 file(GLOB SRCSLICEHANDLER_INCLUDE ../headers/*.hpp)
 file(GLOB SRCSLICETEST_SOURCE *.cpp)
 file(GLOB SRCSLICETEST_INCLUDE *.hpp)
-file(GLOB TESTCASES TestIf.cpp)
+file(GLOB TESTCASES TestIssue20.cpp)
 
 link_directories(/usr/local/lib/)
 

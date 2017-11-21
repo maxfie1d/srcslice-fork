@@ -58,7 +58,7 @@ struct NameAndLineNumber {
 
     // 形名に()をつけると、デフォルト値が入ることになるぞ！
 
-    NameAndLineNumber(std::string name = std::string(),
+    NameAndLineNumber(std::string name = std::string(""),
                       unsigned int lineNumber = 0) {
         this->name = name;
         this->lineNumber = lineNumber;

@@ -242,7 +242,7 @@ void srcSliceHandler::AssignProfile() {
 
 /**
  * GetDeclStmtData
- * 宣言文のデータを取得する
+ * 宣言文(変数宣言文など)のデータを取得する
  * 宣言文の型と名前を取得するために正確なコンストレインを知る。
  * 新しいslice-profileを作成し、宣言文についての情報をストアする。
 * GetDeclStmtData
@@ -260,21 +260,24 @@ void srcSliceHandler::GetDeclStmtData() {
         currentSliceProfile.potentialAlias = potentialAlias;
         currentSliceProfile.isGlobal = inGlobalScope;
 
-        this->_logger->debug("ここやん！: {}, {}", currentSliceProfile.variableName, inGlobalScope);
-        if (!inGlobalScope) {
-            auto pair = std::make_pair(currentSliceProfile.variableName, std::move(currentSliceProfile));
-            varIt = FunctionVarMapItr->second.insert(pair).first;
-            // def{} 現在の宣言の行番号を追加する
-            this->_logger->debug("def#3: {}", currentDecl.lineNumber);
+        // extern 宣言ならスキップする
+        if (currentDeclSpecifier.name != "extern") {
+            this->_logger->debug("ここやん！: {}, {}", currentSliceProfile.variableName, inGlobalScope);
+            if (!inGlobalScope) {
+                auto pair = std::make_pair(currentSliceProfile.variableName, std::move(currentSliceProfile));
+                varIt = FunctionVarMapItr->second.insert(pair).first;
+                // def{} 現在の宣言の行番号を追加する
+                this->_logger->debug("def#3: {}", currentDecl.lineNumber);
 
-            this->insertDef(&varIt->second, currentDecl.lineNumber);
-        } else {
-            //TODO: Handle def use for globals
-            // グローバルマップに追加
-            currentSliceProfile.function = "__GLOBAL__";
-            this->insertDef(&currentSliceProfile, currentDecl.lineNumber);
-            auto varmap_pair = std::make_pair(currentSliceProfile.variableName, std::move(currentSliceProfile));
-            sysDict->globalMap.insert(varmap_pair);
+                this->insertDef(&varIt->second, currentDecl.lineNumber);
+            } else {
+                //TODO: Handle def use for globals
+                // グローバルマップに追加
+                currentSliceProfile.function = "__GLOBAL__";
+                this->insertDef(&currentSliceProfile, currentDecl.lineNumber);
+                auto varmap_pair = std::make_pair(currentSliceProfile.variableName, std::move(currentSliceProfile));
+                sysDict->globalMap.insert(varmap_pair);
+            }
         }
         currentDecl.name.clear();
     }

@@ -148,6 +148,15 @@ private:
     NameAndLineNumber currentFunctionReturnType;
 
     NameAndLineNumber currentDecl;
+
+    /**
+     * extern が入ったりする
+     */
+    NameAndLineNumber currentDeclSpecifier;
+
+    /**
+     * const が入ったりする
+     */
     NameAndLineNumber currentTypeSpecifier;
     NameAndLineNumber currentDeclType;
 
@@ -519,6 +528,7 @@ public:
                     potentialAlias = false;
                     sawinit = false;
                     currentDeclInit.name.clear();
+                    currentDeclSpecifier.name.clear();
                     --triggerField[decl_stmt];
                 }},
 
@@ -1013,6 +1023,10 @@ public:
                 ) {
             // const な変数の時、specifierがconstになるので補足する
             currentTypeSpecifier.name = std::string(ch, len);
+        }
+        if (triggerFieldAnd(decl_stmt, decl, specifier)) {
+            // extern になったりするので補足する
+            currentDeclSpecifier.name = std::string(ch, len);
         }
         //this is to handle lhs of decl stmts and rhs of decl stmts
         if (triggerFieldOr(name, op)
