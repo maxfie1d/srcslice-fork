@@ -12,55 +12,57 @@ TEST(SliceTest, TestWhile) {
             // 変数 sum のテスト
             auto sum = sslice.Find("sum").second;
 
-            // def{} のテスト
-            ASSERT_EQ(sum.def, std::set<unsigned int>({3, 8}));
-            // use{} のテスト
-            ASSERT_EQ(sum.use, std::set<unsigned int>({8, 12, 14}));
-            ASSERT_EQ(sum.dvars, std::unordered_set<std::string>({"sum", "average"}));
+            testDef(&sum, std::set<unsigned int>({3, 8}));
+            testUse(&sum, std::set<unsigned int>({8, 12, 14}));
+            testDvars(&sum, std::set<std::string>({"sum", "average"}));
             ASSERT_EQ(sum.aliases.empty(), true);
-            CFuncSet expected_cfuncs;
-            expected_cfuncs.insert(std::make_pair("printf", 2));
-            ASSERT_EQ(sum.cfunctions, expected_cfuncs);
+            std::set<CfuncShortData> expected_cfuncs(
+                    {
+                            CfuncShortData("printf", 2)
+                    }
+            );
+            testCfuncs(&sum, expected_cfuncs);
         }
         {
             // 変数 n のテスト
-            auto n = sslice.Find("n").second;
+            auto n_slice = sslice.Find("n").second;
 
-            // def{} のテスト
-            ASSERT_EQ(n.def, std::set<unsigned int>({4, 9}));
-            // use{} のテスト
-            ASSERT_EQ(n.use, std::set<unsigned int>({9, 13, 14}));
-            ASSERT_EQ(n.dvars, std::unordered_set<std::string>({"n", "average"}));
-            ASSERT_EQ(n.aliases.empty(), true);
-            CFuncSet expected_cfuncs;
-            expected_cfuncs.insert(std::make_pair("printf", 2));
-            ASSERT_EQ(n.cfunctions, expected_cfuncs);
+            testDef(&n_slice, std::set<unsigned int>({4, 9}));
+            testUse(&n_slice, std::set<unsigned int>({9, 13, 14}));
+            testDvars(&n_slice, std::set<std::string>({"n", "average"}));
+            ASSERT_EQ(n_slice.aliases.empty(), true);
+            std::set<CfuncShortData> expected_cfuncs(
+                    {
+                            CfuncShortData("printf", 2)
+                    }
+            );
+            testCfuncs(&n_slice, expected_cfuncs);
         }
         {
             // 変数 data のテスト
-            auto data = sslice.Find("data").second;
+            auto data_slice = sslice.Find("data").second;
 
-            // def{} のテスト
-            ASSERT_EQ(data.def, std::set<unsigned int>({5, 10}));
-            // use{} のテスト
-            ASSERT_EQ(data.use, std::set<unsigned int>({6, 8}));
-            ASSERT_EQ(data.dvars, std::unordered_set<std::string>({"sum"}));
-            ASSERT_EQ(data.aliases.empty(), true);
-            ASSERT_EQ(data.cfunctions.empty(), true);
+            testDef(&data_slice, std::set<unsigned int>({5, 10}));
+            testUse(&data_slice, std::set<unsigned int>({6, 8}));
+            testDvars(&data_slice, std::set<std::string>({"sum"}));
+            ASSERT_EQ(data_slice.aliases.empty(), true);
+            assertCfuncsEmpty(&data_slice);
         }
         {
             // 変数 average のテスト
-            auto average = sslice.Find("average").second;
+            auto average_slice = sslice.Find("average").second;
 
-            // def{} のテスト
-            ASSERT_EQ(average.def, std::set<unsigned int>({14}));
-            // use{} のテスト
-            ASSERT_EQ(average.use, std::set<unsigned int>({15}));
-            ASSERT_EQ(average.dvars.empty(), true);
-            ASSERT_EQ(average.aliases.empty(), true);
-            CFuncSet expected_cfuncs;
-            expected_cfuncs.insert(std::make_pair("printf", 2));
-            ASSERT_EQ(average.cfunctions, expected_cfuncs);
+            testDef(&average_slice, std::set<unsigned int>({14}));
+            testUse(&average_slice, std::set<unsigned int>({15}));
+            assertDvarsEmpty(&average_slice);
+            ASSERT_EQ(average_slice.aliases.empty(), true);
+            std::set<CfuncShortData> expected_cfuncs(
+                    {
+                            CfuncShortData("printf", 2)
+
+                    }
+            );
+            testCfuncs(&average_slice, expected_cfuncs);
         }
     } catch (SAXError e) {
         FAIL();

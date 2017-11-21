@@ -104,6 +104,14 @@ void testUse(SliceProfile *sp, std::set<unsigned int> expectedUseLines) {
     ASSERT_EQ(useLines, expectedUseLines);
 }
 
+void assertDefEmpty(SliceProfile *sp) {
+    ASSERT_EQ(sp->def.empty(), true);
+}
+
+void assertUseEmpty(SliceProfile *sp) {
+    ASSERT_EQ(sp->use.empty(), true);
+}
+
 void assertDvarsEmpty(SliceProfile *sp) {
     ASSERT_EQ(sp->dvars.empty(), true);
 }
@@ -112,14 +120,19 @@ void assertCfuncsEmpty(SliceProfile *sp) {
     ASSERT_EQ(sp->cfunctions.empty(), true);
 }
 
+void testDvars(SliceProfile *sp, std::set<std::string> expectedDvars) {
+    auto actualDvars = set_transform<DvarData, std::string>(sp->dvars, [](DvarData dd) {
+        return dd.variableName;
+    });
+
+    ASSERT_EQ(actualDvars, expectedDvars);
+}
+
 void testCfuncs(SliceProfile *sp, std::set<CfuncShortData> expectedCfuncs) {
     std::set<CfuncShortData> actualCfuncs = set_transform<CFuncData, CfuncShortData>
             (sp->cfunctions, [](CFuncData cd) {
                 return CfuncShortData(cd.calledFunctionName, cd.argIndenx);
             });
-
-    std::cout << actualCfuncs.begin()->calledFunctionName << std::endl;
-    std::cout << actualCfuncs.begin()->argIndex << std::endl;
 
     ASSERT_EQ(actualCfuncs, expectedCfuncs);
 }

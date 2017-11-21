@@ -12,24 +12,20 @@ TEST(SliceTest, TestIf) {
             assert(sslice.SetContext("if.c", "main", 1));
             auto a_slice = sslice.Find("a").second;
 
-            // def{} のテスト
-            ASSERT_EQ(a_slice.def, std::set<unsigned int>({3, 8, 17}));
-            // use{} のテスト
-            ASSERT_EQ(a_slice.use, std::set<unsigned int>({8, 17}));
-            ASSERT_EQ(a_slice.dvars.empty(), true);
+            testDef(&a_slice, std::set<unsigned int>({3, 8, 17}));
+            assertUseEmpty(&a_slice);
+            assertDvarsEmpty(&a_slice);
             ASSERT_EQ(a_slice.aliases.empty(), true);
-            ASSERT_EQ(a_slice.cfunctions.empty(), true);
+            assertCfuncsEmpty(&a_slice);
 
             // 変数bのテスト
             auto b_slice = sslice.Find("b").second;
 
-            // def{} のテスト
-            ASSERT_EQ(b_slice.def, std::set<unsigned int>({4, 12}));
-            // use{} のテスト
-            ASSERT_EQ(b_slice.use, std::set<unsigned int>({12}));
-            ASSERT_EQ(b_slice.dvars.empty(), true);
+            testDef(&b_slice, std::set<unsigned int>({4, 12}));
+            assertUseEmpty(&b_slice);
+            assertDvarsEmpty(&b_slice);
             ASSERT_EQ(b_slice.aliases.empty(), true);
-            ASSERT_EQ(b_slice.cfunctions.empty(), true);
+            assertCfuncsEmpty(&b_slice);
         }
     } catch (SAXError e) {
         FAIL();

@@ -80,8 +80,14 @@ void testDef(SliceProfile *sp, std::set<unsigned int> expectedDefLines);
 
 void testUse(SliceProfile *sp, std::set<unsigned int> expectedUseLines);
 
+void testDvars(SliceProfile *sp, std::set<std::string> expectedDvars);
+
+void testCfuncs(SliceProfile *sp, std::set<CfuncShortData> expectedCfuncs);
+
+void assertDefEmpty(SliceProfile *sp);
+
+void assertUseEmpty(SliceProfile *sp);
+
 void assertDvarsEmpty(SliceProfile *sp);
 
 void assertCfuncsEmpty(SliceProfile *sp);
-
-void testCfuncs(SliceProfile *sp, std::set<CfuncShortData> expectedCfuncs);

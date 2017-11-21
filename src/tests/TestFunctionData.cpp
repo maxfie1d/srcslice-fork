@@ -2,7 +2,7 @@
 #include <SliceProfile.hpp>
 
 
-TEST(SrcSliceUnitTest, TestFunctionData){
+TEST(SrcSliceUnitTest, TestFunctionData) {
     FunctionData my_func_fd;
     my_func_fd.functionName = "my_func";
     my_func_fd.fileName = "/app/src/module/math.c";

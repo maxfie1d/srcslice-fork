@@ -2,7 +2,7 @@
 #include <srcSlice.hpp>
 #include "TestHelper.hpp"
 
-TEST(SliceTest, TestApp1) {
+TEST(SliceTest, TestApp3_2) {
     std::string srcmlStr = pathToSrcml("app3-2.c", "/src/tests/samples/app3-2.c");
 
     try {
@@ -12,7 +12,6 @@ TEST(SliceTest, TestApp1) {
             assert(sslice.SetContext("app3-2.c", "main", 8));
             auto a_slice = sslice.Find("a").second;
             auto ax_slice = sslice.Find("xa");
-
 
 
             ASSERT_EQ(ax_slice.first, false);

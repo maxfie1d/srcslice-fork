@@ -12,12 +12,9 @@ TEST(SliceTest, TestIssue2) {
             // 変数xのテスト
             auto x_slice = sslice.Find("x").second;
 
-            // def{}のテスト
-            ASSERT_EQ(x_slice.def, std::set<unsigned int>({2, 3}));
-            // use{}のテスト
-            ASSERT_EQ(x_slice.use, std::set<unsigned int>({3}));
-            // dvars{}のテスト
-            ASSERT_EQ(x_slice.dvars, std::unordered_set<std::string>({"x"}));
+            testDef(&x_slice, std::set<unsigned int>({2, 3}));
+            testUse(&x_slice, std::set<unsigned int>({3}));
+            testDvars(&x_slice, std::set<std::string>({"x"}));
         }
     } catch (SAXError e) {
         FAIL();

@@ -3,7 +3,7 @@ file(GLOB SRCSLICEHANDLER_SOURCE2 ../cpp/srcSlice*.cpp ../cpp/SliceProfile.cpp)
 file(GLOB SRCSLICEHANDLER_INCLUDE ../headers/*.hpp)
 file(GLOB SRCSLICETEST_SOURCE *.cpp)
 file(GLOB SRCSLICETEST_INCLUDE *.hpp)
-file(GLOB TESTCASES TestApp1.cpp)
+file(GLOB TESTCASES TestIf.cpp)
 
 link_directories(/usr/local/lib/)
 
@@ -18,15 +18,18 @@ link_directories($ENV{HOME}/github/srcml-fork/build/bin)
 
 add_executable(srcslicetest ${SRCSLICEHANDLER_SOURCE2} ${SRCSLICEHANDLER_INCLUDE}
         TempTest.cpp
-        TestPrimitiveTypesSlice.cpp
-        TestDeclSlice.cpp
-        TestExprSlice.cpp
-        TestDotAndMemberAccessSlice.cpp
+        # TestPrimitiveTypesSlice.cpp
+        # TestDotAndMemberAccessSlice.cpp
+        # TestDeclSlice.cpp
+        # TestExprSlice.cpp
         TestApp1.cpp
         TestIf.cpp
         TestWhile.cpp
+        TestApp3-2.cpp
         TestIssue2.cpp
         TestGlobalIssue3.cpp
+        TestIssue16.cpp
+        TestFunctionData.cpp
         TestConstTypes.cpp
         TestArrayType.cpp
         TestHelper.cpp TestHelper.hpp)
