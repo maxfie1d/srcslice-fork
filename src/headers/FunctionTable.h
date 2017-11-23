@@ -12,16 +12,7 @@ class FunctionTable {
 private:
     std::unordered_map<std::string, FunctionData> _fileFunctionTable;
 
-    FunctionData *privateFind(std::function<bool(FunctionData &)> predicate) {
-        for (auto &fd: this->_fileFunctionTable) {
-            auto &second = fd.second;
-            bool match = predicate(second);
-            if (match) {
-                return &fd.second;
-            }
-        }
-        return nullptr;
-    }
+    FunctionData *privateFind(std::function<bool(FunctionData &)> predicate);
 
 public:
 
@@ -32,22 +23,14 @@ public:
      * @param id
      * @return
      */
-    FunctionData *findById(std::string id) {
-        return this->privateFind([&](FunctionData &fd) {
-            return fd.computeId() == id;
-        });
-    }
+    FunctionData *findById(std::string id);
 
     /**
      * 関数名で関数を検索します
      * @param func_name
      * @return
      */
-    FunctionData *findByName(std::string func_name) {
-        return this->privateFind([&](FunctionData &fd) {
-            return fd.functionName == func_name;
-        });
-    }
+    FunctionData *findByName(std::string func_name);
 
     /**
      * ファイルパスと関数名で関数を検索します
@@ -55,11 +38,22 @@ public:
      * @param func_name
      * @return
      */
-    FunctionData *findByFilePathAndName(std::string file_path, std::string func_name) {
-        return this->privateFind([&](FunctionData &fd) {
-            return fd.fileName == file_path && fd.functionName == func_name;
-        });
-    }
+    FunctionData *findByFilePathAndName(std::string file_path, std::string func_name);
+
+    /**
+     * 関数を関数テーブルに追加します
+     * @param function_name
+     * @param fd
+     * @return
+     */
+    FunctionTable *add(std::string function_name, FunctionData fd);
+
+    /**
+     * 関数テーブルに登録されている関数の個数を返します
+     * @return
+     */
+    unsigned long size() const;
+
 
     // beginとendイテレータを返すことで
     // for-each ができるようになる
@@ -70,24 +64,5 @@ public:
 
     std::unordered_map<std::string, FunctionData>::const_iterator end() const {
         return std::end(this->_fileFunctionTable);
-    }
-
-    /**
-     * 関数を関数テーブルに追加します
-     * @param function_name
-     * @param fd
-     * @return
-     */
-    FunctionTable *add(std::string function_name, FunctionData fd) {
-        this->_fileFunctionTable.insert(std::make_pair(function_name, fd));
-        return this;
-    }
-
-    /**
-     * 関数テーブルに登録されている関数の個数を返します
-     * @return
-     */
-    unsigned long size() const {
-        return this->_fileFunctionTable.size();
     }
 };
