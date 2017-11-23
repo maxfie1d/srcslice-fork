@@ -419,12 +419,12 @@ void srcSliceHandler::ProcessDeclCtor() {
  */
 /**
  * ComputeInterprocedural
- * @param f File name
+ * @param file_apth File name
  * No return value
  */
-void srcSliceHandler::ComputeInterprocedural(const std::string &f) {
-    FileIt = sysDict->ffvMap.find(f);
-    if (FileIt == sysDict->ffvMap.end()) {
+void srcSliceHandler::ComputeInterprocedural(const std::string &file_apth) {
+    FileIt = sysDict->ffvMap.getFunctionVarMap(file_apth);
+    if (FileIt == sysDict->ffvMap.getFileFunctionVarMap()->end()) {
         std::cerr << "CAN'T FIND FILE" << std::endl;
         return;
     } else {

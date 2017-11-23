@@ -48,49 +48,49 @@ std::vector<std::string> unordered_set_to_vector(std::unordered_set<T> source, M
 std::string
 varmap_pair_to_string(std::string file_name,
                       std::string function_name,
-                      std::pair<const std::string, SliceProfile> *vmIt) {
+                      SliceProfile *vmIt) {
     std::string str;
-    std::string varname = vmIt->first;
-    auto sp = vmIt->second;
+    std::string varname = vmIt->variableName;
+    auto sp = vmIt;
 
     std::vector<std::string> container;
 
     // idを出力
-    container.push_back(sp.computeVariableId());
+    container.push_back(sp->computeVariableId());
     // def{}のうち最小の値を変数のある行番号としている
-    unsigned int lineNumber = sp.def.begin()->lineNumber;
+    unsigned int lineNumber = sp->def.begin()->lineNumber;
     // fileを出力
     container.push_back(file_name + ":" + std::to_string(lineNumber));
     // funcを出力
     container.push_back(function_name);
     // varを出力
-    container.push_back(sp.variableType + " " + varname);
+    container.push_back(sp->variableType + " " + varname);
     // defを出力
-    auto def_line_numbers = set_to_vector<ProgramPoint>(sp.def);
+    auto def_line_numbers = set_to_vector<ProgramPoint>(sp->def);
     auto defs_as_string = vec_transform<ProgramPoint, std::string>(def_line_numbers, [](ProgramPoint pp) {
         return pp.to_string();
     });
     container.push_back(join(',', defs_as_string));
 
     // useを出力
-    auto use_line_numbers = set_to_vector<ProgramPoint>(sp.use);
+    auto use_line_numbers = set_to_vector<ProgramPoint>(sp->use);
     auto uses_as_string = vec_transform<ProgramPoint, std::string>(use_line_numbers, [](ProgramPoint pp) {
         return pp.to_string();
     });
     container.push_back(join(',', uses_as_string));
 
     // dvarsを出力
-    auto dvars = set_to_vector<DvarData>(sp.dvars);
+    auto dvars = set_to_vector<DvarData>(sp->dvars);
     auto dvars_as_string = vec_transform<DvarData, std::string>(dvars, [](DvarData dd) {
         return dd.to_string();
     });
     container.push_back(join(',', dvars_as_string));
 
     // pointersを出力
-    container.push_back(join(',', unordered_set_to_vector<std::string>(sp.aliases, [](std::string x) { return x; })));
+    container.push_back(join(',', unordered_set_to_vector<std::string>(sp->aliases, [](std::string x) { return x; })));
 
     // cfuncsを出力
-    auto cfuncs = vec_transform<CFuncData, std::string>(set_to_vector<CFuncData>(sp.cfunctions), [](CFuncData cfd) {
+    auto cfuncs = vec_transform<CFuncData, std::string>(set_to_vector<CFuncData>(sp->cfunctions), [](CFuncData cfd) {
         return cfd.to_string();
     });
     container.push_back(join(',', cfuncs));
@@ -112,27 +112,10 @@ std::string create_variable_table(SliceDictionary dictionary) {
     std::vector<std::string> header({"id", "file", "func", "var", "def", "use", "dvars", "pointers", "cfuncs"});
     ss << join('\t', header) << std::endl;
 
-    // ソートする
-    std::map<std::string, FunctionVarMap> sorted_ffvMap
-            (dictionary.ffvMap.begin(),
-             dictionary.ffvMap.end());
-    for (auto &ffvmIt: sorted_ffvMap) {
-        // ソートする
-        std::map<std::string, VarMap> sorted_fvMap
-                (ffvmIt.second.begin(),
-                 ffvmIt.second.end());
-        for (auto fvmIt: sorted_fvMap) {
-            // ソートする
-            std::map<std::string, SliceProfile> sorted_vMap(
-                    fvmIt.second.begin(),
-                    fvmIt.second.end()
-            );
-            for (auto vmIt: sorted_vMap) {
-                std::string row = varmap_pair_to_string(ffvmIt.first, fvmIt.first, &vmIt);
-                ss << row << std::endl;
-            }
-        }
-    }
+    dictionary.ffvMap.forEach([](SliceProfile* sp) {
+        std::string row = varmap_pair_to_string(sp->file, sp->function, sp);
+        ss << row << std::endl;
+    });
 
     // globalMap も出力する
     auto globalMap = dictionary.globalMap;
@@ -140,7 +123,7 @@ std::string create_variable_table(SliceDictionary dictionary) {
     std::map<std::string, SliceProfile> sorted_globalMap
             (globalMap.begin(), globalMap.end());
     for (auto vmIt : sorted_globalMap) {
-        std::string row = varmap_pair_to_string(vmIt.second.file, vmIt.second.function, &vmIt);
+        std::string row = varmap_pair_to_string(vmIt.second.file, vmIt.second.function, &vmIt.second);
         ss << row << std::endl;
     }
 

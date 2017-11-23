@@ -27,6 +27,7 @@
 
 #include <SliceProfile.hpp>
 #include "FunctionTable.h"
+#include "VariableTable.h"
 
 static std::set<std::string> errorset;
 struct SliceDictionary {
@@ -51,7 +52,7 @@ struct SliceDictionary {
      * おそらくグローバルスコープの変数を
      * 格納するための辞書
      */
-    VarMap globalMap;
+    std::unordered_map<std::string, SliceProfile> globalMap;
     std::unordered_map<std::string, ClassProfile> classTable;
 
     /**
@@ -61,7 +62,7 @@ struct SliceDictionary {
 
     std::vector<std::pair<unsigned int, unsigned int>> controledges;
     Context currentContext;
-    FileFunctionVarMap ffvMap;
+    VariableTable ffvMap;
 };
 
 template<typename T>

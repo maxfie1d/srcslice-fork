@@ -904,8 +904,10 @@ public:
                            const struct srcsax_attribute *attributes) {
         //fileNumber = functionNameHash(attributes[1].value);
         fileName = std::string(attributes[2].value);
-        FileIt = sysDict->ffvMap.insert(
-                std::make_pair(fileName, FunctionVarMap())).first; //insert and keep track of most recent.
+        //insert and keep track of most recent.
+        FileIt = sysDict->ffvMap.addFile(fileName);
+//        FileIt = sysDict->ffvMap.insert(
+//                std::make_pair(fileName, FunctionVarMap())).first;
         //std::cerr<<"val: "<<attributes[1].value<<std::endl;exit(1);
         //classIt = sysDict->classTable.insert(std::make_pair("GLOBAL", ClassProfile())).first;
 
@@ -1137,8 +1139,8 @@ public:
     }
 };
 
-inline void DoComputation(srcSliceHandler &h, const FileFunctionVarMap &mp) {
-    for (FileFunctionVarMap::const_iterator ffvmIt = mp.begin(); ffvmIt != mp.end(); ++ffvmIt) {
-        h.ComputeInterprocedural(ffvmIt->first);
+inline void DoComputation(srcSliceHandler &h, const VariableTable &var_table) {
+    for (auto ffvmIt : *var_table.getFileFunctionVarMap()) {
+        h.ComputeInterprocedural(ffvmIt.first);
     }
 }

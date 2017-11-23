@@ -37,7 +37,7 @@ std::string FunctionData::computeId() {
     }
 }
 
-std::string SliceProfile::computeVariableId() {
+std::string SliceProfile::computeVariableId(){
     if (this->id.empty()) {
         if (this->file.empty() || this->function.empty() || this->variableName.empty()) {
             return "<unknown>";
