@@ -463,9 +463,9 @@ SliceProfile srcSliceHandler::ArgumentProfile(std::string fname, unsigned int pa
     //TODO varIt is a hack here. Fix. We shouldn't need to pass an extra param to do this.
 
     SliceProfile Spi;
-    auto gFuncIt = sysDict->fileFunctionTable.find(fname);
-    if (gFuncIt != sysDict->fileFunctionTable.end()) {
-        FileIt = sysDict->ffvMap.find(gFuncIt->second.fileName);
+    auto gFuncIt = sysDict->functionTable.findByName(fname);
+    if (gFuncIt) {
+        FileIt = sysDict->ffvMap.find(gFuncIt->fileName);
     }
     auto funcIt = FileIt->second.find(fname);
     if (funcIt != FileIt->second.end()) {
@@ -563,13 +563,13 @@ void srcSliceHandler::insertCFunc(SliceProfile *sp,
                                   std::string calledFunctionName,
                                   unsigned short argIndex,
                                   unsigned int lineNumber) {
-    auto function_table = sysDict->fileFunctionTable;
-    auto calledFunctionData = function_table.find(calledFunctionName);
-    if (calledFunctionData != std::end(function_table)) {
-        auto calledFunctionId = calledFunctionData->second.computeId();
+    auto function_table = sysDict->functionTable;
+    auto calledFunctionData = function_table.findByName(calledFunctionName);
+    if (calledFunctionData) {
+        auto calledFunctionId = calledFunctionData->computeId();
         sp->cfunctions.insert(CFuncData(
                 calledFunctionName,
-                calledFunctionData->second.computeId(),
+                calledFunctionData->computeId(),
                 argIndex,
                 ProgramPoint(lineNumber, this->getFunctionId(lineNumber))
         ));

@@ -26,8 +26,7 @@
 #include <set>
 
 #include <SliceProfile.hpp>
-
-typedef std::unordered_map<std::string, FunctionData> FileFunctionTable;
+#include "FunctionTable.h"
 
 static std::set<std::string> errorset;
 struct SliceDictionary {
@@ -54,7 +53,12 @@ struct SliceDictionary {
      */
     VarMap globalMap;
     std::unordered_map<std::string, ClassProfile> classTable;
-    FileFunctionTable fileFunctionTable;
+
+    /**
+     * 関数テーブル
+     */
+    FunctionTable functionTable;
+
     std::vector<std::pair<unsigned int, unsigned int>> controledges;
     Context currentContext;
     FileFunctionVarMap ffvMap;

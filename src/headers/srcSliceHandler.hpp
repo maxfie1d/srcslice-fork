@@ -619,7 +619,7 @@ public:
 
                     // 関数の終了行を設定し、関数を辞書に登録する
                     functionTmplt.declareRange.endLine = lineNum;
-                    sysDict->fileFunctionTable.insert(std::make_pair(functionTmplt.functionName, functionTmplt));
+                    sysDict->functionTable.add(functionTmplt.functionName, functionTmplt);
 
                     functionTmplt.clear();
 

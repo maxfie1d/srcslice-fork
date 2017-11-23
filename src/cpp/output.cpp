@@ -34,24 +34,6 @@ std::string join(const char delimiter, std::vector<std::string> source) {
     return ss.str();
 }
 
-/**
- * 関数テーブルから関数を検索して返します
- * @param function_table
- * @param file_path
- * @param func_name
- * @return
- */
-FunctionData *find_function(FileFunctionTable *function_table, std::string file_path, std::string func_name) {
-    for (auto &func : *function_table) {
-        auto func_data = &func.second;
-        if (func_data->fileName == file_path
-            && func_data->functionName == func_name) {
-            return func_data;
-        }
-    }
-    return nullptr;
-}
-
 template<typename T, typename Mapper>
 std::vector<std::string> unordered_set_to_vector(std::unordered_set<T> source, Mapper mapper) {
     auto vec = std::vector<T>(std::begin(source), std::end(source));
@@ -66,8 +48,7 @@ std::vector<std::string> unordered_set_to_vector(std::unordered_set<T> source, M
 std::string
 varmap_pair_to_string(std::string file_name,
                       std::string function_name,
-                      std::pair<const std::string, SliceProfile> *vmIt,
-                      FileFunctionTable *functionTable) {
+                      std::pair<const std::string, SliceProfile> *vmIt) {
     std::string str;
     std::string varname = vmIt->first;
     auto sp = vmIt->second;
@@ -147,8 +128,7 @@ std::string create_variable_table(SliceDictionary dictionary) {
                     fvmIt.second.end()
             );
             for (auto vmIt: sorted_vMap) {
-                std::string row = varmap_pair_to_string(ffvmIt.first, fvmIt.first, &vmIt,
-                                                        &dictionary.fileFunctionTable);
+                std::string row = varmap_pair_to_string(ffvmIt.first, fvmIt.first, &vmIt);
                 ss << row << std::endl;
             }
         }
@@ -160,8 +140,7 @@ std::string create_variable_table(SliceDictionary dictionary) {
     std::map<std::string, SliceProfile> sorted_globalMap
             (globalMap.begin(), globalMap.end());
     for (auto vmIt : sorted_globalMap) {
-        std::string row = varmap_pair_to_string(vmIt.second.file, vmIt.second.function, &vmIt,
-                                                &dictionary.fileFunctionTable);
+        std::string row = varmap_pair_to_string(vmIt.second.file, vmIt.second.function, &vmIt);
         ss << row << std::endl;
     }
 
@@ -181,7 +160,7 @@ std::string create_function_table(SliceDictionary dictionary) {
     ss << join('\t', header) << std::endl;
 
     // すべての関数について
-    for (auto func_pair: dictionary.fileFunctionTable) {
+    for (auto func_pair: dictionary.functionTable) {
         auto func_data = func_pair.second;
 
         std::string id = func_data.computeId();

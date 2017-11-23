@@ -13,8 +13,7 @@ private:
     std::unordered_map<std::string, FunctionData> _fileFunctionTable;
 
     FunctionData *privateFind(std::function<bool(FunctionData &)> predicate) {
-        for (auto& fd: this->_fileFunctionTable) {
-            std::cout << fd.second.functionName << std::endl;
+        for (auto &fd: this->_fileFunctionTable) {
             auto &second = fd.second;
             bool match = predicate(second);
             if (match) {
@@ -48,6 +47,29 @@ public:
         return this->privateFind([&](FunctionData &fd) {
             return fd.functionName == func_name;
         });
+    }
+
+    /**
+     * ファイルパスと関数名で関数を検索します
+     * @param file_path
+     * @param func_name
+     * @return
+     */
+    FunctionData *findByFilePathAndName(std::string file_path, std::string func_name) {
+        return this->privateFind([&](FunctionData &fd) {
+            return fd.fileName == file_path && fd.functionName == func_name;
+        });
+    }
+
+    // beginとendイテレータを返すことで
+    // for-each ができるようになる
+
+    std::unordered_map<std::string, FunctionData>::const_iterator begin() const {
+        return this->_fileFunctionTable.begin();
+    }
+
+    std::unordered_map<std::string, FunctionData>::const_iterator end() const {
+        return std::end(this->_fileFunctionTable);
     }
 
     /**
