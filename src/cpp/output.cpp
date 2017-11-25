@@ -112,7 +112,7 @@ std::string create_variable_table(SliceDictionary dictionary) {
     std::vector<std::string> header({"id", "file", "func", "var", "def", "use", "dvars", "pointers", "cfuncs"});
     ss << join('\t', header) << std::endl;
 
-    dictionary.ffvMap.forEach([](SliceProfile* sp) {
+    dictionary.ffvMap.forEach([](SliceProfile *sp) {
         std::string row = varmap_pair_to_string(sp->file, sp->function, sp);
         ss << row << std::endl;
     });

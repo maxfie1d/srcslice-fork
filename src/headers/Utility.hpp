@@ -36,15 +36,15 @@ struct SliceDictionary {
         int ln;
         std::string fileName;
         std::string functionName;
-        FunctionVarMap::iterator currentFunc;
-        FileFunctionVarMap::iterator currentFile;
+        const VarMap *currentFunc;
+        const FunctionVarMap *currentFile;
 
         Context() : fileName(""), functionName(""), ln(-1) {}
 
         bool IsSet() const { return (ln == -1 || functionName == "") ? false : true; }
 
-        Context(std::string file, std::string func, unsigned int line, FileFunctionVarMap::iterator fileIt,
-                FunctionVarMap::iterator funcIt)
+        Context(std::string file, std::string func, unsigned int line, FunctionVarMap *fileIt,
+                const VarMap *funcIt)
                 : fileName(file), functionName(func), ln(line), currentFile(fileIt), currentFunc(funcIt) {}
     };
 

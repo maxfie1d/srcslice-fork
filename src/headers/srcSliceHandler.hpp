@@ -90,9 +90,9 @@ private:
      *there's no need to do any nasty map.finds on the dictionary (since it's a nested map of maps). These must
      *be updated as the file is parsed*/
     std::unordered_map<std::string, ClassProfile>::iterator classIt;
-    FileFunctionVarMap::iterator FileIt;
-    FunctionVarMap::iterator FunctionVarMapItr;
-    VarMap::iterator varIt;
+    FunctionVarMap *p_functionVarMap;
+    VarMap *p_varMap;
+    SliceProfile *p_sliceProfile;
 
     bool isConstructor;
 
@@ -204,7 +204,7 @@ private:
 
     void GetFunctionDeclData();
 
-    SliceProfile ArgumentProfile(std::string, unsigned int, VarMap::iterator);
+    SliceProfile ArgumentProfile(std::string, unsigned int, SliceProfile *vIt);
 
     SliceProfile *Find(const std::string &varName);
 
@@ -325,8 +325,7 @@ public:
                     }
                     if (triggerField[function]
                         && !triggerFieldOr(functionblock, type, parameter_list)) {
-                        FunctionVarMapItr = FileIt->second.insert(
-                                std::make_pair(functionTmplt.functionName, VarMap())).first;
+                        p_varMap = sysDict->ffvMap.addFunction(fileName, functionTmplt.functionName);
                     }
                     if (triggerField[constructordecl]) { //For the case where we need to get a constructor decl
                         ProcessConstructorDecl();
@@ -905,7 +904,7 @@ public:
         //fileNumber = functionNameHash(attributes[1].value);
         fileName = std::string(attributes[2].value);
         //insert and keep track of most recent.
-        FileIt = sysDict->ffvMap.addFile(fileName);
+        p_functionVarMap = sysDict->ffvMap.addFile(fileName);
 //        FileIt = sysDict->ffvMap.insert(
 //                std::make_pair(fileName, FunctionVarMap())).first;
         //std::cerr<<"val: "<<attributes[1].value<<std::endl;exit(1);
