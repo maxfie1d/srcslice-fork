@@ -1,7 +1,7 @@
 #include "VariableTable.h"
 
-VarMap *VariableTable::getVarMap(const std::string &file_path, const std::string &func_name) {
-    auto f = this->getFunctionVarMap(file_path);
+VarMap *VariableTable::findVarMap(const std::string &file_path, const std::string &func_name) {
+    auto f = this->findFunctionVarMap(file_path);
     if (f) {
         auto r = f->find(func_name);
         if (r != f->end()) {
@@ -14,9 +14,9 @@ VarMap *VariableTable::getVarMap(const std::string &file_path, const std::string
     }
 }
 
-SliceProfile *VariableTable::getSliceProfile(const std::string file_path, const std::string func_name,
-                                             const std::string var_name) {
-    auto var_map = this->getVarMap(file_path, func_name);
+SliceProfile *VariableTable::findSliceProfile(const std::string file_path, const std::string func_name,
+                                              const std::string var_name) {
+    auto var_map = this->findVarMap(file_path, func_name);
     if (var_map) {
         auto r = var_map->find(var_name);
         if (r != var_map->end()) {
@@ -29,7 +29,7 @@ SliceProfile *VariableTable::getSliceProfile(const std::string file_path, const 
     }
 }
 
-FunctionVarMap *VariableTable::getFunctionVarMap(const std::string &file_path) {
+FunctionVarMap *VariableTable::findFunctionVarMap(const std::string &file_path) {
     auto r = this->_file_function_var_map.find(file_path);
     if (r != this->_file_function_var_map.end()) {
         return &r->second;
@@ -81,7 +81,7 @@ FunctionVarMap *VariableTable::addFile(std::string file_path) {
 }
 
 VarMap *VariableTable::addFunction(const std::string file_path, const std::string func_name) {
-    auto function_varmap = this->getFunctionVarMap(file_path);
+    auto function_varmap = this->findFunctionVarMap(file_path);
     if (function_varmap) {
         auto insert_result = function_varmap->insert(std::make_pair(func_name, VarMap()));
         return &insert_result.first->second;

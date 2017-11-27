@@ -27,8 +27,8 @@ struct srcSlice {
     unsigned long size() const { return dictionary.variableTable.getFileCount(); }
 
     bool SetContext(const std::string &file_path, const std::string &func_name, int linenumber) {
-        auto function_var_map = dictionary.variableTable.getFunctionVarMap(file_path);
-        auto var_map = dictionary.variableTable.getVarMap(file_path, func_name);
+        auto function_var_map = dictionary.variableTable.findFunctionVarMap(file_path);
+        auto var_map = dictionary.variableTable.findVarMap(file_path, func_name);
         if (function_var_map && var_map) {
             dictionary.currentContext.currentFile = function_var_map;
             dictionary.currentContext.currentVarMap = var_map;
@@ -42,7 +42,7 @@ struct srcSlice {
     //Definition of find that assumes the user didn't give a context (They should just give a context, though, tbh).
     std::pair<bool, const SliceProfile *>
     Find(const std::string file_path, const std::string funcname, const std::string varname) {
-        auto sp = dictionary.variableTable.getSliceProfile(file_path, funcname, varname);
+        auto sp = dictionary.variableTable.findSliceProfile(file_path, funcname, varname);
         if (sp) {
             return std::make_pair(true, sp);
         } else {

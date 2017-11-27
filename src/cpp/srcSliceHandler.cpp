@@ -421,7 +421,7 @@ void srcSliceHandler::ProcessDeclCtor() {
  * No return value
  */
 void srcSliceHandler::ComputeInterprocedural(const std::string &file_apth) {
-    p_functionVarMap = sysDict->variableTable.getFunctionVarMap(file_apth);
+    p_functionVarMap = sysDict->variableTable.findFunctionVarMap(file_apth);
     if (!p_functionVarMap) {
         std::cerr << "CAN'T FIND FILE" << std::endl;
         return;
@@ -463,7 +463,7 @@ srcSliceHandler::ArgumentProfile(std::string fname, unsigned int parameterIndex,
     SliceProfile Spi;
     auto gFuncIt = sysDict->functionTable.findByName(fname);
     if (gFuncIt) {
-        p_functionVarMap = sysDict->variableTable.getFunctionVarMap(gFuncIt->fileName);
+        p_functionVarMap = sysDict->variableTable.findFunctionVarMap(gFuncIt->fileName);
     }
     auto funcIt = p_functionVarMap->find(fname);
     if (funcIt != p_functionVarMap->end()) {

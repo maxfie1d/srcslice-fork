@@ -39,12 +39,12 @@ public:
 
     VarMap *addFunction(const std::string file_path, const std::string func_name);
 
-    FunctionVarMap *getFunctionVarMap(const std::string &file_path);
+    FunctionVarMap *findFunctionVarMap(const std::string &file_path);
 
-    VarMap *getVarMap(const std::string &file_path, const std::string &func_name);
+    VarMap *findVarMap(const std::string &file_path, const std::string &func_name);
 
     SliceProfile *
-    getSliceProfile(const std::string file_path, const std::string func_name, const std::string var_name);
+    findSliceProfile(const std::string file_path, const std::string func_name, const std::string var_name);
 
     SliceProfile *findGlobalVariableSliceProfileByName(const std::string &global_var_name);
 
