@@ -25,7 +25,7 @@ private:
 public:
     VariableTable() = default;
 
-    void forEach(std::function<void(SliceProfile)> f);
+    void forEach(std::function<void(SliceProfile*)> f);
 
     unsigned long getFileCount() const {
         return this->_file_function_var_map.size();
