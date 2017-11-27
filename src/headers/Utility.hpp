@@ -36,7 +36,7 @@ struct SliceDictionary {
         int ln;
         std::string fileName;
         std::string functionName;
-        const VarMap *currentFunc;
+        VarMap *currentVarMap;
         const FunctionVarMap *currentFile;
 
         Context() : fileName(""), functionName(""), ln(-1) {}
@@ -44,15 +44,14 @@ struct SliceDictionary {
         bool IsSet() const { return (ln == -1 || functionName == "") ? false : true; }
 
         Context(std::string file, std::string func, unsigned int line, FunctionVarMap *fileIt,
-                const VarMap *funcIt)
-                : fileName(file), functionName(func), ln(line), currentFile(fileIt), currentFunc(funcIt) {}
+                VarMap *funcIt)
+                : fileName(file), functionName(func), ln(line), currentFile(fileIt), currentVarMap(funcIt) {}
     };
 
     /**
      * おそらくグローバルスコープの変数を
      * 格納するための辞書
      */
-    std::unordered_map<std::string, SliceProfile> globalMap;
     std::unordered_map<std::string, ClassProfile> classTable;
 
     /**
@@ -62,7 +61,7 @@ struct SliceDictionary {
 
     std::vector<std::pair<unsigned int, unsigned int>> controledges;
     Context currentContext;
-    VariableTable ffvMap;
+    VariableTable variableTable;
 };
 
 template<typename T>

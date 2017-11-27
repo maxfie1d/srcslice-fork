@@ -44,7 +44,6 @@ void VariableTable::dump_to_stdout() const {
         for (auto v2: v.second) {
             std::cout << "    " << v2.first << std::endl;
             for (auto v3: v2.second) {
-                std::cout << "        " << v3.first << std::endl;
                 std::cout << "        " << v3.second.variableName << std::endl;
             }
         }
@@ -89,4 +88,21 @@ VarMap *VariableTable::addFunction(const std::string file_path, const std::strin
     } else {
         return nullptr;
     }
+}
+
+SliceProfile *VariableTable::findGlobalVariableSliceProfileByName(const std::string &global_var_name) {
+    auto sp = this->_global_var_map.find(global_var_name);
+    if (sp != this->_global_var_map.end()) {
+        return &sp->second;
+    } else {
+        return nullptr;
+    }
+}
+
+const VarMap *VariableTable::getRawGlobalVariableTable() const {
+    return &this->_global_var_map;
+}
+
+void VariableTable::addGlobalVariable(std::pair<std::string, SliceProfile> pair) {
+    this->_global_var_map.insert(pair);
 }

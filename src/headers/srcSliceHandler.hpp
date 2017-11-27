@@ -206,7 +206,7 @@ private:
 
     SliceProfile ArgumentProfile(std::string, unsigned int, SliceProfile *vIt);
 
-    SliceProfile *Find(const std::string &varName);
+    SliceProfile *Find(std::string varName);
 
     /**
      * triggerFieldOr, triggerFiledAnd
@@ -325,7 +325,7 @@ public:
                     }
                     if (triggerField[function]
                         && !triggerFieldOr(functionblock, type, parameter_list)) {
-                        p_varMap = sysDict->ffvMap.addFunction(fileName, functionTmplt.functionName);
+                        p_varMap = sysDict->variableTable.addFunction(fileName, functionTmplt.functionName);
                     }
                     if (triggerField[constructordecl]) { //For the case where we need to get a constructor decl
                         ProcessConstructorDecl();
@@ -904,7 +904,7 @@ public:
         //fileNumber = functionNameHash(attributes[1].value);
         fileName = std::string(attributes[2].value);
         //insert and keep track of most recent.
-        p_functionVarMap = sysDict->ffvMap.addFile(fileName);
+        p_functionVarMap = sysDict->variableTable.addFile(fileName);
 //        FileIt = sysDict->ffvMap.insert(
 //                std::make_pair(fileName, FunctionVarMap())).first;
         //std::cerr<<"val: "<<attributes[1].value<<std::endl;exit(1);

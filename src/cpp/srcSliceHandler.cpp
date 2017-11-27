@@ -29,17 +29,15 @@
  *@param varName - Name of the variable whose slice profile we want.
  *@return Pointer to Slice Profile or null.
  */
-SliceProfile *srcSliceHandler::Find(const std::string &varName) {
+SliceProfile *srcSliceHandler::Find(std::string varName) {
     auto sp = p_varMap->find(varName);
     if (sp != p_varMap->end()) {
         return &(sp->second);
-    } else { //check global map
-        auto sp2 = sysDict->globalMap.find(varName);
-        if (sp2 != sysDict->globalMap.end()) {
-            return &(sp2->second);
-        }
+    } else {
+        //check global map
+        auto sp2 = sysDict->variableTable.findGlobalVariableSliceProfileByName(varName);
+        return sp2;
     }
-    return nullptr;
 }
 
 /**
@@ -276,7 +274,7 @@ void srcSliceHandler::GetDeclStmtData() {
                 currentSliceProfile.function = "__GLOBAL__";
                 this->insertDef(&currentSliceProfile, currentDecl.lineNumber);
                 auto varmap_pair = std::make_pair(currentSliceProfile.variableName, std::move(currentSliceProfile));
-                sysDict->globalMap.insert(varmap_pair);
+                sysDict->variableTable.addGlobalVariable(varmap_pair);
             }
         }
         currentDecl.name.clear();
@@ -297,7 +295,7 @@ void srcSliceHandler::GetDeclStmtData() {
  */
 void srcSliceHandler::ProcessExprStmtPreAssign() {
     if (!lhsExprStmt.name.empty()) {
-        SliceProfile *lhs = Find(lhsExprStmt.name);
+        auto lhs = Find(lhsExprStmt.name);
         if (!lhs) {
             // 新しく左辺のslice-profileを作成しストアする
             currentSliceProfile.index = 1;
@@ -326,7 +324,7 @@ void srcSliceHandler::ProcessExprStmtPreAssign() {
  * ProcessExprStmtPostAssign
  */
 void srcSliceHandler::ProcessExprStmtPostAssign() {
-    SliceProfile *lhs = Find(lhsName);
+    auto lhs = Find(lhsName);
     if (!lhs) {
         return;
     } else {
@@ -378,7 +376,7 @@ void srcSliceHandler::ProcessExprStmtPostAssign() {
  */
 void srcSliceHandler::ProcessExprStmtNoAssign() {
     for (auto pair : useExprStack) {
-        SliceProfile *useProfile = Find(pair.name);
+        auto useProfile = Find(pair.name);
         if (useProfile) {
             // 他の2つの式文の関数と同様同じ語に対して実行しています。
             //it's running on the same word as the other two exprstmt functions
@@ -394,13 +392,13 @@ void srcSliceHandler::ProcessExprStmtNoAssign() {
  * 宣言コンストラクタ?を処理します。
  */
 void srcSliceHandler::ProcessDeclCtor() {
-    SliceProfile *lhs = Find(currentDecl.name);
+    auto lhs = Find(currentDecl.name);
     if (!lhs) {
         return;
     } else {
         this->_logger->debug("use#7: {}", currentDecl.lineNumber);
         this->insertUse(lhs, currentDecl.lineNumber);
-        SliceProfile *rhs = Find(currentDeclCtor.name);
+         auto rhs = Find(currentDeclCtor.name);
         if (rhs) {
             this->_logger->debug("dvars#5: {}", lhs->variableName);
 
@@ -423,7 +421,7 @@ void srcSliceHandler::ProcessDeclCtor() {
  * No return value
  */
 void srcSliceHandler::ComputeInterprocedural(const std::string &file_apth) {
-    p_functionVarMap = sysDict->ffvMap.getFunctionVarMap(file_apth);
+    p_functionVarMap = sysDict->variableTable.getFunctionVarMap(file_apth);
     if (!p_functionVarMap) {
         std::cerr << "CAN'T FIND FILE" << std::endl;
         return;
@@ -465,7 +463,7 @@ srcSliceHandler::ArgumentProfile(std::string fname, unsigned int parameterIndex,
     SliceProfile Spi;
     auto gFuncIt = sysDict->functionTable.findByName(fname);
     if (gFuncIt) {
-        p_functionVarMap = sysDict->ffvMap.getFunctionVarMap(gFuncIt->fileName);
+        p_functionVarMap = sysDict->variableTable.getFunctionVarMap(gFuncIt->fileName);
     }
     auto funcIt = p_functionVarMap->find(fname);
     if (funcIt != p_functionVarMap->end()) {
@@ -543,7 +541,6 @@ std::string srcSliceHandler::getVariableId(std::string variableName) {
  */
 void srcSliceHandler::insertDef(SliceProfile *sp, unsigned int lineNumber) {
     sp->def.insert(ProgramPoint(lineNumber, this->getFunctionId(lineNumber)));
-
 }
 
 /**

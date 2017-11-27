@@ -12,7 +12,15 @@ typedef std::unordered_map<std::string, FunctionVarMap> FileFunctionVarMap;
 class VariableTable {
 
 private:
+    /**
+     * グローバル変数以外を格納する
+     */
     FileFunctionVarMap _file_function_var_map;
+
+    /**
+     * グローバル変数を格納する
+     */
+    VarMap _global_var_map;
 
 public:
     VariableTable() = default;
@@ -37,6 +45,18 @@ public:
 
     SliceProfile *
     getSliceProfile(const std::string file_path, const std::string func_name, const std::string var_name);
+
+    SliceProfile *findGlobalVariableSliceProfileByName(const std::string &global_var_name);
+
+    /**
+     * グローバル変数を追加します
+     * std::moveの挙動がよくわからなかったので、pairで渡すことにしている
+     * @param var_name
+     * @param sp
+     */
+    void addGlobalVariable(std::pair<std::string, SliceProfile> pair);
+
+    const VarMap* getRawGlobalVariableTable() const;
 
     /**
      * 変数テーブルの内容を標準出力にダンプします

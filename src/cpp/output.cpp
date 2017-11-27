@@ -112,16 +112,16 @@ std::string create_variable_table(SliceDictionary dictionary) {
     std::vector<std::string> header({"id", "file", "func", "var", "def", "use", "dvars", "pointers", "cfuncs"});
     ss << join('\t', header) << std::endl;
 
-    dictionary.ffvMap.forEach([](SliceProfile *sp) {
+    dictionary.variableTable.forEach([](SliceProfile *sp) {
         std::string row = varmap_pair_to_string(sp->file, sp->function, sp);
         ss << row << std::endl;
     });
 
     // globalMap も出力する
-    auto globalMap = dictionary.globalMap;
+    auto globalMap = dictionary.variableTable.getRawGlobalVariableTable();
     // ソートする
     std::map<std::string, SliceProfile> sorted_globalMap
-            (globalMap.begin(), globalMap.end());
+            (std::begin(globalMap), std::end(globalMap));
     for (auto vmIt : sorted_globalMap) {
         std::string row = varmap_pair_to_string(vmIt.second.file, vmIt.second.function, &vmIt.second);
         ss << row << std::endl;

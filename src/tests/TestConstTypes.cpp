@@ -10,10 +10,10 @@ TEST(SliceTest, TestConstTypes) {
         {
             assert(sslice.SetContext("const_types_issue13.c", "f", 1));
             auto a_slice = sslice.Find("a").second;
-            ASSERT_EQ(a_slice.variableType, "const int");
+            ASSERT_EQ(a_slice->variableType, "const int");
 
             auto b_slice = sslice.Find("b").second;
-            ASSERT_EQ(b_slice.variableType, "const int");
+            ASSERT_EQ(b_slice->variableType, "const int");
         }
     } catch (SAXError e) {
         FAIL();
