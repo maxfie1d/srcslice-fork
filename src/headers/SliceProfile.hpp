@@ -30,11 +30,6 @@
 
 class SliceProfile;
 
-typedef std::unordered_map<std::string, SliceProfile> VarMap;
-typedef std::unordered_map<std::string, VarMap> FunctionVarMap;
-typedef std::unordered_map<std::string, FunctionVarMap> FileFunctionVarMap;
-
-
 struct NameLineNumberPairHash {
 public:
     template<typename T, typename U>

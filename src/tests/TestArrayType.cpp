@@ -10,10 +10,10 @@ TEST(SliceTest, TestArrayType) {
         {
             assert(sslice.SetContext("array_type_issue14.c", "f", 1));
             auto a_slice = sslice.Find("a[]").second;
-            ASSERT_EQ(a_slice.variableName, "a[]");
+            ASSERT_EQ(a_slice->variableName, "a[]");
 
             auto b_slice = sslice.Find("b[]").second;
-            ASSERT_EQ(b_slice.variableName, "b[]");
+            ASSERT_EQ(b_slice->variableName, "b[]");
         }
     } catch (SAXError e) {
         FAIL();

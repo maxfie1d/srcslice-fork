@@ -90,9 +90,9 @@ private:
      *there's no need to do any nasty map.finds on the dictionary (since it's a nested map of maps). These must
      *be updated as the file is parsed*/
     std::unordered_map<std::string, ClassProfile>::iterator classIt;
-    FileFunctionVarMap::iterator FileIt;
-    FunctionVarMap::iterator FunctionVarMapItr;
-    VarMap::iterator varIt;
+    FunctionVarMap *p_functionVarMap;
+    VarMap *p_varMap;
+    SliceProfile *p_sliceProfile;
 
     bool isConstructor;
 
@@ -204,9 +204,9 @@ private:
 
     void GetFunctionDeclData();
 
-    SliceProfile ArgumentProfile(std::string, unsigned int, VarMap::iterator);
+    SliceProfile ArgumentProfile(std::string, unsigned int, SliceProfile *vIt);
 
-    SliceProfile *Find(const std::string &varName);
+    SliceProfile *Find(std::string varName);
 
     /**
      * triggerFieldOr, triggerFiledAnd
@@ -325,8 +325,7 @@ public:
                     }
                     if (triggerField[function]
                         && !triggerFieldOr(functionblock, type, parameter_list)) {
-                        FunctionVarMapItr = FileIt->second.insert(
-                                std::make_pair(functionTmplt.functionName, VarMap())).first;
+                        p_varMap = sysDict->variableTable.addFunction(fileName, functionTmplt.functionName);
                     }
                     if (triggerField[constructordecl]) { //For the case where we need to get a constructor decl
                         ProcessConstructorDecl();
@@ -619,7 +618,7 @@ public:
 
                     // 関数の終了行を設定し、関数を辞書に登録する
                     functionTmplt.declareRange.endLine = lineNum;
-                    sysDict->fileFunctionTable.insert(std::make_pair(functionTmplt.functionName, functionTmplt));
+                    sysDict->functionTable.add(functionTmplt.functionName, functionTmplt);
 
                     functionTmplt.clear();
 
@@ -904,8 +903,10 @@ public:
                            const struct srcsax_attribute *attributes) {
         //fileNumber = functionNameHash(attributes[1].value);
         fileName = std::string(attributes[2].value);
-        FileIt = sysDict->ffvMap.insert(
-                std::make_pair(fileName, FunctionVarMap())).first; //insert and keep track of most recent.
+        //insert and keep track of most recent.
+        p_functionVarMap = sysDict->variableTable.addFile(fileName);
+//        FileIt = sysDict->ffvMap.insert(
+//                std::make_pair(fileName, FunctionVarMap())).first;
         //std::cerr<<"val: "<<attributes[1].value<<std::endl;exit(1);
         //classIt = sysDict->classTable.insert(std::make_pair("GLOBAL", ClassProfile())).first;
 
@@ -1137,8 +1138,8 @@ public:
     }
 };
 
-inline void DoComputation(srcSliceHandler &h, const FileFunctionVarMap &mp) {
-    for (FileFunctionVarMap::const_iterator ffvmIt = mp.begin(); ffvmIt != mp.end(); ++ffvmIt) {
-        h.ComputeInterprocedural(ffvmIt->first);
+inline void DoComputation(srcSliceHandler &h, const VariableTable &var_table) {
+    for (auto ffvmIt : *var_table.getFileFunctionVarMap()) {
+        h.ComputeInterprocedural(ffvmIt.first);
     }
 }

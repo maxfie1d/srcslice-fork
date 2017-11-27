@@ -12,15 +12,15 @@ TEST(SliceTest, TestApp1) {
             assert(sslice.SetContext("app1.c", "main", 3));
             auto a_slice = sslice.Find("a").second;
 
-            testDef(&a_slice, std::set<unsigned int>({6, 7}));
-            testUse(&a_slice, std::set<unsigned int>({9}));
-            assertDvarsEmpty(&a_slice);
+            testDef(a_slice, std::set<unsigned int>({6, 7}));
+            testUse(a_slice, std::set<unsigned int>({9}));
+            assertDvarsEmpty(a_slice);
 
             std::set<CfuncShortData> expected_cfuncs(
                     {
                             CfuncShortData("printf", 2)
                     });
-            testCfuncs(&a_slice, expected_cfuncs);
+            testCfuncs(a_slice, expected_cfuncs);
         }
     } catch (SAXError e) {
         FAIL();

@@ -26,8 +26,8 @@
 #include <set>
 
 #include <SliceProfile.hpp>
-
-typedef std::unordered_map<std::string, FunctionData> FileFunctionTable;
+#include "FunctionTable.h"
+#include "VariableTable.h"
 
 static std::set<std::string> errorset;
 struct SliceDictionary {
@@ -36,28 +36,32 @@ struct SliceDictionary {
         int ln;
         std::string fileName;
         std::string functionName;
-        FunctionVarMap::iterator currentFunc;
-        FileFunctionVarMap::iterator currentFile;
+        VarMap *currentVarMap;
+        const FunctionVarMap *currentFile;
 
         Context() : fileName(""), functionName(""), ln(-1) {}
 
         bool IsSet() const { return (ln == -1 || functionName == "") ? false : true; }
 
-        Context(std::string file, std::string func, unsigned int line, FileFunctionVarMap::iterator fileIt,
-                FunctionVarMap::iterator funcIt)
-                : fileName(file), functionName(func), ln(line), currentFile(fileIt), currentFunc(funcIt) {}
+        Context(std::string file, std::string func, unsigned int line, FunctionVarMap *fileIt,
+                VarMap *funcIt)
+                : fileName(file), functionName(func), ln(line), currentFile(fileIt), currentVarMap(funcIt) {}
     };
 
     /**
      * おそらくグローバルスコープの変数を
      * 格納するための辞書
      */
-    VarMap globalMap;
     std::unordered_map<std::string, ClassProfile> classTable;
-    FileFunctionTable fileFunctionTable;
+
+    /**
+     * 関数テーブル
+     */
+    FunctionTable functionTable;
+
     std::vector<std::pair<unsigned int, unsigned int>> controledges;
     Context currentContext;
-    FileFunctionVarMap ffvMap;
+    VariableTable variableTable;
 };
 
 template<typename T>

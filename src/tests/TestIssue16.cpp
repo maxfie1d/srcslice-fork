@@ -11,8 +11,8 @@ TEST(SliceTest, TestIssue16) {
             assert(sslice.SetContext("issue16.c", "main", 1));
             auto a_slice = sslice.Find("a").second;
 
-            testDef(&a_slice, std::set<unsigned int>({3, 4}));
-            testUse(&a_slice, std::set<unsigned int>({}));
+            testDef(a_slice, std::set<unsigned int>({3, 4}));
+            testUse(a_slice, std::set<unsigned int>({}));
         }
     } catch (SAXError e) {
         FAIL();

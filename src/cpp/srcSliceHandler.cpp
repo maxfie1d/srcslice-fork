@@ -29,17 +29,15 @@
  *@param varName - Name of the variable whose slice profile we want.
  *@return Pointer to Slice Profile or null.
  */
-SliceProfile *srcSliceHandler::Find(const std::string &varName) {
-    auto sp = FunctionVarMapItr->second.find(varName);
-    if (sp != FunctionVarMapItr->second.end()) {
+SliceProfile *srcSliceHandler::Find(std::string varName) {
+    auto sp = p_varMap->find(varName);
+    if (sp != p_varMap->end()) {
         return &(sp->second);
-    } else { //check global map
-        auto sp2 = sysDict->globalMap.find(varName);
-        if (sp2 != sysDict->globalMap.end()) {
-            return &(sp2->second);
-        }
+    } else {
+        //check global map
+        auto sp2 = sysDict->variableTable.findGlobalVariableSliceProfileByName(varName);
+        return sp2;
     }
-    return nullptr;
 }
 
 /**
@@ -52,8 +50,8 @@ SliceProfile *srcSliceHandler::Find(const std::string &varName) {
 void srcSliceHandler::ProcessConstructorDecl() {
     auto sp = Find(currentDeclArg.name);
     if (sp) {
-        this->_logger->debug("dvars#1: {}", varIt->second.variableName);
-        this->insertDvar(sp, varIt->second.variableName);
+        this->_logger->debug("dvars#1: {}", p_sliceProfile->variableName);
+        this->insertDvar(sp, p_sliceProfile->variableName);
     }
 }
 
@@ -76,12 +74,12 @@ void srcSliceHandler::ProcessDeclStmt() {
         this->_logger->debug("use#1: {}", currentDeclInit.lineNumber);
         this->insertUse(sp, currentDeclInit.lineNumber);
         //new operator of the form int i = new int(tmp); screws around with aliasing
-        if (varIt->second.potentialAlias && !sawnew) {
-            varIt->second.lastInsertedAlias = varIt->second.aliases.insert(sp->variableName).first;
+        if (p_sliceProfile->potentialAlias && !sawnew) {
+            p_sliceProfile->lastInsertedAlias = p_sliceProfile->aliases.insert(sp->variableName).first;
         } else {
             // dvars{} と use{} に追加する
-            this->_logger->debug("dvars#2: {}", varIt->second.variableName);
-            this->insertDvar(sp, varIt->second.variableName);
+            this->_logger->debug("dvars#2: {}", p_sliceProfile->variableName);
+            this->insertDvar(sp, p_sliceProfile->variableName);
             this->_logger->debug("use#2: {}", currentDeclInit.lineNumber);
             this->insertUse(sp, currentDeclInit.lineNumber);
         }
@@ -96,10 +94,10 @@ void srcSliceHandler::ProcessDeclStmt() {
         if (!inFor) {
             return;
         } else {
-            varIt = FunctionVarMapItr->second.insert(
-                    std::make_pair(currentDeclInit.name, std::move(currentSliceProfile))).first;
+            auto pair = std::make_pair(currentDeclInit.name, std::move(currentSliceProfile));
+            p_sliceProfile = &p_varMap->insert(pair).first->second;
             this->_logger->debug("def#1: {}", currentDeclInit.lineNumber);
-            this->insertDef(&varIt->second, currentDeclInit.lineNumber);
+            this->insertDef(p_sliceProfile, currentDeclInit.lineNumber);
         }
     }
 
@@ -175,11 +173,11 @@ void srcSliceHandler::GetParamName() {
         // 参考: http://kaworu.jpn.org/cpp/std::move
 
         // function-var-mapに新しく追加する
-        varIt = FunctionVarMapItr->second.insert(
-                std::make_pair(currentParam.name, std::move(currentSliceProfile))).first;
+        auto pair = std::make_pair(currentParam.name, std::move(currentSliceProfile));
+        p_sliceProfile = &p_varMap->insert(pair).first->second;
         // def{} に引数の行番号を追加する
         this->_logger->debug("def#2: {}", currentParam.lineNumber);
-        this->insertDef(&varIt->second, currentParam.lineNumber);
+        this->insertDef(p_sliceProfile, currentParam.lineNumber);
 
         currentParam.name.clear();
     }
@@ -265,18 +263,18 @@ void srcSliceHandler::GetDeclStmtData() {
             this->_logger->debug("ここやん！: {}, {}", currentSliceProfile.variableName, inGlobalScope);
             if (!inGlobalScope) {
                 auto pair = std::make_pair(currentSliceProfile.variableName, std::move(currentSliceProfile));
-                varIt = FunctionVarMapItr->second.insert(pair).first;
+                p_sliceProfile = &p_varMap->insert(pair).first->second;
                 // def{} 現在の宣言の行番号を追加する
                 this->_logger->debug("def#3: {}", currentDecl.lineNumber);
 
-                this->insertDef(&varIt->second, currentDecl.lineNumber);
+                this->insertDef(p_sliceProfile, currentDecl.lineNumber);
             } else {
                 //TODO: Handle def use for globals
                 // グローバルマップに追加
                 currentSliceProfile.function = "__GLOBAL__";
                 this->insertDef(&currentSliceProfile, currentDecl.lineNumber);
                 auto varmap_pair = std::make_pair(currentSliceProfile.variableName, std::move(currentSliceProfile));
-                sysDict->globalMap.insert(varmap_pair);
+                sysDict->variableTable.addGlobalVariable(varmap_pair);
             }
         }
         currentDecl.name.clear();
@@ -297,7 +295,7 @@ void srcSliceHandler::GetDeclStmtData() {
  */
 void srcSliceHandler::ProcessExprStmtPreAssign() {
     if (!lhsExprStmt.name.empty()) {
-        SliceProfile *lhs = Find(lhsExprStmt.name);
+        auto lhs = Find(lhsExprStmt.name);
         if (!lhs) {
             // 新しく左辺のslice-profileを作成しストアする
             currentSliceProfile.index = 1;
@@ -308,11 +306,11 @@ void srcSliceHandler::ProcessExprStmtPreAssign() {
             currentSliceProfile.isGlobal = inGlobalScope;
 
             this->_logger->debug("ここかな? #7: {}", currentSliceProfile.variableName);
-            varIt = FunctionVarMapItr->second.insert(
-                    std::make_pair(lhsExprStmt.name, std::move(currentSliceProfile))).first;
+            auto pair = std::make_pair(lhsExprStmt.name, std::move(currentSliceProfile));
+            p_sliceProfile = &p_varMap->insert(pair).first->second;
             this->_logger->debug("def#4: {}", lhsExprStmt.lineNumber);
 
-            this->insertDef(&varIt->second, lhsExprStmt.lineNumber);
+            this->insertDef(p_sliceProfile, lhsExprStmt.lineNumber);
         } else {
             // 左辺のdef{}に追加する
             this->_logger->debug("def#5: {}", lhsExprStmt.lineNumber);
@@ -326,7 +324,7 @@ void srcSliceHandler::ProcessExprStmtPreAssign() {
  * ProcessExprStmtPostAssign
  */
 void srcSliceHandler::ProcessExprStmtPostAssign() {
-    SliceProfile *lhs = Find(lhsName);
+    auto lhs = Find(lhsName);
     if (!lhs) {
         return;
     } else {
@@ -359,8 +357,8 @@ void srcSliceHandler::ProcessExprStmtPostAssign() {
                     // おそらくポインタに加工します。なぜ必要か分かりました。
                     //problem  because last alias is an iterator and can reference things in other functions.
                     //Maybe make into a pointer. Figure out why I need it.
-                    auto spaIt = FunctionVarMapItr->second.find(*(sprIt->lastInsertedAlias));
-                    if (spaIt != FunctionVarMapItr->second.end()) {
+                    auto spaIt = p_varMap->find(*(sprIt->lastInsertedAlias));
+                    if (spaIt != p_varMap->end()) {
                         this->_logger->debug("dvars#4: {}", lhs->variableName);
                         this->insertDvar(sprIt, lhs->variableName);
                         this->_logger->debug("use#5: {}", currentExprStmt.lineNumber);
@@ -378,7 +376,7 @@ void srcSliceHandler::ProcessExprStmtPostAssign() {
  */
 void srcSliceHandler::ProcessExprStmtNoAssign() {
     for (auto pair : useExprStack) {
-        SliceProfile *useProfile = Find(pair.name);
+        auto useProfile = Find(pair.name);
         if (useProfile) {
             // 他の2つの式文の関数と同様同じ語に対して実行しています。
             //it's running on the same word as the other two exprstmt functions
@@ -394,13 +392,13 @@ void srcSliceHandler::ProcessExprStmtNoAssign() {
  * 宣言コンストラクタ?を処理します。
  */
 void srcSliceHandler::ProcessDeclCtor() {
-    SliceProfile *lhs = Find(currentDecl.name);
+    auto lhs = Find(currentDecl.name);
     if (!lhs) {
         return;
     } else {
         this->_logger->debug("use#7: {}", currentDecl.lineNumber);
         this->insertUse(lhs, currentDecl.lineNumber);
-        SliceProfile *rhs = Find(currentDeclCtor.name);
+         auto rhs = Find(currentDeclCtor.name);
         if (rhs) {
             this->_logger->debug("dvars#5: {}", lhs->variableName);
 
@@ -419,29 +417,28 @@ void srcSliceHandler::ProcessDeclCtor() {
  */
 /**
  * ComputeInterprocedural
- * @param f File name
+ * @param file_apth File name
  * No return value
  */
-void srcSliceHandler::ComputeInterprocedural(const std::string &f) {
-    FileIt = sysDict->ffvMap.find(f);
-    if (FileIt == sysDict->ffvMap.end()) {
+void srcSliceHandler::ComputeInterprocedural(const std::string &file_apth) {
+    p_functionVarMap = sysDict->variableTable.findFunctionVarMap(file_apth);
+    if (!p_functionVarMap) {
         std::cerr << "CAN'T FIND FILE" << std::endl;
         return;
     } else {
-        for (FunctionVarMapItr = FileIt->second.begin();
-             FunctionVarMapItr != FileIt->second.end(); ++FunctionVarMapItr) {
-            for (auto it = FunctionVarMapItr->second.begin(); it != FunctionVarMapItr->second.end(); ++it) {
-                if (!it->second.visited) {
+        for (auto pair:*p_functionVarMap) {
+            for (auto &it : pair.second) {
+                if (!it.second.visited) {
                     //std::unordered_set<NameAndLineNumber, NameLineNumberPairHash>::iterator - auto
-                    for (auto itCF = it->second.cfunctions.begin(); itCF != it->second.cfunctions.end(); ++itCF) {
-                        SliceProfile Spi = ArgumentProfile(itCF->calledFunctionName, itCF->argIndenx, it);
-                        SetUnion(it->second.use, Spi.def);
-                        SetUnion(it->second.use, Spi.use);
-                        SetUnion(it->second.cfunctions, Spi.cfunctions);
-                        SetUnion(it->second.dvars, Spi.dvars);
+                    for (auto &itCF : it.second.cfunctions) {
+                        SliceProfile Spi = ArgumentProfile(itCF.calledFunctionName, itCF.argIndenx, &it.second);
+                        SetUnion(it.second.use, Spi.def);
+                        SetUnion(it.second.use, Spi.use);
+                        SetUnion(it.second.cfunctions, Spi.cfunctions);
+                        SetUnion(it.second.dvars, Spi.dvars);
                         //SetUnion(it->second.aliases, Spi.aliases); //I suspect this is wrong, but I'll leave it here in case I'm wrong.
                     }
-                    it->second.visited = true;
+                    it.second.visited = true;
                 }
             }
         }
@@ -459,47 +456,48 @@ void srcSliceHandler::ComputeInterprocedural(const std::string &f) {
  *@param parameterIndex index of the parameter
  *@Return SliceProfile of the variable
 */
-SliceProfile srcSliceHandler::ArgumentProfile(std::string fname, unsigned int parameterIndex, VarMap::iterator vIt) {
+SliceProfile
+srcSliceHandler::ArgumentProfile(std::string fname, unsigned int parameterIndex, SliceProfile *vIt) {
     //TODO varIt is a hack here. Fix. We shouldn't need to pass an extra param to do this.
 
     SliceProfile Spi;
-    auto gFuncIt = sysDict->fileFunctionTable.find(fname);
-    if (gFuncIt != sysDict->fileFunctionTable.end()) {
-        FileIt = sysDict->ffvMap.find(gFuncIt->second.fileName);
+    auto gFuncIt = sysDict->functionTable.findByName(fname);
+    if (gFuncIt) {
+        p_functionVarMap = sysDict->variableTable.findFunctionVarMap(gFuncIt->fileName);
     }
-    auto funcIt = FileIt->second.find(fname);
-    if (funcIt != FileIt->second.end()) {
-        for (auto it = funcIt->second.begin(); it != funcIt->second.end(); ++it) {
-            if (it->second.index == (parameterIndex)) {
-                if (it->second.visited) {
-                    if (it->second.potentialAlias) {
-                        it->second.aliases.insert(vIt->second.variableName);
+    auto funcIt = p_functionVarMap->find(fname);
+    if (funcIt != p_functionVarMap->end()) {
+        for (auto &it : funcIt->second) {
+            if (it.second.index == (parameterIndex)) {
+                if (it.second.visited) {
+                    if (it.second.potentialAlias) {
+                        it.second.aliases.insert(vIt->variableName);
                     }
-                    return it->second;
+                    return it.second;
                 } else {
-                    for (auto itCF = it->second.cfunctions.begin(); itCF != it->second.cfunctions.end(); ++itCF) {
+                    for (auto itCF = it.second.cfunctions.begin(); itCF != it.second.cfunctions.end(); ++itCF) {
                         std::string newFunctionName = itCF->calledFunctionName;
                         unsigned int newParameterIndex = itCF->argIndenx;
                         if (newFunctionName != fname) {
-                            it->second.visited = true;
-                            Spi = ArgumentProfile(newFunctionName, newParameterIndex, it);
-                            SetUnion(it->second.use, Spi.def);
-                            SetUnion(it->second.use, Spi.use);
-                            SetUnion(it->second.cfunctions, Spi.cfunctions);
-                            SetUnion(it->second.dvars, Spi.dvars);
-                            SetUnion(it->second.aliases, Spi.aliases);
+                            it.second.visited = true;
+                            Spi = ArgumentProfile(newFunctionName, newParameterIndex, &it.second);
+                            SetUnion(it.second.use, Spi.def);
+                            SetUnion(it.second.use, Spi.use);
+                            SetUnion(it.second.cfunctions, Spi.cfunctions);
+                            SetUnion(it.second.dvars, Spi.dvars);
+                            SetUnion(it.second.aliases, Spi.aliases);
                         }
                     }
-                    if (it->second.potentialAlias) {
-                        it->second.aliases.insert(vIt->second.variableName);
+                    if (it.second.potentialAlias) {
+                        it.second.aliases.insert(vIt->variableName);
                     }
-                    it->second.visited = true;
-                    return it->second;
+                    it.second.visited = true;
+                    return it.second;
                 }
             }
         }
     } else {
-        //uncomment to see errors. Need to handle this properly. Also, currently, a lot of these misses are calls 
+        //uncomment to see errors. Need to handle this properly. Also, currently, a lot of these misses are calls
         //into functions in header files or libraries that I can't see. Running preprocessor before srcML should
         //help but will also make things messy.
         //std::cout<<"ERROR IN ARGUMENT PROFILE WHEN ACCESSING: "<<fname<<std::endl;
@@ -543,7 +541,6 @@ std::string srcSliceHandler::getVariableId(std::string variableName) {
  */
 void srcSliceHandler::insertDef(SliceProfile *sp, unsigned int lineNumber) {
     sp->def.insert(ProgramPoint(lineNumber, this->getFunctionId(lineNumber)));
-
 }
 
 /**
@@ -563,13 +560,13 @@ void srcSliceHandler::insertCFunc(SliceProfile *sp,
                                   std::string calledFunctionName,
                                   unsigned short argIndex,
                                   unsigned int lineNumber) {
-    auto function_table = sysDict->fileFunctionTable;
-    auto calledFunctionData = function_table.find(calledFunctionName);
-    if (calledFunctionData != std::end(function_table)) {
-        auto calledFunctionId = calledFunctionData->second.computeId();
+    auto function_table = sysDict->functionTable;
+    auto calledFunctionData = function_table.findByName(calledFunctionName);
+    if (calledFunctionData) {
+        auto calledFunctionId = calledFunctionData->computeId();
         sp->cfunctions.insert(CFuncData(
                 calledFunctionName,
-                calledFunctionData->second.computeId(),
+                calledFunctionData->computeId(),
                 argIndex,
                 ProgramPoint(lineNumber, this->getFunctionId(lineNumber))
         ));

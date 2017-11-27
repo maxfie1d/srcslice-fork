@@ -20,81 +20,40 @@ struct srcSlice {
 
     void ReadArchiveFile(std::string filename);
 
-    int size() const { return dictionary.ffvMap.size(); }
+    /**
+     * ソースファイルの数を返します
+     * @return
+     */
+    unsigned long size() const { return dictionary.variableTable.getFileCount(); }
 
-    void dump_slice_dictionary_ffvMap() {
-        for (auto v : dictionary.ffvMap) {
-            std::cout << v.first << std::endl;
-            for (auto v2: v.second) {
-                std::cout << "    " << v2.first << std::endl;
-                for (auto v3: v2.second) {
-                    std::cout << "        " << v3.first << std::endl;
-                    std::cout << "        " << v3.second.variableName << std::endl;
-                }
-            }
-        }
-    }
-
-    bool SetContext(std::string fle, std::string fn, int linenumber) {
-        FileFunctionVarMap::iterator fleIt = dictionary.ffvMap.find(fle);
-
-
-        if (fleIt != dictionary.ffvMap.end()) {
-            FunctionVarMap::iterator fnIt = fleIt->second.find(fn);
-            if (fnIt != fleIt->second.end()) {
-                dictionary.currentContext.currentFile = fleIt;
-                dictionary.currentContext.currentFunc = fnIt;
-                dictionary.currentContext.ln = linenumber;
-                dictionary.currentContext.functionName = fle;
-                dictionary.currentContext.functionName = fn;
-                return true;
-            }
-        }
-        return false;
-    }
-
-    bool SetContext(std::string fn, int linenumber) {
-        if (dictionary.currentContext.currentFile != dictionary.ffvMap.end()) {
-            FunctionVarMap::iterator fnIt = dictionary.currentContext.currentFile->second.find(fn);
-            if (fnIt != dictionary.currentContext.currentFile->second.end()) {
-                dictionary.currentContext.currentFunc = fnIt;
-                dictionary.currentContext.ln = linenumber;
-                dictionary.currentContext.functionName = fn;
-                return true;
-            }
-        }
-        return false;
-    }
-
-    bool SetContext(int linenumber) { //it enough to just check function? Need to check file?
-        if (dictionary.currentContext.currentFunc != dictionary.currentContext.currentFile->second.end()) {
+    bool SetContext(const std::string &file_path, const std::string &func_name, int linenumber) {
+        auto function_var_map = dictionary.variableTable.findFunctionVarMap(file_path);
+        auto var_map = dictionary.variableTable.findVarMap(file_path, func_name);
+        if (function_var_map && var_map) {
+            dictionary.currentContext.currentFile = function_var_map;
+            dictionary.currentContext.currentVarMap = var_map;
             dictionary.currentContext.ln = linenumber;
+            dictionary.currentContext.functionName = func_name;
             return true;
         }
         return false;
     }
 
     //Definition of find that assumes the user didn't give a context (They should just give a context, though, tbh).
-    std::pair<bool, SliceProfile>
-    Find(std::string flename, std::string funcname, std::string varname, int lineNumber) const {
-        FileFunctionVarMap::const_iterator ffvmIt = dictionary.ffvMap.find(flename);
-        if (ffvmIt != dictionary.ffvMap.end()) {
-            FunctionVarMap::const_iterator fvmIt = ffvmIt->second.find(funcname);
-            if (fvmIt != ffvmIt->second.end()) {
-                VarMap::const_iterator vtmIt = fvmIt->second.find(varname);
-                if (vtmIt != fvmIt->second.end()) {
-                    return std::make_pair(true, vtmIt->second);
-                }
-            }
+    std::pair<bool, const SliceProfile *>
+    Find(const std::string file_path, const std::string funcname, const std::string varname) {
+        auto sp = dictionary.variableTable.findSliceProfile(file_path, funcname, varname);
+        if (sp) {
+            return std::make_pair(true, sp);
+        } else {
+            return std::make_pair<bool, const SliceProfile *>(false, nullptr);
         }
-
-        return std::make_pair(false, SliceProfile());
     }
 
     //Definition of find that assumes the user didn't give a context (They should just give a context, though, tbh).
     std::pair<bool, SliceProfile> Find(std::string funcname, std::string varname, int lineNumber) const {
-        FunctionVarMap::const_iterator fvmIt = dictionary.currentContext.currentFile->second.find(funcname);
-        if (fvmIt != dictionary.currentContext.currentFile->second.end()) {
+        auto fvmIt = dictionary.currentContext.currentFile->find(funcname);
+        if (fvmIt != dictionary.currentContext.currentFile->end()) {
             VarMap::const_iterator vtmIt = fvmIt->second.find(varname);
             if (vtmIt != fvmIt->second.end()) {
                 return std::make_pair(true, vtmIt->second);
@@ -104,21 +63,18 @@ struct srcSlice {
     }
 
     //Definition of find that uses the context (so it doesn't need to take a function name as context)
-    std::pair<bool, SliceProfile> Find(std::string varname) const {
+    std::pair<bool, SliceProfile *> Find(const std::string &varname) {
         if (!dictionary.currentContext.IsSet()) {
             throw std::runtime_error("Context not set"); //for now, std exception
         } else {
-            VarMap::const_iterator it = dictionary.currentContext.currentFunc->second.find(varname);
-            if (it != dictionary.currentContext.currentFunc->second.end()) {
-                return std::make_pair(true, it->second);
+            auto it = dictionary.currentContext.currentVarMap->find(varname);
+            if (it != dictionary.currentContext.currentVarMap->end()) {
+                return std::make_pair(true, &it->second);
             } else {
                 // グローバルの方を探索する
-                VarMap::const_iterator v_it = dictionary.globalMap.find(varname);
-                if (v_it != dictionary.globalMap.end()) {
-                    return std::make_pair(true, v_it->second);
-                } else {
-                    return std::make_pair(false, SliceProfile());
-                }
+                auto v_it = dictionary.variableTable.findGlobalVariableSliceProfileByName(varname);
+                return v_it ? std::make_pair(true, v_it)
+                            : std::make_pair<bool, SliceProfile *>(false, nullptr);
             }
         }
     }
