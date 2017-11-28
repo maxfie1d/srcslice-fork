@@ -31,7 +31,7 @@ add_executable(srcslicetest ${SRCSLICEHANDLER_SOURCE2} ${SRCSLICEHANDLER_INCLUDE
         TestApp1.cpp
         TestIf.cpp
         TestWhile.cpp
-        TestApp3-2.cpp
+        TestNonexsistingVariable.cpp
         TestIssue2.cpp
         TestGlobalIssue3.cpp
         TestIssue16.cpp
