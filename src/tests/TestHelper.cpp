@@ -2,17 +2,9 @@
 #include <fstream>
 #include <srcml.h>
 #include <functional.hpp>
+#include <srcMLHelper.h>
+#include <FileHelper.h>
 
-std::string readFileAsStr(const char *filename) {
-    std::ifstream stream(filename);
-    if (stream.fail()) {
-        std::cerr << "ファイルの読み込みに失敗しました: " << filename << std::endl;
-        return NULL;
-    } else {
-        std::string str((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
-        return str;
-    }
-}
 
 /// <summary>
 /// srcml の出力結果の末尾に不明な文字が含まれる
@@ -52,38 +44,13 @@ std::string StringToSrcML(const char *file_name, const std::string str) {
     return std::string(ch);
 }
 
-void OutputCompare(const std::set<CfuncShortData> &lhsSet, const std::set<CfuncShortData> &rhsSet) {
-    // NOTE: 2017.10.29 出力が邪魔なのでスキップしている
-    return;
-
-    std::cerr << "cfuncs: {";
-    for (auto i : lhsSet) {
-        std::cerr << "{" << i.calledFunctionName << "," << i.argIndex << "},";
-    }
-    std::cerr << "} == {";
-    for (auto i : rhsSet) {
-        std::cerr << "{" << i.calledFunctionName << "," << i.argIndex << "},";
-    }
-    std::cerr << "}" << std::endl;
-}
-
-std::string resolvePath(std::string path) {
-    // CLion からだと、なぜか std::getenv が機能しない
-    const char *srcslice_root = std::getenv("SRCSLICE_ROOT");
-    const char *base = srcslice_root != NULL ? srcslice_root : "/home/naoto/github/srcslice-fork";
-    if (base) {
-        std::string resolved = std::string(base) + path;
-        return resolved;
-    } else {
-        throw "環境変数 SRCSLICE_ROOT が設定されていません";
-    }
-}
-
 std::string pathToSrcml(const char *fileName, std::string path) {
     std::string resolvedPath = resolvePath(path);
     std::string srcStr = readFileAsStr(resolvedPath.c_str());
     std::string srcmlStr = StringToSrcML(fileName, srcStr);
-    return srcmlStr;
+
+    // ヘッダファイルが上位に来るように再構成する
+    return reconstructSrcMLStringForSrcSlice(srcmlStr);
 }
 
 void testDef(SliceProfile *sp, std::set<unsigned int> expectedDefLines) {

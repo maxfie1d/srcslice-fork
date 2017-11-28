@@ -1,19 +1,8 @@
 #include "srcMLHelper.h"
 
-std::vector<_xmlNode*> extractFilesWithExtension(_xmlNode *root_node, const char* extension){
-    std::vector<_xmlNode*> nodes;
-    for (auto it = root_node->children; it != nullptr; it = it->next) {
-        if (it->type != XML_TEXT_NODE) {
-            if (!xmlStrcmp(it->name, (const unsigned char *) "unit")) {
-                std::string filename = getFileNameFromXmlNode(it);
-                // 拡張子をチェック
-                if (strEndsWith(filename, extension)) {
-                    nodes.push_back(it);
-                }
-            }
-        }
-    }
-    return nodes;
+bool strEndsWith(const std::string &str, const std::string &suffix) {
+    return str.size() >= suffix.size() &&
+           str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
 }
 
 /**
@@ -31,6 +20,22 @@ std::string getFileNameFromXmlNode(xmlNodePtr node) {
         }
     }
     return nullptr;
+}
+
+std::vector<_xmlNode *> extractFilesWithExtension(_xmlNode *root_node, const char *extension) {
+    std::vector<_xmlNode *> nodes;
+    for (auto it = root_node->children; it != nullptr; it = it->next) {
+        if (it->type != XML_TEXT_NODE) {
+            if (!xmlStrcmp(it->name, (const unsigned char *) "unit")) {
+                std::string filename = getFileNameFromXmlNode(it);
+                // 拡張子をチェック
+                if (strEndsWith(filename, extension)) {
+                    nodes.push_back(it);
+                }
+            }
+        }
+    }
+    return nodes;
 }
 
 /**
@@ -52,6 +57,21 @@ void reconnectXmlNodes(std::vector<_xmlNode *> *nodes) {
             h->next = n[i + 1];
         }
     }
+}
+
+/**
+ * Unit数(=ファイル数)をカウントします
+ * @param root_node
+ * @return
+ */
+unsigned int countUnits(xmlNodePtr root_node) {
+    unsigned int count = 0;
+    for (auto it = root_node->children; it != nullptr; it = it->next) {
+        if (!xmlStrcmp(it->name, (const unsigned char *) "unit")) {
+            ++count;
+        }
+    }
+    return count;
 }
 
 /**
@@ -85,7 +105,7 @@ std::string reconstruct(xmlNodePtr original_root_node) {
     xmlDocDumpMemory(doc, &s, &size);
 
     // ここでsを出力する
-    auto result = std::string((const char *)s);
+    auto result = std::string((const char *) s);
     xmlFree(s);
 
     return result;
@@ -95,7 +115,13 @@ std::string reconstructSrcMLStringForSrcSlice(std::string srcmlStr) {
     xmlDocPtr doc = xmlParseDoc((unsigned char *) srcmlStr.c_str());
     xmlNodePtr original_root_node = xmlDocGetRootElement(doc);
 
-    std::string result = reconstruct(original_root_node);
+    // Unit数が1、つまり単一ソースファイルの時は
+    // XMLを再構成する必要がない
+    unsigned int unit_count = countUnits(original_root_node);
+    std::cout << unit_count << std::endl;
+    std::string result = unit_count > 1
+                         ? reconstruct(original_root_node)
+                         : srcmlStr;
 
     xmlFreeDoc(doc);
     xmlCleanupParser();
@@ -115,7 +141,3 @@ void dump_xml_elements(xmlNodePtr node, int depth) {
     }
 }
 
-bool strEndsWith(const std::string &str, const std::string &suffix) {
-    return str.size() >= suffix.size() &&
-           str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
-}
