@@ -118,7 +118,6 @@ std::string reconstructSrcMLStringForSrcSlice(std::string srcmlStr) {
     // Unit数が1、つまり単一ソースファイルの時は
     // XMLを再構成する必要がない
     unsigned int unit_count = countUnits(original_root_node);
-    std::cout << unit_count << std::endl;
     std::string result = unit_count > 1
                          ? reconstruct(original_root_node)
                          : srcmlStr;

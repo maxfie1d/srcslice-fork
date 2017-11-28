@@ -398,7 +398,7 @@ void srcSliceHandler::ProcessDeclCtor() {
     } else {
         this->_logger->debug("use#7: {}", currentDecl.lineNumber);
         this->insertUse(lhs, currentDecl.lineNumber);
-         auto rhs = Find(currentDeclCtor.name);
+        auto rhs = Find(currentDeclCtor.name);
         if (rhs) {
             this->_logger->debug("dvars#5: {}", lhs->variableName);
 
@@ -521,17 +521,31 @@ std::string srcSliceHandler::getFunctionId(unsigned int lineNumber) {
 }
 
 std::string srcSliceHandler::getVariableId(std::string variableName) {
-    // TODO: 本来は辞書を検索してSliceProfileのインスタンスを検索するべき
-
-    if (this->fileName.empty() || this->functionTmplt.functionName.empty()) {
-        return "<unknown variable id>";
+    auto a = this->sysDict->variableTable.findSliceProfile(this->fileName, this->functionTmplt.functionName,
+                                                           variableName);
+    if (a) {
+        return a->computeVariableId();
     } else {
-        SliceProfile sp;
-        sp.file = this->fileName;
-        sp.function = this->functionTmplt.functionName;
-        sp.variableName = variableName;
-        return sp.computeVariableId();
+        // なければグローバル変数で探す
+        auto b = this->sysDict->variableTable.findGlobalVariableSliceProfileByName(variableName);
+        if (b) {
+            return b->computeVariableId();
+        } else {
+            return "<unknown variable id>";
+        }
     }
+
+    // Issue #26のために辞書を探索して見つけたSliceProfileをもとに
+    // IDを取得する方法に切り替えた
+//    if (this->fileName.empty() || this->functionTmplt.functionName.empty()) {
+//        return "<unknown variable id>";
+//    } else {
+//        SliceProfile sp;
+//        sp.file = this->fileName;
+//        sp.function = this->functionTmplt.functionName;
+//        sp.variableName = variableName;
+//        return sp.computeVariableId();
+//    }
 }
 
 /**
