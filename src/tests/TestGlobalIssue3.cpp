@@ -67,6 +67,15 @@ TEST(SliceTest, TestGlobalIssue3) {
             ASSERT_EQ(c_slice->aliases.empty(), true);
             assertCfuncsEmpty(c_slice);
         }
+        {
+            // Issue#26でグローバル変数のIDが一致しないという問題があったため
+            // テストする
+            auto c_slice = sslice.dictionary.variableTable.findSliceProfile("global.c", "f", "c");
+            std::string id1 = c_slice->dvars.begin()->variableId;
+            auto g_slice = sslice.dictionary.variableTable.findGlobalVariableSliceProfileByName("g");
+            std::string id2 = g_slice->computeVariableId();
+            ASSERT_EQ(id1, id2);
+        }
     } catch (SAXError e) {
         FAIL();
     }
