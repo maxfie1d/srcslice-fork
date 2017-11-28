@@ -903,16 +903,11 @@ public:
                            const struct srcsax_attribute *attributes) {
         //fileNumber = functionNameHash(attributes[1].value);
         fileName = std::string(attributes[2].value);
-        //insert and keep track of most recent.
         p_functionVarMap = sysDict->variableTable.addFile(fileName);
-//        FileIt = sysDict->ffvMap.insert(
-//                std::make_pair(fileName, FunctionVarMap())).first;
-        //std::cerr<<"val: "<<attributes[1].value<<std::endl;exit(1);
-        //classIt = sysDict->classTable.insert(std::make_pair("GLOBAL", ClassProfile())).first;
-
         // GLOBALスコープのものはここで作られる
-        // for globals. Makes a bad assumption about where globals are. Fix.
-        // FunctionVarMapItr = FileIt->second.insert(std::make_pair("GLOBAL", VarMap())).first;
+        // NOTE: 実際の出力にGLOBALは出てこないものの、コメントアウトするとなぜか
+        // 実行時にエラーになるので復活させた
+        p_varMap = &p_functionVarMap->insert(std::make_pair("GLOBAL", VarMap())).first->second;
     }
 
     /**

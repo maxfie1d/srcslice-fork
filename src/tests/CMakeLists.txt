@@ -1,9 +1,15 @@
 file(GLOB SRCSLICEHANDLER_SOURCE ../cpp/*.cpp)
-file(GLOB SRCSLICEHANDLER_SOURCE2 ../cpp/srcSlice*.cpp ../cpp/SliceProfile.cpp ../cpp/FunctionTable.cpp ../cpp/VariableTable.cpp)
+file(GLOB SRCSLICEHANDLER_SOURCE2
+        ../cpp/srcSlice*.cpp
+        ../cpp/SliceProfile.cpp
+        ../cpp/FunctionTable.cpp
+        ../cpp/VariableTable.cpp
+        ../cpp/FileHelper.cpp
+        ../cpp/srcMLHelper.cpp)
 file(GLOB SRCSLICEHANDLER_INCLUDE ../headers/*.hpp ../headers/*.h)
 file(GLOB SRCSLICETEST_SOURCE *.cpp)
 file(GLOB SRCSLICETEST_INCLUDE *.hpp)
-file(GLOB TESTCASES TestGlobalIssue3.cpp)
+file(GLOB TESTCASES TestApp1.cpp)
 
 link_directories(/usr/local/lib/)
 

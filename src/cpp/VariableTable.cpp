@@ -50,7 +50,7 @@ void VariableTable::dump_to_stdout() const {
     }
 }
 
-void VariableTable::forEach(std::function<void(SliceProfile)> f) {
+void VariableTable::forEach(std::function<void(SliceProfile*)> f) {
     // ソートする
     std::map<std::string, FunctionVarMap> sorted_ffvMap
             (this->_file_function_var_map.begin(),
@@ -67,7 +67,7 @@ void VariableTable::forEach(std::function<void(SliceProfile)> f) {
                     fvmIt.second.end()
             );
             for (auto vmIt: sorted_vMap) {
-                f(vmIt.second);
+                f(&vmIt.second);
             }
         }
     }

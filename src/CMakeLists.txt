@@ -1,6 +1,6 @@
 file(GLOB SRCSLICEHANDLER_SOURCE cpp/*.cpp)
 file(GLOB SRCSLICEHANDLER_SOURCE2 cpp/srcSlice*.cpp)
-file(GLOB SRCSLICEHANDLER_INCLUDE headers/*.hpp)
+file(GLOB SRCSLICEHANDLER_INCLUDE headers/*.hpp headers/*.h)
 
 link_directories(/usr/local/lib/)
 
