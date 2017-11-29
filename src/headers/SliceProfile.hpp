@@ -199,6 +199,10 @@ public:
     bool potentialAlias;
     bool dereferenced;
     bool isGlobal;
+
+    /**
+     * 手続き間の関係を計算済みのときtrueにするフラグと思われる
+     */
     bool visited;
 
     /**
