@@ -436,7 +436,7 @@ void srcSliceHandler::ComputeInterprocedural(const std::string &file_path) {
                     for (auto &cfunc : sp.cfunctions) {
                         // cfuncのdef,use,cfunctions,dvarsと結合する
                         auto argumentSp = createArgumentSp(cfunc.calledFunctionName,
-                                                           cfunc.argIndenx, &sp);
+                                                           cfunc.argIndenx);
                         combineElements(&sp.use, &argumentSp.def);
                         combineElements(&sp.use, &argumentSp.use);
                         combineElements(&sp.cfunctions, &argumentSp.cfunctions);
@@ -461,42 +461,39 @@ void srcSliceHandler::ComputeInterprocedural(const std::string &file_path) {
  *@Return SliceProfile of the variable
 */
 SliceProfile
-srcSliceHandler::createArgumentSp(std::string fname, unsigned int parameterIndex, SliceProfile *vIt) {
-    //TODO varIt is a hack here. Fix. We shouldn't need to pass an extra param to do this.
-
-    SliceProfile Spi;
-    auto gFuncIt = sysDict->functionTable.findByName(fname);
+srcSliceHandler::createArgumentSp(std::string func_name, unsigned int parameterIndex) {
+    // 関数名で関数テーブルを検索してみる
+    auto gFuncIt = sysDict->functionTable.findByName(func_name);
     if (gFuncIt) {
+        // 関数テーブルにその関数があれば、その関数の所属する関数変数マップを取得する
         p_functionVarMap = sysDict->variableTable.findFunctionVarMap(gFuncIt->fileName);
     }
-    auto funcIt = p_functionVarMap->find(fname);
-    if (funcIt != p_functionVarMap->end()) {
-        for (auto &it : funcIt->second) {
-            if (it.second.index == (parameterIndex)) {
-                if (it.second.visited) {
-                    if (it.second.potentialAlias) {
-                        it.second.aliases.insert(vIt->variableName);
-                    }
-                    return it.second;
+    // 関数名でその関数の変数マップを取得する
+    auto varmap_pair = p_functionVarMap->find(func_name);
+    if (varmap_pair != p_functionVarMap->end()) {
+        // それぞれの変数のSliceProfileについて
+        for (auto &sp_pair : varmap_pair->second) {
+            auto &sp = sp_pair.second;
+            if (sp.index == parameterIndex) {
+                if (sp.visited) {
+                    return sp;
                 } else {
-                    for (auto itCF = it.second.cfunctions.begin(); itCF != it.second.cfunctions.end(); ++itCF) {
-                        std::string newFunctionName = itCF->calledFunctionName;
-                        unsigned int newParameterIndex = itCF->argIndenx;
-                        if (newFunctionName != fname) {
-                            it.second.visited = true;
-                            Spi = createArgumentSp(newFunctionName, newParameterIndex, &it.second);
-                            combineElements(&it.second.use, &Spi.def);
-                            combineElements(&it.second.use, &Spi.use);
-                            combineElements(&it.second.cfunctions, &Spi.cfunctions);
-                            combineElements(&it.second.dvars, &Spi.dvars);
-                            combineElements(&it.second.aliases, &Spi.aliases);
+                    // ここで再帰的に連鎖を繋いでいると思われる
+                    for (auto &itCF: sp.cfunctions) {
+                        std::string newFunctionName = itCF.calledFunctionName;
+                        unsigned int newParameterIndex = itCF.argIndenx;
+                        if (newFunctionName != func_name) {
+                            sp.visited = true;
+                            auto Spi = createArgumentSp(newFunctionName, newParameterIndex);
+                            combineElements(&sp.use, &Spi.def);
+                            combineElements(&sp.use, &Spi.use);
+                            combineElements(&sp.cfunctions, &Spi.cfunctions);
+                            combineElements(&sp.dvars, &Spi.dvars);
+                            combineElements(&sp.aliases, &Spi.aliases);
                         }
                     }
-                    if (it.second.potentialAlias) {
-                        it.second.aliases.insert(vIt->variableName);
-                    }
-                    it.second.visited = true;
-                    return it.second;
+                    sp.visited = true;
+                    return sp;
                 }
             }
         }
@@ -506,7 +503,7 @@ srcSliceHandler::createArgumentSp(std::string fname, unsigned int parameterIndex
         //help but will also make things messy.
         //std::cout<<"ERROR IN ARGUMENT PROFILE WHEN ACCESSING: "<<fname<<std::endl;
     }
-    return Spi;
+    return SliceProfile();
 }
 
 std::string srcSliceHandler::getFunctionId(unsigned int lineNumber) {

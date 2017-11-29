@@ -204,7 +204,7 @@ private:
 
     void GetFunctionDeclData();
 
-    SliceProfile createArgumentSp(std::string, unsigned int, SliceProfile *vIt);
+    SliceProfile createArgumentSp(std::string, unsigned int);
 
     SliceProfile *Find(std::string varName);
 
