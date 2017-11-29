@@ -413,32 +413,36 @@ void srcSliceHandler::ProcessDeclCtor() {
 
 /**
  * ConputeInterprocedural
- * よく分からない。
+ * 関数呼び出しなどでuse{}に伝播などを計算する
  */
 /**
  * ComputeInterprocedural
- * @param file_apth File name
+ * @param file_path File name
  * No return value
  */
-void srcSliceHandler::ComputeInterprocedural(const std::string &file_apth) {
-    p_functionVarMap = sysDict->variableTable.findFunctionVarMap(file_apth);
+void srcSliceHandler::ComputeInterprocedural(const std::string &file_path) {
+    // ファイルは変数テーブル中に存在するか
+    p_functionVarMap = sysDict->variableTable.findFunctionVarMap(file_path);
     if (!p_functionVarMap) {
-        std::cerr << "CAN'T FIND FILE" << std::endl;
+        std::cerr << "変数テーブル中にそんなファイルないで: " << file_path << std::endl;
         return;
     } else {
-        for (auto &pair:*p_functionVarMap) {
-            for (auto &it : pair.second) {
-                if (!it.second.visited) {
-                    //std::unordered_set<NameAndLineNumber, NameLineNumberPairHash>::iterator - auto
-                    for (auto &cfunc : it.second.cfunctions) {
-                        SliceProfile Spi = ArgumentProfile(cfunc.calledFunctionName, cfunc.argIndenx, &it.second);
-                        SetUnion(it.second.use, Spi.def);
-                        SetUnion(it.second.use, Spi.use);
-                        SetUnion(it.second.cfunctions, Spi.cfunctions);
-                        SetUnion(it.second.dvars, Spi.dvars);
-                        //SetUnion(it->second.aliases, Spi.aliases); //I suspect this is wrong, but I'll leave it here in case I'm wrong.
+        // それぞれの関数の変数マップについて
+        for (auto &varmap_pair:*p_functionVarMap) {
+            // それぞれのSliceProfileについて
+            for (auto &s_profile_pair : varmap_pair.second) {
+                auto &sp = s_profile_pair.second;
+                if (!sp.visited) {
+                    for (auto &cfunc : sp.cfunctions) {
+                        // cfuncのdef,use,cfunctions,dvarsと結合する
+                        auto argumentSp = createArgumentSp(cfunc.calledFunctionName,
+                                                           cfunc.argIndenx, &sp);
+                        combineElements(&sp.use, &argumentSp.def);
+                        combineElements(&sp.use, &argumentSp.use);
+                        combineElements(&sp.cfunctions, &argumentSp.cfunctions);
+                        combineElements(&sp.dvars, &argumentSp.dvars);
                     }
-                    it.second.visited = true;
+                    sp.visited = true;
                 }
             }
         }
@@ -457,7 +461,7 @@ void srcSliceHandler::ComputeInterprocedural(const std::string &file_apth) {
  *@Return SliceProfile of the variable
 */
 SliceProfile
-srcSliceHandler::ArgumentProfile(std::string fname, unsigned int parameterIndex, SliceProfile *vIt) {
+srcSliceHandler::createArgumentSp(std::string fname, unsigned int parameterIndex, SliceProfile *vIt) {
     //TODO varIt is a hack here. Fix. We shouldn't need to pass an extra param to do this.
 
     SliceProfile Spi;
@@ -480,12 +484,12 @@ srcSliceHandler::ArgumentProfile(std::string fname, unsigned int parameterIndex,
                         unsigned int newParameterIndex = itCF->argIndenx;
                         if (newFunctionName != fname) {
                             it.second.visited = true;
-                            Spi = ArgumentProfile(newFunctionName, newParameterIndex, &it.second);
-                            SetUnion(it.second.use, Spi.def);
-                            SetUnion(it.second.use, Spi.use);
-                            SetUnion(it.second.cfunctions, Spi.cfunctions);
-                            SetUnion(it.second.dvars, Spi.dvars);
-                            SetUnion(it.second.aliases, Spi.aliases);
+                            Spi = createArgumentSp(newFunctionName, newParameterIndex, &it.second);
+                            combineElements(&it.second.use, &Spi.def);
+                            combineElements(&it.second.use, &Spi.use);
+                            combineElements(&it.second.cfunctions, &Spi.cfunctions);
+                            combineElements(&it.second.dvars, &Spi.dvars);
+                            combineElements(&it.second.aliases, &Spi.aliases);
                         }
                     }
                     if (it.second.potentialAlias) {
@@ -592,5 +596,12 @@ void srcSliceHandler::insertCFunc(SliceProfile *sp,
                 argIndex,
                 ProgramPoint(lineNumber, this->getFunctionId(lineNumber))
         ));
+    }
+}
+
+void computeInterproceduralRelation(srcSliceHandler &srcSliceHandler, const VariableTable &var_table) {
+    for (auto pair : *var_table.getFileFunctionVarMap()) {
+        std::string file_name = pair.first;
+        srcSliceHandler.ComputeInterprocedural(file_name);
     }
 }

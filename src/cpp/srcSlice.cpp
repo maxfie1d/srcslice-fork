@@ -6,35 +6,41 @@ srcSlice::srcSlice(const char *filename, const char *encoding = 0) {
     srcSAXController control(filename);
     srcSliceHandler handler(&dictionary);
     control.parse(&handler);
-    DoComputation(handler, handler.sysDict->variableTable);
+    computeInterproceduralRelation(handler, handler.sysDict->variableTable);
 }
 
 srcSlice::srcSlice(std::string buffer, const char *encoding = 0) {
     srcSAXController control(reconstructSrcMLStringForSrcSlice(buffer));
     srcSliceHandler handler(&dictionary);
     control.parse(&handler);
-    DoComputation(handler, handler.sysDict->variableTable);
+    computeInterproceduralRelation(handler, handler.sysDict->variableTable);
 }
 
 srcSlice::srcSlice(FILE *file, const char *encoding = 0) {
     srcSAXController control(file);
     srcSliceHandler handler(&dictionary);
     control.parse(&handler);
-    DoComputation(handler, handler.sysDict->variableTable);
+    computeInterproceduralRelation(handler, handler.sysDict->variableTable);
 }
 
 srcSlice::srcSlice(int fd, const char *encoding = 0) {
     srcSAXController control(fd);
     srcSliceHandler handler(&dictionary);
     control.parse(&handler);
-    DoComputation(handler, handler.sysDict->variableTable);
+    computeInterproceduralRelation(handler, handler.sysDict->variableTable);
 }
 
 void srcSlice::ReadArchiveFile(std::string filename) {
     //can call if default contructed
+
+    // srcml文書から
     std::string srcmlStr = reconstructSrcMLStringForSrcSlice(readFileAsStr(filename.c_str()));
+
+    // ファイルごとのスライスを計算し
     srcSAXController control(srcmlStr);
     srcSliceHandler handler(&dictionary);
     control.parse(&handler);
-    DoComputation(handler, handler.sysDict->variableTable);
+
+    // 手続き(ファイル)間の関係を計算する
+    computeInterproceduralRelation(handler, handler.sysDict->variableTable);
 }

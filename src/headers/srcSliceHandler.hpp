@@ -204,7 +204,7 @@ private:
 
     void GetFunctionDeclData();
 
-    SliceProfile ArgumentProfile(std::string, unsigned int, SliceProfile *vIt);
+    SliceProfile createArgumentSp(std::string, unsigned int, SliceProfile *vIt);
 
     SliceProfile *Find(std::string varName);
 
@@ -1133,8 +1133,10 @@ public:
     }
 };
 
-inline void DoComputation(srcSliceHandler &h, const VariableTable &var_table) {
-    for (auto ffvmIt : *var_table.getFileFunctionVarMap()) {
-        h.ComputeInterprocedural(ffvmIt.first);
-    }
-}
+
+/**
+ * 手続き間の関係を計算します
+ * @param srcSliceHandler
+ * @param var_table
+ */
+void computeInterproceduralRelation(srcSliceHandler &srcSliceHandler, const VariableTable &var_table);
