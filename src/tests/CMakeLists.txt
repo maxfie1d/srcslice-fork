@@ -9,7 +9,7 @@ file(GLOB SRCSLICEHANDLER_SOURCE2
 file(GLOB SRCSLICEHANDLER_INCLUDE ../headers/*.hpp ../headers/*.h)
 file(GLOB SRCSLICETEST_SOURCE *.cpp)
 file(GLOB SRCSLICETEST_INCLUDE *.hpp)
-file(GLOB TESTCASES TestApp1.cpp)
+file(GLOB TESTCASES TestDefUseChain.cpp)
 
 link_directories(/usr/local/lib/)
 

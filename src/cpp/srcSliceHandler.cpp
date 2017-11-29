@@ -426,12 +426,12 @@ void srcSliceHandler::ComputeInterprocedural(const std::string &file_apth) {
         std::cerr << "CAN'T FIND FILE" << std::endl;
         return;
     } else {
-        for (auto pair:*p_functionVarMap) {
+        for (auto &pair:*p_functionVarMap) {
             for (auto &it : pair.second) {
                 if (!it.second.visited) {
                     //std::unordered_set<NameAndLineNumber, NameLineNumberPairHash>::iterator - auto
-                    for (auto &itCF : it.second.cfunctions) {
-                        SliceProfile Spi = ArgumentProfile(itCF.calledFunctionName, itCF.argIndenx, &it.second);
+                    for (auto &cfunc : it.second.cfunctions) {
+                        SliceProfile Spi = ArgumentProfile(cfunc.calledFunctionName, cfunc.argIndenx, &it.second);
                         SetUnion(it.second.use, Spi.def);
                         SetUnion(it.second.use, Spi.use);
                         SetUnion(it.second.cfunctions, Spi.cfunctions);
