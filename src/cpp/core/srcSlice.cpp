@@ -1,6 +1,6 @@
-#include <srcSlice.hpp>
-#include "FileHelper.h"
-#include "srcMLHelper.h"
+#include <core/srcSlice.hpp>
+#include "helpers/FileHelper.h"
+#include "helpers/srcMLHelper.h"
 
 srcSlice::srcSlice(const char *filename, const char *encoding = 0) {
     srcSAXController control(filename);

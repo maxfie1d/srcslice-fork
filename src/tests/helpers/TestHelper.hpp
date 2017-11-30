@@ -2,7 +2,7 @@
 
 #include <string>
 #include <iostream>
-#include <SliceProfile.hpp>
+#include <core/SliceProfile.hpp>
 #include <gtest/gtest.h>
 
 /**

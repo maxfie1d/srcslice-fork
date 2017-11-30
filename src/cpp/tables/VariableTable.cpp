@@ -1,4 +1,4 @@
-#include "VariableTable.h"
+#include "tables/VariableTable.h"
 
 VarMap *VariableTable::findVarMap(const std::string &file_path, const std::string &func_name) {
     auto f = this->findFunctionVarMap(file_path);

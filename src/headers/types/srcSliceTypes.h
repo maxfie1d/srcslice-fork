@@ -1,6 +1,7 @@
 #pragma once
 
 #include <climits>
+#include <string>
 
 /**
  * ソースファイルにおける範囲を行番号で表す

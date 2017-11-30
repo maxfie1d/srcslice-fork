@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <srcSlice.hpp>
+#include <core/srcSlice.hpp>
 #include "../helpers/TestHelper.hpp"
 
 TEST(SliceTest, TestIssue29) {

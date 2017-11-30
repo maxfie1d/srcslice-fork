@@ -1,7 +1,7 @@
 #include <libxml/parser.h>
-#include <FileHelper.h>
+#include <helpers/FileHelper.h>
 #include "../helpers/TestHelper.hpp"
-#include "srcMLHelper.h"
+#include "helpers/srcMLHelper.h"
 
 
 TEST(UnitTest, TestSortingUnitElement) {

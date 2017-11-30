@@ -18,7 +18,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include <srcSliceHandler.hpp>
+#include <core/srcSliceHandler.hpp>
+#include <core/SliceProfile.hpp>
+#include <helpers/Utility.hpp>
 
 
 /**

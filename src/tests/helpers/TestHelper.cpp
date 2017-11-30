@@ -1,9 +1,9 @@
 #include "../helpers/TestHelper.hpp"
 #include <fstream>
 #include <srcml.h>
-#include <functional.hpp>
-#include <srcMLHelper.h>
-#include <FileHelper.h>
+#include <helpers/functional.hpp>
+#include <helpers/srcMLHelper.h>
+#include <helpers/FileHelper.h>
 
 
 /// <summary>

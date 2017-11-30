@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <VariableTable.h>
+#include <tables/VariableTable.h>
 
 TEST(UnitTest, VariableTableTest) {
     VariableTable var_table;

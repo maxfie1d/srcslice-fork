@@ -21,9 +21,9 @@
 #pragma once
 
 #include <srcSAXHandler.hpp>
-#include <SliceProfile.hpp>
-#include <Utility.hpp>
-#include <srcSlice.hpp>
+#include <core/SliceProfile.hpp>
+#include <helpers/Utility.hpp>
+#include <core/srcSlice.hpp>
 #include <iostream>
 #include <vector>
 #include <list>
@@ -32,7 +32,7 @@
 #include <stack>
 #include <functional>
 #include <spdlog/spdlog.h>
-#include "srcSliceTypes.h"
+#include "types/srcSliceTypes.h"
 
 class srcSliceHandler : public srcSAXHandler {
 private:

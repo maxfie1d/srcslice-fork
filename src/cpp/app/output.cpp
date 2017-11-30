@@ -18,10 +18,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include <srcSliceHandler.hpp>
+#include <core/srcSliceHandler.hpp>
 #include <json.hpp>
-#include "functional.hpp"
-
+#include "helpers/functional.hpp"
 
 std::string join(const char delimiter, std::vector<std::string> source) {
     std::stringstream ss;

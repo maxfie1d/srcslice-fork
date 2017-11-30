@@ -25,8 +25,8 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <set>
-#include "srcSliceTypes.h"
-#include "ProgramPoint.hpp"
+#include "types/srcSliceTypes.h"
+#include "types/ProgramPoint.hpp"
 
 class SliceProfile;
 

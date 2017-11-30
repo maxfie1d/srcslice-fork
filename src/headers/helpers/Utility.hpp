@@ -25,9 +25,9 @@
 #include <vector>
 #include <set>
 
-#include <SliceProfile.hpp>
-#include "FunctionTable.h"
-#include "VariableTable.h"
+#include <core/SliceProfile.hpp>
+#include "tables/FunctionTable.h"
+#include "tables/VariableTable.h"
 
 static std::set<std::string> errorset;
 struct SliceDictionary {

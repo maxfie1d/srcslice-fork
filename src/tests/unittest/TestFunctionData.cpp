@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <SliceProfile.hpp>
+#include <core/SliceProfile.hpp>
 
 
 TEST(SrcSliceUnitTest, TestFunctionData) {

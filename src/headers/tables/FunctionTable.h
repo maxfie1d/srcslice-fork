@@ -1,8 +1,8 @@
 #pragma once
 
-#include "SliceProfile.hpp"
 #include <functional>
 #include <iostream>
+#include <core/SliceProfile.hpp>
 
 
 /**

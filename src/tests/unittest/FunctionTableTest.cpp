@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "FunctionTable.h"
+#include"tables/FunctionTable.h"
 
 FunctionData make_function_data_from_name(std::string func_name) {
     FunctionData fd;

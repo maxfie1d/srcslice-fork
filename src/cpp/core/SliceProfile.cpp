@@ -1,4 +1,4 @@
-#include <SliceProfile.hpp>
+#include <core/SliceProfile.hpp>
 #include <picosha2.h>
 
 std::string computeSHA256Hash(std::string source) {

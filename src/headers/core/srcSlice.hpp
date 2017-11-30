@@ -1,7 +1,7 @@
 #pragma once
 
-#include <srcSliceHandler.hpp>
-#include <Utility.hpp>
+#include <core/srcSliceHandler.hpp>
+#include <helpers/Utility.hpp>
 #include <stdio.h>
 
 struct srcSlice {

@@ -1,4 +1,4 @@
-#include "FunctionTable.h"
+#include "tables/FunctionTable.h"
 
 FunctionData *FunctionTable::findById(std::string id) {
     return this->privateFind([&](FunctionData &fd) {

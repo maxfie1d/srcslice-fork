@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SliceProfile.hpp"
+#include "core/SliceProfile.hpp"
 #include <functional>
 #include <map>
 #include <iostream>
