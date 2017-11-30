@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <srcSlice.hpp>
-#include "TestHelper.hpp"
+#include "../helpers/TestHelper.hpp"
 
 TEST(SliceTest, TestDefUseChain) {
     std::string srcmlStr = pathToSrcml("def_use_chain.c", "/src/tests/samples/def_use_chain.c");

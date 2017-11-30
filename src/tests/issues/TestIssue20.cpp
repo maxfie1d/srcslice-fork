@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <srcSlice.hpp>
-#include "TestHelper.hpp"
+#include "../helpers/TestHelper.hpp"
 
 TEST(SliceTest, TestIssue20) {
     std::string srcmlStr = pathToSrcml("issue20.c", "/src/tests/samples/issue20.c");

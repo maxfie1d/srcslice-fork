@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <srcSlice.hpp>
-#include "TestHelper.hpp"
+#include "../helpers/TestHelper.hpp"
 
 TEST(SliceTest, TestNonexistingVariable) {
     std::string srcmlStr = pathToSrcml("nonexisting_variable", "/src/tests/samples/nonexisting_variable.c");

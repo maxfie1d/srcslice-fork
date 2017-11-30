@@ -1,6 +1,6 @@
 #include <libxml/parser.h>
 #include <FileHelper.h>
-#include "TestHelper.hpp"
+#include "../helpers/TestHelper.hpp"
 #include "srcMLHelper.h"
 
 

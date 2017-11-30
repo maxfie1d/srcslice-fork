@@ -1,4 +1,4 @@
-#include "TestHelper.hpp"
+#include "../helpers/TestHelper.hpp"
 #include <fstream>
 #include <srcml.h>
 #include <functional.hpp>

@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 #include <srcSlice.hpp>
-#include "TestHelper.hpp"
+#include "../helpers/TestHelper.hpp"
 
 TEST(SliceTest, TestWhile) {
     std::string srcmlStr = pathToSrcml("while.c", "/src/tests/samples/while.c");
