@@ -422,13 +422,13 @@ void srcSliceHandler::ProcessDeclCtor() {
  */
 void srcSliceHandler::ComputeInterprocedural(const std::string &file_path) {
     // ファイルは変数テーブル中に存在するか
-    p_functionVarMap = sysDict->variableTable.findFunctionVarMap(file_path);
-    if (!p_functionVarMap) {
+    auto func_varmap = sysDict->variableTable.findFunctionVarMap(file_path);
+    if (!func_varmap) {
         std::cerr << "変数テーブル中にそんなファイルないで: " << file_path << std::endl;
         return;
     } else {
         // それぞれの関数の変数マップについて
-        for (auto &varmap_pair:*p_functionVarMap) {
+        for (auto &varmap_pair:*func_varmap) {
             // それぞれのSliceProfileについて
             for (auto &s_profile_pair : varmap_pair.second) {
                 auto &sp = s_profile_pair.second;
