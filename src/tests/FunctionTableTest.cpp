@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include "FunctionTable.h"
 
-FunctionData make_function_data_from_name(std::string func_name){
+FunctionData make_function_data_from_name(std::string func_name) {
     FunctionData fd;
     fd.functionName = func_name;
     return fd;

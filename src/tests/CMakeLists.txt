@@ -38,6 +38,12 @@ add_executable(srcslicetest ${SRCSLICEHANDLER_SOURCE2} ${SRCSLICEHANDLER_INCLUDE
         TestFunctionData.cpp
         TestConstTypes.cpp
         TestArrayType.cpp
+        FunctionTableTest.cpp
+        TestDefUseChain.cpp
+        TestIssue20.cpp
+        TestJson.cpp
+        TestSortingUnitElement.cpp
+        VariableTableTest.cpp
         TestHelper.cpp TestHelper.hpp)
 add_executable(ex_srcslicetest ${SRCSLICEHANDLER_SOURCE2} ${SRCSLICEHANDLER_INCLUDE}
         ${TESTCASES} TestHelper.cpp TestHelper.hpp ../headers/functional.hpp)

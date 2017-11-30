@@ -37,8 +37,8 @@ TEST(SliceTest, TestGlobalIssue3) {
             // 変数 a @ main()のテスト
             auto a_slice = sslice.Find("a").second;
             testDef(a_slice, std::set<unsigned int>({10, 12}));
-            testUse(a_slice, std::set<unsigned int>({12}));
-            testDvars(a_slice, std::set<std::string>({"a"}));
+            testUse(a_slice, std::set<unsigned int>({2, 4, 12}));
+            testDvars(a_slice, std::set<std::string>({"a", "c"}));
             ASSERT_EQ(a_slice->aliases.empty(), true);
 
             std::set<CfuncShortData> expected_cfuncs(
