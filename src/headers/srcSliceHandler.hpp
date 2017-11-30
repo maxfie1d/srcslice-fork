@@ -265,8 +265,11 @@ private:
 
     std::shared_ptr<spdlog::logger> _logger;
 
-public:
     void ComputeInterprocedural(const std::string &);
+
+    void compute(SliceProfile &sp);
+
+public:
 
     SliceDictionary *sysDict;
     unsigned int lineNum;
@@ -528,6 +531,7 @@ public:
                     sawinit = false;
                     currentDeclInit.name.clear();
                     currentDeclSpecifier.name.clear();
+                    declIndex = 0;
                     --triggerField[decl_stmt];
                 }},
 
@@ -1131,12 +1135,11 @@ public:
         }
 #pragma GCC diagnostic pop
     }
+
+    /**
+     * 手続き間の関係を計算します
+     * @param srcSliceHandler
+     * @param var_table
+     */
+    void computeAllInterproceduralRelation();
 };
-
-
-/**
- * 手続き間の関係を計算します
- * @param srcSliceHandler
- * @param var_table
- */
-void computeInterproceduralRelation(srcSliceHandler &srcSliceHandler, const VariableTable &var_table);

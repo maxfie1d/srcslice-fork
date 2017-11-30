@@ -50,7 +50,7 @@ void VariableTable::dump_to_stdout() const {
     }
 }
 
-void VariableTable::forEach(std::function<void(SliceProfile*)> f) {
+void VariableTable::forEach(std::function<void(SliceProfile *)> f) {
     // ソートする
     std::map<std::string, FunctionVarMap> sorted_ffvMap
             (this->_file_function_var_map.begin(),
@@ -99,7 +99,7 @@ SliceProfile *VariableTable::findGlobalVariableSliceProfileByName(const std::str
     }
 }
 
-const VarMap *VariableTable::getRawGlobalVariableTable() const {
+VarMap *VariableTable::getRawGlobalVariableTable() {
     return &this->_global_var_map;
 }
 
