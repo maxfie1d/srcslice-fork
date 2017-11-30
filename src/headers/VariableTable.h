@@ -25,7 +25,7 @@ private:
 public:
     VariableTable() = default;
 
-    void forEach(std::function<void(SliceProfile*)> f);
+    void forEach(std::function<void(SliceProfile *)> f);
 
     unsigned long getFileCount() const {
         return this->_file_function_var_map.size();
@@ -56,7 +56,7 @@ public:
      */
     void addGlobalVariable(std::pair<std::string, SliceProfile> pair);
 
-    const VarMap* getRawGlobalVariableTable() const;
+    VarMap *getRawGlobalVariableTable();
 
     /**
      * 変数テーブルの内容を標準出力にダンプします

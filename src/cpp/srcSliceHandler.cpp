@@ -412,45 +412,6 @@ void srcSliceHandler::ProcessDeclCtor() {
 }
 
 /**
- * ConputeInterprocedural
- * 関数呼び出しなどでuse{}に伝播などを計算する
- */
-/**
- * ComputeInterprocedural
- * @param file_path File name
- * No return value
- */
-void srcSliceHandler::ComputeInterprocedural(const std::string &file_path) {
-    // ファイルは変数テーブル中に存在するか
-    p_functionVarMap = sysDict->variableTable.findFunctionVarMap(file_path);
-    if (!p_functionVarMap) {
-        std::cerr << "変数テーブル中にそんなファイルないで: " << file_path << std::endl;
-        return;
-    } else {
-        // それぞれの関数の変数マップについて
-        for (auto &varmap_pair:*p_functionVarMap) {
-            // それぞれのSliceProfileについて
-            for (auto &s_profile_pair : varmap_pair.second) {
-                auto &sp = s_profile_pair.second;
-                if (!sp.visited) {
-                    for (auto &cfunc : sp.cfunctions) {
-                        // cfuncのdef,use,cfunctions,dvarsと結合する
-                        auto argumentSp = createArgumentSp(cfunc.calledFunctionName,
-                                                           cfunc.argIndenx);
-                        combineElements(&sp.use, &argumentSp.def);
-                        combineElements(&sp.use, &argumentSp.use);
-                        combineElements(&sp.cfunctions, &argumentSp.cfunctions);
-                        combineElements(&sp.dvars, &argumentSp.dvars);
-                    }
-                    sp.visited = true;
-                }
-            }
-        }
-    }
-}
-
-
-/**
  * ファイル名、パラメータインデックス、VarMapのイテレータを引数に
  * その変数のslice-profileを返します
  */
@@ -596,9 +557,58 @@ void srcSliceHandler::insertCFunc(SliceProfile *sp,
     }
 }
 
-void computeInterproceduralRelation(srcSliceHandler &srcSliceHandler, const VariableTable &var_table) {
-    for (auto pair : *var_table.getFileFunctionVarMap()) {
+void srcSliceHandler::compute(SliceProfile &sp) {
+    if (!sp.visited) {
+        for (auto &cfunc : sp.cfunctions) {
+            // cfuncのdef,use,cfunctions,dvarsと結合する
+            auto argumentSp = this->createArgumentSp(cfunc.calledFunctionName,
+                                                     cfunc.argIndenx);
+            combineElements(&sp.use, &argumentSp.def);
+            combineElements(&sp.use, &argumentSp.use);
+            combineElements(&sp.cfunctions, &argumentSp.cfunctions);
+            combineElements(&sp.dvars, &argumentSp.dvars);
+        }
+        sp.visited = true;
+    }
+}
+
+/**
+ * ConputeInterprocedural
+ * 関数呼び出しなどでuse{}に伝播などを計算する
+ */
+/**
+ * ComputeInterprocedural
+ * @param file_path File name
+ * No return value
+ */
+void srcSliceHandler::ComputeInterprocedural(const std::string &file_path) {
+    // ファイルは変数テーブル中に存在するか
+    auto func_varmap = sysDict->variableTable.findFunctionVarMap(file_path);
+    if (!func_varmap) {
+        std::cerr << "変数テーブル中にそんなファイルないで: " << file_path << std::endl;
+        return;
+    } else {
+        // それぞれの関数の変数マップについて
+        for (auto &varmap_pair:*func_varmap) {
+            // それぞれのSliceProfileについて
+            for (auto &s_profile_pair : varmap_pair.second) {
+                auto &sp = s_profile_pair.second;
+                this->compute(sp);
+            }
+        }
+    }
+}
+
+void srcSliceHandler::computeAllInterproceduralRelation() {
+    for (auto pair : *this->sysDict->variableTable.getFileFunctionVarMap()) {
         std::string file_name = pair.first;
-        srcSliceHandler.ComputeInterprocedural(file_name);
+        this->ComputeInterprocedural(file_name);
+    }
+
+    // ここでグローバル変数も処理する
+    for (auto &s_profile_pair :*this->sysDict->variableTable.getRawGlobalVariableTable()) {
+
+        auto &sp = s_profile_pair.second;
+        this->compute(sp);
     }
 }
