@@ -1059,35 +1059,60 @@ public:
         if (triggerField[op]) {
             currentOperator.append(ch, len);
         }
-        //This only handles expr statments of the form a = b. Anything without = in it is skipped here -- Not entirely true anymore
-        if (triggerFieldOr(name, op) && triggerField[expr] &&
-            triggerFieldOr(expr_stmt, condition, return_stmt) &&
-            !triggerFieldOr(index, preproc)) {
+        // a = b; のような形式の代入文のみをここでは扱います
+        // "="を含まないものはここでは処理しません
+        // This only handles expr statments of the form a = b.
+        // Anything without = in it is skipped here -- Not entirely true anymore
+        if (triggerFieldOr(name, op)
+            && triggerField[expr]
+            && triggerFieldOr(expr_stmt, condition, return_stmt)
+            && !triggerFieldOr(index, preproc)) {
             std::string str = std::string(ch, len);
-            //std::cerr<<"str: "<<str<<currentExprStmt.second<<std::endl;
-            //kind of a hack here; currentOperator basically tells me if the operator was actually assignment
-            //or some kinda compare operator like <=. Important to know which one I just saw since I need to assign to use or def.
-            // std::string::back() -> 末尾の文字を返す関数
-            if (str.back() == '=' && currentOperator.size() < 2) {
+
+            std::cout << ">> " << str << std::endl;
+
+            // ここでちょっとしたハックをしています。currentOperatorは
+            // 基本的にそのオペレーターが代入文のものであるか、
+            // または比較の<=であるかを区別するためのものです。
+            // kind of a hack here; currentOperator basically tells
+            // me if the operator was actually assignment or some
+            // kinda compare operator like <=. Important to know
+            // which one I just saw since I need to assign to use or def.
+
+            auto lastChar = str.back();
+            if (lastChar == '=' && currentOperator.size() < 2) {
+                // '='は代入を行うものであり、
+                // 比較の<=などではないというフラグを立てる
                 exprassign = true;
-                exprop = false; //assumed above in "operator" that I wouldn't see =. This takes care of when I assume wrong.
-                str.clear(); //don't read the =, just want to know it was there.
+                exprop = false;
+                // assumed above in "operator" that I wouldn't see =.
+                // This takes care of when I assume wrong.
+                // don't read the =, just want to know it was there.
+                str.clear();
             }
             if (triggerField[op]) {
                 if (str == "*") {
-                    dereferenced = true; //most recent word was dereferenced
-                    exprop = false; //slight hack. Need to be able to tell when * is used as dereferenced because I don't wanna skip
+                    // 最後に見た後は被参照されている
+                    // most recent word was dereferenced
+                    dereferenced = true;
+                    //slight hack. Need to be able to tell when * is used as dereferenced because I don't wanna skip
+                    exprop = false;
                 }
                 str.clear();
             }
+            // 代入が起きている時
             if (exprassign) {
-                if (!triggerField[call]) {//if it's not in a call then we can do like normal
+                // どっちに分岐しても同じことをする
+                // if it's not in a call then we can do like normal
+                if (!triggerField[call]) {
                     currentExprStmt.name.append(str);
                 } else {
                     currentExprStmt.name.append(str);
                 }
             } else {
-                if (!exprop) { //haven't seen any operator (including =)
+                if (!exprop) {
+                    // '='を含むoperatorに出会っていないならば
+                    //haven't seen any operator (including =)
                     lhsExprStmt.name = std::string(str);
                     if (triggerField[return_stmt]) {
                         auto strLine = NameAndLineNumber(str, currentExprStmt.lineNumber);

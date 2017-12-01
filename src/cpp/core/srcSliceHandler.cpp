@@ -314,7 +314,8 @@ void srcSliceHandler::ProcessExprStmtPreAssign() {
 
             this->insertDef(p_sliceProfile, lhsExprStmt.lineNumber);
         } else {
-            // 左辺のdef{}に追加する
+            std::cout << "lhs name: " << lhsExprStmt.name << std::endl;
+             // 左辺のdef{}に追加する
             this->_logger->debug("def#5: {}", lhsExprStmt.lineNumber);
 
             this->insertDef(lhs, lhsExprStmt.lineNumber);
