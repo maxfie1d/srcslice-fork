@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <iostream>
 
 /**
  * 行番号と関数IDによって
@@ -22,8 +23,13 @@ struct ProgramPoint {
         if (this->lineNumber == other.lineNumber) {
             return this->functionId < other.functionId;
         } else {
+//            std::cout << this->lineNumber << ":" << other.lineNumber << std::endl;
             return this->lineNumber < other.lineNumber;
         }
+    }
+
+    bool operator==(const ProgramPoint &other) const {
+        return this->lineNumber == other.lineNumber && this->functionId == other.functionId;
     }
 
     std::string to_string() {

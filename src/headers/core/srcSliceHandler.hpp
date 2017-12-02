@@ -112,8 +112,8 @@ private:
     bool memberAccess;
 
     //for expr_stmts    
-    bool exprassign;
-    bool exprop;
+    bool expr_assign_flag;
+    bool expr_op_flag;
     bool foundexprlhs;
 
     //For for loop init
@@ -249,6 +249,7 @@ private:
     std::string getVariableId(std::string variableName);
 
     void insertDef(SliceProfile *sp, unsigned int lineNumber);
+    void insertDef(SliceProfile *sp, unsigned int lineNumber, std::string member_name);
 
     void insertUse(SliceProfile *sp, unsigned int lineNumber);
 
@@ -302,8 +303,8 @@ public:
         sawgeneric = false;
         memberAccess = false;
 
-        exprassign = false;
-        exprop = false;
+        expr_assign_flag = false;
+        expr_op_flag = false;
         foundexprlhs = false;
 
         inFor = false;
@@ -442,7 +443,7 @@ public:
                 {"operator",         [this]() {
                     ++triggerField[op];
                     if (triggerField[expr_stmt]) {
-                        exprop = true; //assume we're not seeing =
+                        expr_op_flag = true; //assume we're not seeing =
                     }
                     //Don't want the operators. But do make a caveat for ->
                     if (triggerField[call]) {
@@ -544,8 +545,8 @@ public:
 
                     //for expr_stmts
                     foundexprlhs = false;
-                    exprop = false;
-                    exprassign = false;
+                    expr_op_flag = false;
+                    expr_assign_flag = false;
 
                     // collect data about things that were not in assignment expr_stmts
                     // #16のためコメントアウト
@@ -580,8 +581,8 @@ public:
                     --triggerField[condition];
                     //for expr_stmts
                     foundexprlhs = false;
-                    exprop = false;
-                    exprassign = false;
+                    expr_op_flag = false;
+                    expr_assign_flag = false;
 
                     //collect data about things that were not in assignment expr_stmts
                     ProcessExprStmtNoAssign();
@@ -703,13 +704,13 @@ public:
 
                         useExprStmt.name.clear();
 
-                        if (exprassign) {
+                        if (expr_assign_flag) {
                             ProcessExprStmtPreAssign();
                             if (!lhsExprStmt.name.empty()) {
                                 lhsName = lhsExprStmt.name;
                             }
                             lhsExprStmt.name.clear();
-                            exprop = false;
+                            expr_op_flag = false;
                             //foundexprlhs = true;
                         }
                     }
@@ -818,7 +819,7 @@ public:
                     }
                     if (triggerField[expr]
                         && triggerFieldOr(expr_stmt, condition, return_stmt)) {
-                        if (exprassign) {
+                        if (expr_assign_flag) {
                             ProcessExprStmtPostAssign();
                             useExprStack.clear(); //found an assignment so throw everything off of the other stack TODO: Potential better way?
                             currentExprStmt.name.clear();
@@ -841,7 +842,7 @@ public:
                         }
                     }
                     memberAccess = false;
-                    exprop = false; //reset expr after each name so that the next name will be read unless there's another op in front of it
+                    expr_op_flag = false; //reset expr after each name so that the next name will be read unless there's another op in front of it
                     --triggerField[name];
                 }},
                 {"macro",            [this]() {
@@ -1069,7 +1070,7 @@ public:
             && !triggerFieldOr(index, preproc)) {
             std::string str = std::string(ch, len);
 
-            std::cout << ">> " << str << std::endl;
+//            std::cout << ">> " << str << std::endl;
 
             // ここでちょっとしたハックをしています。currentOperatorは
             // 基本的にそのオペレーターが代入文のものであるか、
@@ -1083,8 +1084,8 @@ public:
             if (lastChar == '=' && currentOperator.size() < 2) {
                 // '='は代入を行うものであり、
                 // 比較の<=などではないというフラグを立てる
-                exprassign = true;
-                exprop = false;
+                expr_assign_flag = true;
+                expr_op_flag = false;
                 // assumed above in "operator" that I wouldn't see =.
                 // This takes care of when I assume wrong.
                 // don't read the =, just want to know it was there.
@@ -1096,12 +1097,12 @@ public:
                     // most recent word was dereferenced
                     dereferenced = true;
                     //slight hack. Need to be able to tell when * is used as dereferenced because I don't wanna skip
-                    exprop = false;
+                    expr_op_flag = false;
                 }
-                str.clear();
+//                str.clear();
             }
             // 代入が起きている時
-            if (exprassign) {
+            if (expr_assign_flag) {
                 // どっちに分岐しても同じことをする
                 // if it's not in a call then we can do like normal
                 if (!triggerField[call]) {
@@ -1109,16 +1110,20 @@ public:
                 } else {
                     currentExprStmt.name.append(str);
                 }
+//                lhsExprStmt.name.append(str);
             } else {
-                if (!exprop) {
+                if (!expr_op_flag) {
                     // '='を含むoperatorに出会っていないならば
                     //haven't seen any operator (including =)
-                    lhsExprStmt.name = std::string(str);
+//                    lhsExprStmt.name = std::string(str);
                     if (triggerField[return_stmt]) {
                         auto strLine = NameAndLineNumber(str, currentExprStmt.lineNumber);
                         useExprStack.push_back(strLine); //catch expr_stmts like return temp + temp;
                     }
                 }
+                    lhsExprStmt.name.append(str);
+                this->_logger->debug(">> " + str);
+//                    std::cout << ">> " << str << std::endl;
                 useExprStmt.name.append(str); //catch expr_stmts like cout<<identifier;
             }
         }

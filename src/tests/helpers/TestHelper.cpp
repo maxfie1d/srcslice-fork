@@ -54,18 +54,18 @@ std::string pathToSrcml(const char *fileName, std::string path) {
 }
 
 void testDef(SliceProfile *sp, std::set<unsigned int> expectedDefLines) {
-    auto defLines = set_transform<ProgramPoint, unsigned int>(sp->def, [](ProgramPoint pp) {
-        return pp.lineNumber;
+    auto defLines = set_transform<DefUseData, unsigned int>(sp->def, [](DefUseData dd) {
+        return dd.programPoint.lineNumber;
     });
 
     ASSERT_EQ(defLines, expectedDefLines);
 }
 
 void testUse(SliceProfile *sp, std::set<unsigned int> expectedUseLines) {
-    auto useLines = set_transform<ProgramPoint, unsigned int>
+    auto useLines = set_transform<DefUseData, unsigned int>
             (sp->use,
-             [](ProgramPoint pp) {
-                 return pp.lineNumber;
+             [](DefUseData dd) {
+                 return dd.programPoint.lineNumber;
              });
 
     ASSERT_EQ(useLines, expectedUseLines);

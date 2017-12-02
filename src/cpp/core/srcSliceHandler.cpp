@@ -296,8 +296,32 @@ void srcSliceHandler::GetDeclStmtData() {
  * for any aliases, dvars, or function calls.
  */
 void srcSliceHandler::ProcessExprStmtPreAssign() {
+    std::string lhs_name = lhsExprStmt.name;
+    unsigned int lhs_line = lhsExprStmt.lineNumber;
+    std::string obj_name;
+    std::string member_name;
+//    std::cout << "lhs name: " << lhs_name << std::endl;
+
+    auto pos = lhs_name.find('.');
+//    std::cout << "pos: " << pos << std::endl;
+    if (pos == std::string::npos) {
+
+    } else {
+        // 構造体の場合
+        obj_name = lhs_name.substr(0, pos);
+        auto member_name_length = (lhs_name.length() - 1) - pos;
+        member_name = lhs_name.substr(pos + 1, member_name_length);
+
+//        std::cout << "obj_name: " << obj_name << std::endl;
+//        std::cout << "member_name: " << member_name << std::endl;
+    }
     if (!lhsExprStmt.name.empty()) {
-        auto lhs = Find(lhsExprStmt.name);
+        // 構造体メンバにアクセスしているかもしれないので
+        // チェック
+
+        std::string search_word = member_name.empty() ? lhs_name : obj_name;
+
+        auto lhs = Find(search_word);
         if (!lhs) {
             // 新しく左辺のslice-profileを作成しストアする
             currentSliceProfile.index = 1;
@@ -310,15 +334,17 @@ void srcSliceHandler::ProcessExprStmtPreAssign() {
             this->_logger->debug("ここかな? #7: {}", currentSliceProfile.variableName);
             auto pair = std::make_pair(lhsExprStmt.name, std::move(currentSliceProfile));
             p_sliceProfile = &p_varMap->insert(pair).first->second;
-            this->_logger->debug("def#4: {}", lhsExprStmt.lineNumber);
-
-            this->insertDef(p_sliceProfile, lhsExprStmt.lineNumber);
+            this->_logger->debug("def#4: {}", lhs_line);
+            this->insertDef(p_sliceProfile, lhs_line);
         } else {
-            std::cout << "lhs name: " << lhsExprStmt.name << std::endl;
-             // 左辺のdef{}に追加する
-            this->_logger->debug("def#5: {}", lhsExprStmt.lineNumber);
-
-            this->insertDef(lhs, lhsExprStmt.lineNumber);
+            this->_logger->debug("def#5: {}", lhs_line);
+            if (member_name.empty()) {
+                // 左辺のdef{}に追加する
+                this->insertDef(lhs, lhs_line);
+            } else {
+                this->_logger->debug("def#5.2: {}, {}", lhs_line, member_name);
+                this->insertDef(lhs, lhs_line, member_name);
+            }
         }
     }
 }
@@ -519,7 +545,12 @@ std::string srcSliceHandler::getVariableId(std::string variableName) {
  * @param lineNumber
  */
 void srcSliceHandler::insertDef(SliceProfile *sp, unsigned int lineNumber) {
-    sp->def.insert(ProgramPoint(lineNumber, this->getFunctionId(lineNumber)));
+    ProgramPoint pp(lineNumber, this->getFunctionId(lineNumber));
+    sp->def.insert(DefUseData(pp));
+}
+
+void srcSliceHandler::insertDef(SliceProfile *sp, unsigned int lineNumber, std::string member_name) {
+    sp->def.insert(DefUseData(ProgramPoint(lineNumber, this->getFunctionId(lineNumber)), member_name));
 }
 
 /**
@@ -615,3 +646,4 @@ void srcSliceHandler::computeAllInterproceduralRelation() {
         this->compute(sp);
     }
 }
+
