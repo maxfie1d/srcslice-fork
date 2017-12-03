@@ -61,6 +61,14 @@ void testDef(SliceProfile *sp, std::set<unsigned int> expectedDefLines) {
     ASSERT_EQ(defLines, expectedDefLines);
 }
 
+void testDefDetail(SliceProfile *sp, std::set<TestDefUseData> expected) {
+    auto a = set_transform<DefUseData, TestDefUseData>(sp->def, [](DefUseData dd) {
+        return TestDefUseData(dd.programPoint.lineNumber, dd.member_name);
+    });
+
+    ASSERT_EQ(a, expected);
+}
+
 void testUse(SliceProfile *sp, std::set<unsigned int> expectedUseLines) {
     auto useLines = set_transform<DefUseData, unsigned int>
             (sp->use,
@@ -69,6 +77,13 @@ void testUse(SliceProfile *sp, std::set<unsigned int> expectedUseLines) {
              });
 
     ASSERT_EQ(useLines, expectedUseLines);
+}
+
+void testUseDetail(SliceProfile *sp, std::set<TestDefUseData> expected) {
+    auto a = set_transform<DefUseData, TestDefUseData>(sp->use, [](DefUseData dd) {
+        return TestDefUseData(dd.programPoint.lineNumber, dd.member_name);
+    });
+    ASSERT_EQ(a, expected);
 }
 
 void assertDefEmpty(SliceProfile *sp) {
@@ -103,3 +118,4 @@ void testCfuncs(SliceProfile *sp, std::set<CfuncShortData> expectedCfuncs) {
 
     ASSERT_EQ(actualCfuncs, expectedCfuncs);
 }
+

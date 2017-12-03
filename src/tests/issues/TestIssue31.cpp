@@ -13,9 +13,19 @@ TEST(SliceTest, TestIssue31) {
 
             testDef(point_slice, std::set<unsigned int>({11, 13, 14}));
 
-            for (auto a : point_slice->def) {
-                std::cout << a.to_string() << std::endl;
-            }
+            testDefDetail(point_slice, std::set<TestDefUseData>(
+                    {
+                            TestDefUseData(11, ""),
+                            TestDefUseData(13, "x"),
+                            TestDefUseData(14, "y")
+                    }));
+
+            testUseDetail(point_slice, std::set<TestDefUseData>(
+                    {
+                            TestDefUseData(16, "x"),
+                            TestDefUseData(16, "y")
+                    }
+            ));
         }
     } catch (SAXError e) {
         FAIL();
