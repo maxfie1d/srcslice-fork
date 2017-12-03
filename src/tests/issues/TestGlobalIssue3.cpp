@@ -16,8 +16,8 @@ TEST(SliceTest, TestGlobalIssue3) {
             auto g_slice = sslice.Find("g").second;
             // グローバルスコープかチェック
             ASSERT_EQ(g_slice->function, "__GLOBAL__");
-            testDef(g_slice, std::set<unsigned int>({1, 5}));
-            testUse(g_slice, std::set<unsigned int>({4, 13}));
+            testDef(g_slice, std::set<unsigned int>({1, 5, 12}));
+            testUse(g_slice, std::set<unsigned int>({4, 12, 13}));
             testDvars(g_slice, std::set<std::string>({"b", "c"}));
             ASSERT_EQ(g_slice->aliases.empty(), true);
             assertCfuncsEmpty(g_slice);
