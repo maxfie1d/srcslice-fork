@@ -57,7 +57,7 @@ varmap_pair_to_string(std::string file_name,
     // idを出力
     container.push_back(sp->computeVariableId());
     // def{}のうち最小の値を変数のある行番号としている
-    unsigned int lineNumber = sp->def.begin()->lineNumber;
+    unsigned int lineNumber = sp->def.begin()->programPoint.lineNumber;
     // fileを出力
     container.push_back(file_name + ":" + std::to_string(lineNumber));
     // funcを出力
@@ -65,16 +65,16 @@ varmap_pair_to_string(std::string file_name,
     // varを出力
     container.push_back(sp->variableType + " " + varname);
     // defを出力
-    auto def_line_numbers = set_to_vector<ProgramPoint>(sp->def);
-    auto defs_as_string = vec_transform<ProgramPoint, std::string>(def_line_numbers, [](ProgramPoint pp) {
-        return pp.to_string();
+    auto def_line_numbers = set_to_vector<DefUseData>(sp->def);
+    auto defs_as_string = vec_transform<DefUseData, std::string>(def_line_numbers, [](DefUseData dd) {
+        return dd.to_string();
     });
     container.push_back(join(',', defs_as_string));
 
     // useを出力
-    auto use_line_numbers = set_to_vector<ProgramPoint>(sp->use);
-    auto uses_as_string = vec_transform<ProgramPoint, std::string>(use_line_numbers, [](ProgramPoint pp) {
-        return pp.to_string();
+    auto use_line_numbers = set_to_vector<DefUseData>(sp->use);
+    auto uses_as_string = vec_transform<DefUseData, std::string>(use_line_numbers, [](DefUseData dd) {
+        return dd.to_string();
     });
     container.push_back(join(',', uses_as_string));
 

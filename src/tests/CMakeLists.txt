@@ -16,7 +16,12 @@ file(GLOB TESTCASES basic/*.cpp
         issues/*.cpp
         unittest/*.cpp
         )
-file(GLOB EXTESTCASES TestIssue29.cpp)
+file(GLOB EXTESTCASES
+                issues/TestIssue31.cpp
+#        basic/TestIf.cpp
+#        basic/TestWhile.cpp
+#                issues/TestGlobalIssue3.cpp
+        )
 
 link_directories(/usr/local/lib/)
 

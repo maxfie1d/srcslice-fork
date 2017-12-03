@@ -38,6 +38,51 @@ public:
     }
 };
 
+struct DefUseData {
+    ProgramPoint programPoint;
+
+    /**
+     * 構造体ならばメンバの名前を入れる
+     */
+    std::string member_name;
+
+    DefUseData(ProgramPoint programPoint) {
+        this->programPoint = programPoint;
+    }
+
+    DefUseData(ProgramPoint programPoint, std::string member_name) {
+        this->programPoint = programPoint;
+        this->member_name = member_name;
+    }
+
+    bool operator<(const DefUseData &other) const {
+        return true;
+        if (this->programPoint == other.programPoint) {
+            return this->member_name < other.member_name;
+        } else {
+            return this->programPoint < other.programPoint;
+        }
+//        return true;
+        if (this->member_name == other.member_name) {
+            this->programPoint < other.programPoint;
+        } else {
+            return this->member_name < other.member_name;
+        }
+    }
+
+    bool operator==(const DefUseData &other) const {
+        this->programPoint == other.programPoint && this->member_name == other.member_name;
+    }
+
+    std::string to_string() {
+        if (this->member_name.empty()) {
+            return this->programPoint.to_string();
+        } else {
+            return this->programPoint.to_string() + "(" + this->member_name + ")";
+        }
+    }
+};
+
 
 // 本来DvarにはVariableDataのポインタかSliceProfileのポインタを
 // 持たせたいが、SrcSliceクラスに辞書を検索するメソッドがあったりで
@@ -233,12 +278,12 @@ public:
     /**
      * defされる行番号の集合
      */
-    std::set<ProgramPoint> def;
+    std::set<DefUseData> def;
 
     /**
      * useされる行番号の集合
      */
-    std::set<ProgramPoint> use;
+    std::set<DefUseData> use;
 
     /**
      * cfuncs{}

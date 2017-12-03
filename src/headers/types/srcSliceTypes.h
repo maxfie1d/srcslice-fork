@@ -64,4 +64,8 @@ struct NameAndLineNumber {
         this->name = name;
         this->lineNumber = lineNumber;
     }
+
+    std::string to_string() const {
+        return this->name + ":" + std::to_string(lineNumber);
+    }
 };

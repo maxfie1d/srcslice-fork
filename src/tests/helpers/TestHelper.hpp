@@ -44,7 +44,38 @@ std::string pathToSrcml(const char *fileName, std::string path);
 
 void testDef(SliceProfile *sp, std::set<unsigned int> expectedDefLines);
 
+struct TestDefUseData {
+    unsigned int line_number;
+    std::string member_name;
+
+    TestDefUseData(unsigned int line_number) {
+        this->line_number = line_number;
+    }
+
+    TestDefUseData(unsigned int line_number, std::string member_name) {
+        this->line_number = line_number;
+        this->member_name = member_name;
+    }
+
+    bool operator<(const TestDefUseData &other) const {
+        if (this->line_number == other.line_number) {
+            return this->member_name < other.member_name;
+        } else {
+            return this->line_number < other.line_number;
+        }
+    }
+
+    bool operator==(const TestDefUseData &other) const {
+        return this->line_number == other.line_number
+               && this->member_name == other.member_name;
+    }
+};
+
+void testDefDetail(SliceProfile *sp, std::set<TestDefUseData> expected);
+
 void testUse(SliceProfile *sp, std::set<unsigned int> expectedUseLines);
+
+void testUseDetail(SliceProfile *sp, std::set<TestDefUseData> expected);
 
 void testDvars(SliceProfile *sp, std::set<std::string> expectedDvars);
 
