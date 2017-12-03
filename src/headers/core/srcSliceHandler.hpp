@@ -249,9 +249,12 @@ private:
     std::string getVariableId(std::string variableName);
 
     void insertDef(SliceProfile *sp, unsigned int lineNumber);
+
     void insertDef(SliceProfile *sp, unsigned int lineNumber, std::string member_name);
 
     void insertUse(SliceProfile *sp, unsigned int lineNumber);
+
+    void insertUse(SliceProfile *sp, unsigned int lineNumber, std::string member_name);
 
     void insertDvar(SliceProfile *sp, std::string variableName);
 
@@ -1070,8 +1073,6 @@ public:
             && !triggerFieldOr(index, preproc)) {
             std::string str = std::string(ch, len);
 
-//            std::cout << ">> " << str << std::endl;
-
             // ここでちょっとしたハックをしています。currentOperatorは
             // 基本的にそのオペレーターが代入文のものであるか、
             // または比較の<=であるかを区別するためのものです。
@@ -1099,7 +1100,9 @@ public:
                     //slight hack. Need to be able to tell when * is used as dereferenced because I don't wanna skip
                     expr_op_flag = false;
                 }
-//                str.clear();
+                if (str != ".") {
+                    str.clear();
+                }
             }
             // 代入が起きている時
             if (expr_assign_flag) {
@@ -1110,21 +1113,22 @@ public:
                 } else {
                     currentExprStmt.name.append(str);
                 }
-//                lhsExprStmt.name.append(str);
             } else {
                 if (!expr_op_flag) {
                     // '='を含むoperatorに出会っていないならば
                     //haven't seen any operator (including =)
-//                    lhsExprStmt.name = std::string(str);
+                    lhsExprStmt.name = std::string(str);
+                    this->_logger->debug(">>>> {}", str);
                     if (triggerField[return_stmt]) {
                         auto strLine = NameAndLineNumber(str, currentExprStmt.lineNumber);
                         useExprStack.push_back(strLine); //catch expr_stmts like return temp + temp;
                     }
+                } else {
+//                    lhsExprStmt.name.append(str);
                 }
-                    lhsExprStmt.name.append(str);
                 this->_logger->debug(">> " + str);
-//                    std::cout << ">> " << str << std::endl;
-                useExprStmt.name.append(str); //catch expr_stmts like cout<<identifier;
+                //catch expr_stmts like cout<<identifier;
+                useExprStmt.name.append(str);
             }
         }
         if (triggerField[call]) {

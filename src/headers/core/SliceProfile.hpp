@@ -57,7 +57,17 @@ struct DefUseData {
 
     bool operator<(const DefUseData &other) const {
         return true;
-//        this->programPoint < other.programPoint;
+        if (this->programPoint == other.programPoint) {
+            return this->member_name < other.member_name;
+        } else {
+            return this->programPoint < other.programPoint;
+        }
+//        return true;
+        if (this->member_name == other.member_name) {
+            this->programPoint < other.programPoint;
+        } else {
+            return this->member_name < other.member_name;
+        }
     }
 
     bool operator==(const DefUseData &other) const {

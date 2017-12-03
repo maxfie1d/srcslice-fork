@@ -370,7 +370,6 @@ void srcSliceHandler::ProcessExprStmtPostAssign() {
                 //it's not an alias so it's a dvar
                 this->_logger->debug("dvars#3: {}", lhs->variableName);
                 this->insertDvar(sprIt, lhs->variableName);
-//                sprIt->dvars.insert(lhs->variableName);
             } else {
                 // it is an alias, so save that this is the most recent alias and insert it into rhs alias list
                 // エイリアスなので、最も最近のエイリアスを右辺のエイリアスリストに追加して保存する
@@ -378,6 +377,8 @@ void srcSliceHandler::ProcessExprStmtPostAssign() {
             }
             this->_logger->debug("use#4: {}", currentExprStmt.lineNumber);
             this->insertUse(sprIt, currentExprStmt.lineNumber);
+            this->_logger->debug("sprIt: {}", sprIt->variableName);
+
             // ひとつにまとめます。もし他のもののエイリアスであるなら、もう一方を更新します。
             //Union things together. If this was an alias of anoter thing, update the other thing
             if (sprIt->potentialAlias && !dereferenced) {
@@ -433,7 +434,6 @@ void srcSliceHandler::ProcessDeclCtor() {
 
             // 検索する
             this->insertDvar(rhs, lhs->variableName);
-//            rhs->dvars.insert(lhs->variableName);
             this->_logger->debug("use#8: {}", currentDecl.lineNumber);
             this->insertUse(rhs, currentDecl.lineNumber);
         }
@@ -559,7 +559,13 @@ void srcSliceHandler::insertDef(SliceProfile *sp, unsigned int lineNumber, std::
  * @param lineNumber
  */
 void srcSliceHandler::insertUse(SliceProfile *sp, unsigned int lineNumber) {
-    sp->use.insert(ProgramPoint(lineNumber, this->getFunctionId(lineNumber)));
+    ProgramPoint pp(lineNumber, this->getFunctionId(lineNumber));
+    sp->use.insert(DefUseData(pp));
+}
+
+void srcSliceHandler::insertUse(SliceProfile *sp, unsigned int lineNumber, std::string member_name) {
+    ProgramPoint pp(lineNumber, this->getFunctionId(lineNumber));
+    sp->use.insert(DefUseData(pp, member_name));
 }
 
 void srcSliceHandler::insertDvar(SliceProfile *sp, std::string variableName) {
@@ -646,4 +652,3 @@ void srcSliceHandler::computeAllInterproceduralRelation() {
         this->compute(sp);
     }
 }
-
