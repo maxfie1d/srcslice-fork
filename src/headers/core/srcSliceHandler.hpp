@@ -378,6 +378,41 @@ public:
                         if (isACallName) {
                             isACallName = false;
                             nameOfCurrentCalledFunctionStack.push(calledFunctionName);
+
+                            // すべてのグローバル変数について
+                            for (auto &gv: *this->sysDict->variableTable.getRawGlobalVariableTable()) {
+                                auto &gv_sp = gv.second;
+                                // その関数内でdef/useまたは両方をするものは
+                                // 関数呼び出し位置を追加する (See #32)
+                                auto func_data = this->sysDict->functionTable.findByName(calledFunctionName);
+                                if (func_data) {
+                                    std::string func_id = func_data->computeId();
+                                    ProgramPoint pp(lineNum, this->getFunctionId(lineNum));
+                                    {
+                                        bool is_defined = false;
+                                        for (auto &def : gv_sp.def) {
+                                            if (def.programPoint.functionId == func_id) {
+                                                is_defined = true;
+                                            }
+                                        }
+                                        if (is_defined) {
+                                            gv_sp.def.insert(DefUseData(pp));
+                                        }
+
+                                    }
+                                    {
+                                        bool is_used = false;
+                                        for (auto &use: gv_sp.use) {
+                                            if (use.programPoint.functionId == func_id) {
+                                                is_used = true;
+                                            }
+                                        }
+                                        if (is_used) {
+                                            gv_sp.use.insert(DefUseData(pp));
+                                        }
+                                    }
+                                }
+                            }
                             calledFunctionName.clear();
                         }
                     }
