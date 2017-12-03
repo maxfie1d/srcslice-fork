@@ -400,7 +400,7 @@ void srcSliceHandler::ProcessExprStmtNoAssign() {
             // 他の2つの式文の関数と同様同じ語に対して実行しています。
             //it's running on the same word as the other two exprstmt functions
             // use{} に追加
-            this->_logger->debug("use#6: {}", pair.lineNumber);
+            this->_logger->debug("use#6: {}, {}", pair.lineNumber, pair.name);
             this->insertUse(useProfile, pair.lineNumber, pair.name);
         }
     }

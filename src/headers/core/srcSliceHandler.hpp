@@ -828,10 +828,12 @@ public:
                             currentExprStmt.name.clear();
                         } else {
                             if (!useExprStmt.name.empty()) {
-                                if (Find(useExprStmt.name)) {
-                                    useExprStack.push_back(useExprStmt);
+                                if (triggerField[name] < 2) {
+                                    if (Find(useExprStmt.name)) {
+                                        useExprStack.push_back(useExprStmt);
+                                    }
+                                    useExprStmt.name.clear();
                                 }
-                                useExprStmt.name.clear();
                             }
                         }
                     }
@@ -1119,13 +1121,14 @@ public:
                     // '='を含むoperatorに出会っていないならば
                     //haven't seen any operator (including =)
                     lhsExprStmt.name = std::string(str);
-//                    this->_logger->debug(">>>> {}", str);
-                    if (triggerField[return_stmt]) {
-                        auto strLine = NameAndLineNumber(str, currentExprStmt.lineNumber);
-                        useExprStack.push_back(strLine); //catch expr_stmts like return temp + temp;
-                    }
                 } else {
                     lhsExprStmt.name.append(str);
+//                    if (triggerField[return_stmt]) {
+//                        auto strLine = NameAndLineNumber(lhsExprStmt.name, currentExprStmt.lineNumber);
+//                        std::cout << "PUSH BACK: " << strLine.to_string() << std::endl;
+//                        //catch expr_stmts like return temp + temp;
+//                        useExprStack.push_back(strLine);
+//                    }
                 }
 //                this->_logger->debug(">> " + str);
                 //catch expr_stmts like cout<<identifier;
