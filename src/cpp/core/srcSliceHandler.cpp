@@ -308,8 +308,8 @@ void srcSliceHandler::ProcessExprStmtPreAssign() {
     unsigned int lhs_line = lhsExprStmt.lineNumber;
 
     if (!lhsExprStmt.name.empty()) {
-        auto lhs = Find(lhs_name);
-        if (!lhs) {
+        auto lhs_sp = Find(lhs_name);
+        if (!lhs_sp) {
             // 新しく左辺のslice-profileを作成しストアする
             currentSliceProfile.index = 1;
             currentSliceProfile.file = fileName;
@@ -325,14 +325,7 @@ void srcSliceHandler::ProcessExprStmtPreAssign() {
             this->insertDef(p_sliceProfile, lhs_line, lhs_name);
         } else {
             this->_logger->debug("def#5: {}, {}", lhs_line, lhs_name);
-            this->insertDef(lhs, lhs_line, lhs_name);
-//            if (member_name.empty()) {
-//                // 左辺のdef{}に追加する
-//                this->insertDef(lhs, lhs_line);
-//            } else {
-//                this->_logger->debug("def#5.2: {}, {}", lhs_line, member_name);
-//                this->insertDef(lhs, lhs_line, member_name);
-//            }
+            this->insertDef(lhs_sp, lhs_line, lhs_name);
         }
     }
 }
