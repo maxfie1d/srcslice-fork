@@ -389,26 +389,25 @@ public:
                                     std::string func_id = func_data->computeId();
                                     ProgramPoint pp(lineNum, this->getFunctionId(lineNum));
                                     {
-                                        bool is_defined = false;
                                         for (auto &def : gv_sp.def) {
                                             if (def.programPoint.functionId == func_id) {
-                                                is_defined = true;
+                                                if (def.member_name.empty()) {
+                                                    gv_sp.def.insert(DefUseData(pp));
+                                                } else {
+                                                    gv_sp.def.insert(DefUseData(pp, def.member_name));
+                                                }
                                             }
                                         }
-                                        if (is_defined) {
-                                            gv_sp.def.insert(DefUseData(pp));
-                                        }
-
                                     }
                                     {
-                                        bool is_used = false;
                                         for (auto &use: gv_sp.use) {
                                             if (use.programPoint.functionId == func_id) {
-                                                is_used = true;
+                                                if (use.programPoint.functionId == func_id) {
+                                                    gv_sp.use.insert(DefUseData(pp));
+                                                } else {
+                                                    gv_sp.use.insert(DefUseData(pp, use.member_name));
+                                                }
                                             }
-                                        }
-                                        if (is_used) {
-                                            gv_sp.use.insert(DefUseData(pp));
                                         }
                                     }
                                 }
