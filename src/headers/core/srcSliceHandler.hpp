@@ -248,13 +248,13 @@ private:
      */
     std::string getVariableId(std::string variableName);
 
-    void insertDef(SliceProfile *sp, unsigned int lineNumber);
+//    void insertDef(SliceProfile *sp, unsigned int lineNumber);
 
-    void insertDef(SliceProfile *sp, unsigned int lineNumber, std::string member_name);
+    void insertDef(SliceProfile *sp, unsigned int lineNumber, std::string name);
 
-    void insertUse(SliceProfile *sp, unsigned int lineNumber);
+//    void insertUse(SliceProfile *sp, unsigned int lineNumber);
 
-    void insertUse(SliceProfile *sp, unsigned int lineNumber, std::string member_name);
+    void insertUse(SliceProfile *sp, unsigned int lineNumber, std::string name);
 
     void insertDvar(SliceProfile *sp, std::string variableName);
 
@@ -1100,6 +1100,7 @@ public:
                     //slight hack. Need to be able to tell when * is used as dereferenced because I don't wanna skip
                     expr_op_flag = false;
                 }
+                // 構造体メンバにアクセスする時はそのまま保持しておく
                 if (str != ".") {
                     str.clear();
                 }
@@ -1118,15 +1119,15 @@ public:
                     // '='を含むoperatorに出会っていないならば
                     //haven't seen any operator (including =)
                     lhsExprStmt.name = std::string(str);
-                    this->_logger->debug(">>>> {}", str);
+//                    this->_logger->debug(">>>> {}", str);
                     if (triggerField[return_stmt]) {
                         auto strLine = NameAndLineNumber(str, currentExprStmt.lineNumber);
                         useExprStack.push_back(strLine); //catch expr_stmts like return temp + temp;
                     }
                 } else {
-//                    lhsExprStmt.name.append(str);
+                    lhsExprStmt.name.append(str);
                 }
-                this->_logger->debug(">> " + str);
+//                this->_logger->debug(">> " + str);
                 //catch expr_stmts like cout<<identifier;
                 useExprStmt.name.append(str);
             }
