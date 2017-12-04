@@ -85,9 +85,6 @@ varmap_pair_to_string(std::string file_name,
     });
     container.push_back(join(',', dvars_as_string));
 
-    // pointersを出力
-    container.push_back(join(',', unordered_set_to_vector<std::string>(sp->aliases, [](std::string x) { return x; })));
-
     // cfuncsを出力
     auto cfuncs = vec_transform<CFuncData, std::string>(set_to_vector<CFuncData>(sp->cfunctions), [](CFuncData cfd) {
         return cfd.to_string();
@@ -108,7 +105,7 @@ std::string create_variable_table(SliceDictionary dictionary) {
     std::stringstream ss;
 
     // ヘッダを出力する
-    std::vector<std::string> header({"id", "file", "func", "var", "def", "use", "dvars", "pointers", "cfuncs"});
+    std::vector<std::string> header({"id", "file", "func", "var", "def", "use", "dvars", "cfuncs"});
     ss << join('\t', header) << std::endl;
 
     dictionary.variableTable.forEach([&](SliceProfile *sp) {
