@@ -761,7 +761,7 @@ public:
                         currentDeclCtor.name.clear();
                     }
 
-                    currentDeclInit.name.clear();
+//                    currentDeclInit.name.clear();
                     currentOperator.clear();
 
                     --triggerField[op];
@@ -874,9 +874,7 @@ public:
                     if (triggerFieldAnd(init, decl)
                         && triggerFieldOr(decl_stmt, control)
                         && !triggerFieldOr(type, argument_list)) {
-                        if (triggerField[call] && !memberAccess) {
-                            ProcessDeclStmt();
-                        } else if (!triggerField[call] && !memberAccess) {
+                        if (triggerField[name] == 1) {
                             ProcessDeclStmt();
                         }
                     }
@@ -1073,20 +1071,21 @@ public:
             && triggerFieldOr(decl_stmt, control)
             && triggerField[decl]
             && !triggerFieldOr(argument_list, preproc, type, macro)) {
+            std::string str(ch, len);
+
             if (triggerField[init]) {
-                if (!triggerField[call] && !memberAccess) {//if it's not in a call then we can do like normal
-                    currentDeclInit.name.append(ch, len);
+                if (triggerField[op]) {
+                    if (str == ".") {
+                        currentDeclInit.name.append(str);
+
+                    }
                 } else {
-                    if (!memberAccess) {
-                        currentDeclInit.name.append(ch, len);
-                    }
-                    if (triggerField[argument]) {//if it's in a call, ignore until we hit an argument
-                        currentDeclInit.name.append(ch, len);
-                    }
+                    currentDeclInit.name.append(str);
+
                 }
             } else {
                 if (!triggerField[op]) {
-                    currentDecl.name.append(ch, len);
+                    currentDecl.name.append(str);
                 }
             }
         }

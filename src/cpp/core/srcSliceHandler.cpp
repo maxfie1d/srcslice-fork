@@ -76,43 +76,46 @@ void srcSliceHandler::ProcessConstructorDecl() {
 *corner case at new operator because new makes an object even if its argument is an alias.
 */
 void srcSliceHandler::ProcessDeclStmt() {
-    std::string name = currentDeclInit.name;
-    if (name.empty()) { return; } //No nameless profiles.
-    auto sp = Find(name);
-    if (sawnew) { sawnew = false; }
-    if (sp) {
-        this->_logger->debug("use#1: {}", currentDeclInit.lineNumber);
-        this->insertUse(sp, currentDeclInit.lineNumber, name);
-        //new operator of the form int i = new int(tmp); screws around with aliasing
-        if (p_sliceProfile->potentialAlias && !sawnew) {
-            p_sliceProfile->lastInsertedAlias = p_sliceProfile->aliases.insert(sp->variableName).first;
-        } else {
-            // dvars{} と use{} に追加する
-            this->_logger->debug("dvars#2: {}", p_sliceProfile->variableName);
-            this->insertDvar(sp, p_sliceProfile->variableName);
-            this->_logger->debug("use#2: {}", currentDeclInit.lineNumber);
-            this->insertUse(sp, currentDeclInit.lineNumber, name);
-        }
-    } else {
-        // for ループにおける初期化(init)は一般的な宣言文のハンドリングと異なる
-        // これによって、見逃された奇妙な初期化(init)を掴み取る
-        // これは for ループの初期化にのみ関係がある
-        // Inits in for loops screw with typical decl statement handling.
-        // This will grab decls I miss due to weird init usage
-        // This really is only for for loop inits.
-        // TODO: Possibly, write a separate function for these.
-        if (!inFor) {
-            return;
-        } else {
-            auto pair = std::make_pair(name, std::move(currentSliceProfile));
-            p_sliceProfile = &p_varMap->insert(pair).first->second;
-            this->_logger->debug("def#1: {}", currentDeclInit.lineNumber);
-            this->insertDef(p_sliceProfile, currentDeclInit.lineNumber, name);
-        }
-    }
+    std::string current_decl_init_name = currentDeclInit.name;
 
-    // 現在の宣言初期化をクリア
-    currentDeclInit.name.clear();
+    std::cout << current_decl_init_name << std::endl;
+    if (!current_decl_init_name.empty()) {
+        auto sp = Find(current_decl_init_name);
+        if (sawnew) { sawnew = false; }
+        if (sp) {
+            this->_logger->debug("use#1: {}", currentDeclInit.lineNumber);
+            this->insertUse(sp, currentDeclInit.lineNumber, current_decl_init_name);
+            //new operator of the form int i = new int(tmp); screws around with aliasing
+            if (p_sliceProfile->potentialAlias && !sawnew) {
+                p_sliceProfile->lastInsertedAlias = p_sliceProfile->aliases.insert(sp->variableName).first;
+            } else {
+                // dvars{} と use{} に追加する
+                this->_logger->debug("dvars#2: {}", p_sliceProfile->variableName);
+                this->insertDvar(sp, p_sliceProfile->variableName);
+                this->_logger->debug("use#2: {}", currentDeclInit.lineNumber);
+                this->insertUse(sp, currentDeclInit.lineNumber, current_decl_init_name);
+            }
+        } else {
+            // for ループにおける初期化(init)は一般的な宣言文のハンドリングと異なる
+            // これによって、見逃された奇妙な初期化(init)を掴み取る
+            // これは for ループの初期化にのみ関係がある
+            // Inits in for loops screw with typical decl statement handling.
+            // This will grab decls I miss due to weird init usage
+            // This really is only for for loop inits.
+            // TODO: Possibly, write a separate function for these.
+            if (!inFor) {
+                return;
+            } else {
+                auto pair = std::make_pair(current_decl_init_name, std::move(currentSliceProfile));
+                p_sliceProfile = &p_varMap->insert(pair).first->second;
+                this->_logger->debug("def#1: {}", currentDeclInit.lineNumber);
+                this->insertDef(p_sliceProfile, currentDeclInit.lineNumber, current_decl_init_name);
+            }
+        }
+
+        // 現在の宣言初期化をクリア
+        currentDeclInit.name.clear();
+    }
 }
 
 /**
