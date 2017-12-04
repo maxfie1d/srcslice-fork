@@ -77,8 +77,6 @@ void srcSliceHandler::ProcessConstructorDecl() {
 */
 void srcSliceHandler::ProcessDeclStmt() {
     std::string current_decl_init_name = currentDeclInit.name;
-
-    std::cout << current_decl_init_name << std::endl;
     if (!current_decl_init_name.empty()) {
         auto sp = Find(current_decl_init_name);
         if (sawnew) { sawnew = false; }

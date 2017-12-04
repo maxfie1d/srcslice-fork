@@ -402,7 +402,7 @@ public:
                                     {
                                         for (auto &use: gv_sp.use) {
                                             if (use.programPoint.functionId == func_id) {
-                                                if (use.programPoint.functionId == func_id) {
+                                                if (use.member_name.empty()) {
                                                     gv_sp.use.insert(DefUseData(pp));
                                                 } else {
                                                     gv_sp.use.insert(DefUseData(pp, use.member_name));

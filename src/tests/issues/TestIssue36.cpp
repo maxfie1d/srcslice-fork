@@ -15,7 +15,8 @@ TEST(SliceTest, TestIssue36) {
                     {
                             TestDefUseData(13, "x"),
                             TestDefUseData(13, "y"),
-                            TestDefUseData(22, "")
+                            TestDefUseData(22, "x"),
+                            TestDefUseData(22, "y")
                     }
             ));
         }
