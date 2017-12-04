@@ -262,28 +262,39 @@ void srcSliceHandler::GetDeclStmtData() {
     if (currentDecl.name.empty()) {
         return;
     } else {
-        currentSliceProfile.index = declIndex;
-        currentSliceProfile.file = fileName;
-        currentSliceProfile.function = functionTmplt.functionName;
-        currentSliceProfile.variableName = currentDecl.name;
-        currentSliceProfile.potentialAlias = potentialAlias;
-        currentSliceProfile.isGlobal = inGlobalScope;
+        auto &csp = currentSliceProfile;
 
-        // extern 宣言ならスキップする
+        csp.index = declIndex;
+        csp.file = fileName;
+        csp.function = functionTmplt.functionName;
+        csp.variableName = currentDecl.name;
+        csp.potentialAlias = potentialAlias;
+        csp.isGlobal = inGlobalScope;
+
+        std::string var_name = csp.variableName;
+
         if (currentDeclSpecifier.name != "extern") {
-            this->_logger->debug("ここやん！: {}, {}", currentSliceProfile.variableName, inGlobalScope);
+            this->_logger->debug("ここやん！: {}, {}", var_name, inGlobalScope);
             if (!inGlobalScope) {
-                auto pair = std::make_pair(currentSliceProfile.variableName, std::move(currentSliceProfile));
+                auto pair = std::make_pair(var_name, std::move(currentSliceProfile));
                 p_sliceProfile = &p_varMap->insert(pair).first->second;
                 // def{} 現在の宣言の行番号を追加する
                 this->_logger->debug("def#3: {}", currentDecl.lineNumber);
-                this->insertDef(p_sliceProfile, currentDecl.lineNumber, currentSliceProfile.variableName);
+                this->insertDef(p_sliceProfile, currentDecl.lineNumber, var_name);
             } else {
-                //TODO: Handle def use for globals
                 // グローバルマップに追加
-                currentSliceProfile.function = "__GLOBAL__";
-                this->insertDef(&currentSliceProfile, currentDecl.lineNumber, currentSliceProfile.variableName);
-                auto varmap_pair = std::make_pair(currentSliceProfile.variableName, std::move(currentSliceProfile));
+                auto g_sp = sysDict->variableTable.findGlobalVariableSliceProfileByName(var_name);
+                if (!g_sp) {
+                    currentSliceProfile.function = "__GLOBAL__";
+                    this->insertDef(&currentSliceProfile, currentDecl.lineNumber, var_name);
+                    auto varmap_pair = std::make_pair(var_name, std::move(csp));
+                    sysDict->variableTable.addGlobalVariable(varmap_pair);
+                }
+            }
+        } else {
+            // extern 宣言の場合は変数表にガワだけ登録する
+            if (inGlobalScope) {
+                auto varmap_pair = std::make_pair(var_name, std::move(csp));
                 sysDict->variableTable.addGlobalVariable(varmap_pair);
             }
         }
