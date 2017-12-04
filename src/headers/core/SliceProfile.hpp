@@ -46,6 +46,13 @@ struct DefUseData {
      */
     std::string member_name;
 
+    /**
+     * 関数から伝播してきた場合、その関数のIDを保持する
+     */
+    std::string derived_from_func_id;
+
+    DefUseData() = default;
+
     DefUseData(ProgramPoint programPoint) {
         this->programPoint = programPoint;
     }
@@ -68,11 +75,13 @@ struct DefUseData {
     }
 
     std::string to_string() {
-        if (this->member_name.empty()) {
-            return this->programPoint.to_string();
-        } else {
-            return this->programPoint.to_string() + "(" + this->member_name + ")";
-        }
+        auto member_name_as_str = this->member_name.empty()
+                                  ? ""
+                                  : "(" + this->member_name + ")";
+        auto derived_from_func_id_as_str = this->derived_from_func_id.empty()
+                                           ? ""
+                                           : "<from_" + this->derived_from_func_id + ">";
+        return this->programPoint.to_string() + member_name_as_str + derived_from_func_id_as_str;
     }
 };
 
