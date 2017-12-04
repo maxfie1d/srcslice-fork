@@ -391,22 +391,22 @@ public:
                                     {
                                         for (auto &def : gv_sp.def) {
                                             if (def.programPoint.functionId == func_id) {
-                                                if (def.member_name.empty()) {
-                                                    gv_sp.def.insert(DefUseData(pp));
-                                                } else {
-                                                    gv_sp.def.insert(DefUseData(pp, def.member_name));
-                                                }
+                                                DefUseData dd;
+                                                dd.programPoint = pp;
+                                                dd.derived_from_func_id = func_id;
+                                                dd.member_name = def.member_name;
+                                                gv_sp.def.insert(dd);
                                             }
                                         }
                                     }
                                     {
                                         for (auto &use: gv_sp.use) {
                                             if (use.programPoint.functionId == func_id) {
-                                                if (use.member_name.empty()) {
-                                                    gv_sp.use.insert(DefUseData(pp));
-                                                } else {
-                                                    gv_sp.use.insert(DefUseData(pp, use.member_name));
-                                                }
+                                                DefUseData dd;
+                                                dd.programPoint = pp;
+                                                dd.derived_from_func_id = func_id;
+                                                dd.member_name = use.member_name;
+                                                gv_sp.use.insert(dd);
                                             }
                                         }
                                     }
