@@ -1,3 +1,4 @@
+#include <spdlog/spdlog.h>
 #include "tables/VariableTable.h"
 
 VarMap *VariableTable::findVarMap(const std::string &file_path, const std::string &func_name) {
@@ -104,5 +105,6 @@ VarMap *VariableTable::getRawGlobalVariableTable() {
 }
 
 void VariableTable::addGlobalVariable(std::pair<std::string, SliceProfile> pair) {
+    spdlog::get("console")->debug("グローバル変数を追加します: {}", pair.first);
     this->_global_var_map.insert(pair);
 }
