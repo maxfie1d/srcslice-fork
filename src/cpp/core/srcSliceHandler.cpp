@@ -492,7 +492,7 @@ srcSliceHandler::createArgumentSp(std::string func_name, unsigned int parameterI
 
 std::string srcSliceHandler::getFunctionId(unsigned int lineNumber) {
     if (this->fileName.empty() || this->functionTmplt.functionName.empty()) {
-        return "file: " + fileName + ", func: " + this->functionTmplt.functionName;
+        return "<__GLOBAL__>";
     } else {
         // idを作る
         // NOTE: 関数テーブルから関数を検索してという方法もあるが
