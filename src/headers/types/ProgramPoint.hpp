@@ -32,7 +32,7 @@ struct ProgramPoint {
         return this->lineNumber == other.lineNumber && this->functionId == other.functionId;
     }
 
-    std::string to_string() {
+    std::string to_string() const {
         return std::to_string(this->lineNumber) + "@" + this->functionId;
     }
 };
