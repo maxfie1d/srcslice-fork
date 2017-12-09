@@ -144,7 +144,7 @@ void srcSliceHandler::GetCallData() {
             auto sp = this->Find(name);
             if (sp) {
                 // useを追加
-                this->_logger->debug("use#3(関数の引数として使用されたため): {}", callArgDataStack.top().lineNumber);
+                this->_logger->debug("use#3(関数の引数として使用されたため): {}, {}", callArgDataStack.top().lineNumber, name);
                 this->insertUse(sp, callArgDataStack.top().lineNumber, name);
 
                 sp->index = argIndex;
