@@ -42,7 +42,7 @@ std::string SliceProfile::computeVariableId() {
         if (this->file.empty() || this->function.empty() || this->variableName.empty()) {
             return "<unknown>";
         } else {
-            std::string concat = this->variableName + "@" + this->function + "@" + this->file;
+            std::string concat = this->variableName + "@" + this->function + "@" + this->file.file_path;
             std::string hex_hash = computeSHA256Hash(concat);
             this->id = hex_hash;
             return hex_hash;
