@@ -58,7 +58,7 @@ bool CFuncData::operator<(const CFuncData &other) const {
 
 std::string CFuncData::to_string() const {
     std::stringstream ss;
-    ss << this->calledFunctionName << "(" << this->calledFunctionId << "){" << this->argIndenx << "}:"
+    ss << this->calledFunctionName << "(" << this->calledFunctionId << "){" << this->argIndenx.to_string() << "}:"
        << this->location.to_string();
     return ss.str();
 }

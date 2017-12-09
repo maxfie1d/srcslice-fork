@@ -57,7 +57,7 @@ private:
     /**
      * 関数呼び出しでの引数のインデックス(one-based)を保持する
      */
-    unsigned short argIndex;
+    ArgIndexAndMemberName argIndex;
 
     unsigned int declIndex;
 
@@ -204,7 +204,7 @@ private:
 
     void GetFunctionDeclData();
 
-    SliceProfile createArgumentSp(std::string, unsigned int);
+    SliceProfile createArgumentSp(std::string, ArgIndexAndMemberName);
 
     SliceProfile *Find(std::string varName);
 
@@ -265,7 +265,7 @@ private:
      * @param argIndex 何番目の引数として渡されたか
      */
     void
-    insertCFunc(SliceProfile *sp, std::string calledFunctionName, unsigned short argIndex, unsigned int lineNumber);
+    insertCFunc(SliceProfile *sp, std::string calledFunctionName, ArgIndexAndMemberName argIndex, unsigned int lineNumber);
 
     std::shared_ptr<spdlog::logger> _logger;
 
@@ -419,7 +419,7 @@ public:
 
                 {"call",             [this]() {
                     if (triggerField[call]) {//for nested calls
-                        --argIndex; //already in some sort of a call. Decrement counter to make up for the argument slot the function call took up.
+                        --argIndex.index; //already in some sort of a call. Decrement counter to make up for the argument slot the function call took up.
                     }
                     isACallName = true;
                     ++triggerField[call];
@@ -508,7 +508,7 @@ public:
                     ++triggerField[init];
                 }},
                 {"argument",         [this]() {
-                    ++argIndex;
+                    ++argIndex.index;
                     currentCallArgData.name.clear();
                     calledFunctionName.clear();
                     ++triggerField[argument];
@@ -646,7 +646,7 @@ public:
                     }
                     --triggerField[call];
                     if (triggerField[call]) {
-                        ++argIndex; //we exited a call but we're still in another call. Increment to make up for decrementing when we entered the second call.
+                        ++argIndex.index; //we exited a call but we're still in another call. Increment to make up for decrementing when we entered the second call.
                     }
                 }},
 

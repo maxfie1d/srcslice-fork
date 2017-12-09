@@ -113,7 +113,7 @@ void testDvars(SliceProfile *sp, std::set<std::string> expectedDvars) {
 void testCfuncs(SliceProfile *sp, std::set<CfuncShortData> expectedCfuncs) {
     std::set<CfuncShortData> actualCfuncs = set_transform<CFuncData, CfuncShortData>
             (sp->cfunctions, [](CFuncData cd) {
-                return CfuncShortData(cd.calledFunctionName, cd.argIndenx);
+                return CfuncShortData(cd.calledFunctionName, cd.argIndenx.index);
             });
 
     ASSERT_EQ(actualCfuncs, expectedCfuncs);

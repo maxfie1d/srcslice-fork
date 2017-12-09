@@ -19,8 +19,7 @@
  */
 
 #include <core/srcSliceHandler.hpp>
-#include <core/SliceProfile.hpp>
-#include <helpers/Utility.hpp>
+#include <helpers/functional.hpp>
 
 
 /**
@@ -34,10 +33,7 @@
 SliceProfile *srcSliceHandler::Find(std::string varName) {
     // 構造体の場合は
     // メンバ名を削った部分で検索する
-    auto pos = varName.find('.');
-    std::string search_word = pos == std::string::npos
-                              ? varName
-                              : varName.substr(0, pos);
+    std::string search_word = extractObjectName(varName);
 
     auto sp = p_varMap->find(search_word);
     if (sp != p_varMap->end()) {
@@ -148,6 +144,8 @@ void srcSliceHandler::GetCallData() {
                 this->insertUse(sp, callArgDataStack.top().lineNumber, name);
 
                 sp->index = argIndex;
+
+                argIndex.member_name = extractMemberName(callArgDataStack.top().name);
                 // cfuncstionを追加する(1/1)
                 auto &calledFunctionName = nameOfCurrentCalledFunctionStack.top();
                 this->_logger->debug("cfuncs(1/1): {}", calledFunctionName);
@@ -228,7 +226,7 @@ void srcSliceHandler::GetFunctionDeclData() {
  * 現在のsrc-profileに各データをセットする
  */
 void srcSliceHandler::AssignProfile() {
-    if (currentSliceProfile.index == 0) {
+    if (currentSliceProfile.index.index == 0) {
         currentSliceProfile.index = declIndex;
     }
     if (currentSliceProfile.file.empty()) {
@@ -447,7 +445,7 @@ void srcSliceHandler::ProcessDeclCtor() {
  *@Return SliceProfile of the variable
 */
 SliceProfile
-srcSliceHandler::createArgumentSp(std::string func_name, unsigned int parameterIndex) {
+srcSliceHandler::createArgumentSp(std::string func_name, ArgIndexAndMemberName parameterIndex) {
     // 関数名で関数テーブルを検索してみる
     auto gFuncIt = sysDict->functionTable.findByName(func_name);
     if (gFuncIt) {
@@ -460,18 +458,20 @@ srcSliceHandler::createArgumentSp(std::string func_name, unsigned int parameterI
         // それぞれの変数のSliceProfileについて
         for (auto &sp_pair : varmap_pair->second) {
             auto &sp = sp_pair.second;
-            if (sp.index == parameterIndex) {
+            if (sp.index.index == parameterIndex.index) {
                 if (sp.visited) {
                     return sp;
                 } else {
                     // ここで再帰的に連鎖を繋いでいると思われる
                     for (auto &itCF: sp.cfunctions) {
+                        std::cout << "cfunc2: " << itCF.calledFunctionName << std::endl;
+
                         std::string newFunctionName = itCF.calledFunctionName;
-                        unsigned int newParameterIndex = itCF.argIndenx;
+                        auto newParameterIndex = itCF.argIndenx;
                         if (newFunctionName != func_name) {
                             sp.visited = true;
                             auto Spi = createArgumentSp(newFunctionName, newParameterIndex);
-                            combineElements(&sp.use, &Spi.def);
+                            combineElements(&sp.def, &Spi.def);
                             combineElements(&sp.use, &Spi.use);
                             combineElements(&sp.cfunctions, &Spi.cfunctions);
                             combineElements(&sp.dvars, &Spi.dvars);
@@ -565,7 +565,7 @@ void srcSliceHandler::insertDvar(SliceProfile *sp, std::string variableName) {
 
 void srcSliceHandler::insertCFunc(SliceProfile *sp,
                                   std::string calledFunctionName,
-                                  unsigned short argIndex,
+                                  ArgIndexAndMemberName argIndex,
                                   unsigned int lineNumber) {
     auto function_table = sysDict->functionTable;
     auto calledFunctionData = function_table.findByName(calledFunctionName);
@@ -594,8 +594,19 @@ void srcSliceHandler::compute(SliceProfile &sp) {
             // cfuncのdef,use,cfunctions,dvarsと結合する
             auto argumentSp = this->createArgumentSp(cfunc.calledFunctionName,
                                                      cfunc.argIndenx);
-            combineElements(&sp.use, &argumentSp.def);
-            combineElements(&sp.use, &argumentSp.use);
+
+            auto f = [&](std::set<DefUseData> dds) {
+                return cfunc.argIndenx.member_name.empty()
+                ? dds
+                : set_transform<DefUseData, DefUseData>(dds, [&](DefUseData dd) {
+                    dd.member_name = cfunc.argIndenx.member_name;
+                    return dd;
+                });
+            };
+            auto def = f(argumentSp.def);
+            auto use = f(argumentSp.use);
+            combineElements(&sp.def, &def);
+            combineElements(&sp.use, &use);
             combineElements(&sp.cfunctions, &argumentSp.cfunctions);
             combineElements(&sp.dvars, &argumentSp.dvars);
         }
