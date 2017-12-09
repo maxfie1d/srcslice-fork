@@ -45,9 +45,7 @@ std::vector<std::string> unordered_set_to_vector(std::unordered_set<T> source, M
 }
 
 std::string
-varmap_pair_to_string(std::string file_name,
-                      std::string function_name,
-                      SliceProfile *vmIt) {
+varmap_pair_to_string(SliceProfile *vmIt) {
     std::string str;
     std::string varname = vmIt->variableName;
     auto sp = vmIt;
@@ -56,12 +54,10 @@ varmap_pair_to_string(std::string file_name,
 
     // idを出力
     container.push_back(sp->computeVariableId());
-    // def{}のうち最小の値を変数のある行番号としている
-    unsigned int lineNumber = sp->def.begin()->programPoint.lineNumber;
     // fileを出力
-    container.push_back(file_name + ":" + std::to_string(lineNumber));
+    container.push_back(sp->file.to_string());
     // funcを出力
-    container.push_back(function_name);
+    container.push_back(sp->function);
     // varを出力
     container.push_back(sp->variableType + " " + varname);
     // defを出力
@@ -109,7 +105,7 @@ std::string create_variable_table(SliceDictionary dictionary) {
     ss << join('\t', header) << std::endl;
 
     dictionary.variableTable.forEach([&](SliceProfile *sp) {
-        std::string row = varmap_pair_to_string(sp->file, sp->function, sp);
+        std::string row = varmap_pair_to_string(sp);
         ss << row << std::endl;
     });
 
@@ -119,7 +115,7 @@ std::string create_variable_table(SliceDictionary dictionary) {
     std::map<std::string, SliceProfile> sorted_globalMap
             (globalMap->begin(), globalMap->end());
     for (auto vmIt : sorted_globalMap) {
-        std::string row = varmap_pair_to_string(vmIt.second.file, vmIt.second.function, &vmIt.second);
+        std::string row = varmap_pair_to_string(&vmIt.second);
         ss << row << std::endl;
     }
 

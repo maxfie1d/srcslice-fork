@@ -85,6 +85,26 @@ struct DefUseData {
     }
 };
 
+struct FileData {
+    std::string file_path;
+    unsigned int line_number;
+
+    FileData() = default;
+
+    FileData(std::string file_path, unsigned int line_number){
+        this->file_path = file_path;
+        this->line_number = line_number;
+    }
+
+    std::string to_string() const {
+        return this->file_path + ":" + std::to_string(this->line_number);
+    }
+
+    bool empty() const {
+        return this->file_path.empty();
+    }
+};
+
 
 // 本来DvarにはVariableDataのポインタかSliceProfileのポインタを
 // 持たせたいが、SrcSliceクラスに辞書を検索するメソッドがあったりで
@@ -225,7 +245,7 @@ public:
     SliceProfile() : index(0), visited(false), potentialAlias(false), dereferenced(false), isGlobal(false) {}
 
     SliceProfile(unsigned int idx,
-                 std::string fle,
+                 FileData fle,
                  std::string fcn,
                  unsigned int sline,
                  std::string name,
@@ -255,7 +275,7 @@ public:
     /**
      * その変数が存在するソースファイルのパス
      */
-    std::string file;
+    FileData file;
 
     /**
      * その変数が存在する関数の名前

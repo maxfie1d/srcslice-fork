@@ -175,7 +175,7 @@ void srcSliceHandler::GetParamName() {
     // パラメータは空なのでスキップする
     if (currentSliceProfile.variableType != "void") {
         currentSliceProfile.index = declIndex;
-        currentSliceProfile.file = fileName;
+        currentSliceProfile.file = FileData(fileName, lineNum);
         currentSliceProfile.function = functionTmplt.functionName;
         currentSliceProfile.variableName = currentParam.name;
         currentSliceProfile.potentialAlias = potentialAlias;
@@ -232,7 +232,7 @@ void srcSliceHandler::AssignProfile() {
         currentSliceProfile.index = declIndex;
     }
     if (currentSliceProfile.file.empty()) {
-        currentSliceProfile.file = fileName;
+        currentSliceProfile.file = FileData(fileName, lineNum);
     }
     if (currentSliceProfile.function.empty()) {
         currentSliceProfile.function = functionTmplt.functionName;
@@ -266,7 +266,7 @@ void srcSliceHandler::GetDeclStmtData() {
         auto &csp = currentSliceProfile;
 
         csp.index = declIndex;
-        csp.file = fileName;
+        csp.file = FileData(fileName, lineNum);
         csp.function = functionTmplt.functionName;
         csp.variableName = currentDecl.name;
         csp.potentialAlias = potentialAlias;
@@ -295,6 +295,7 @@ void srcSliceHandler::GetDeclStmtData() {
         } else {
             // extern 宣言の場合は変数表にガワだけ登録する
             if (inGlobalScope) {
+                csp.function = "__GLOBAL__";
                 auto varmap_pair = std::make_pair(var_name, std::move(csp));
                 sysDict->variableTable.addGlobalVariable(varmap_pair);
             }
@@ -324,7 +325,7 @@ void srcSliceHandler::ProcessExprStmtPreAssign() {
         if (!lhs_sp) {
             // 新しく左辺のslice-profileを作成しストアする
             currentSliceProfile.index = 1;
-            currentSliceProfile.file = fileName;
+            currentSliceProfile.file = FileData(fileName, lineNum);
             currentSliceProfile.function = functionTmplt.functionName;
             currentSliceProfile.variableName = lhsExprStmt.name;
             currentSliceProfile.potentialAlias = false;
