@@ -57,7 +57,7 @@ private:
     /**
      * 関数呼び出しでの引数のインデックス(one-based)を保持する
      */
-    unsigned short argIndex;
+    unsigned int argIndex;
 
     unsigned int declIndex;
 
@@ -204,7 +204,7 @@ private:
 
     void GetFunctionDeclData();
 
-    SliceProfile createArgumentSp(std::string, unsigned int);
+    SliceProfile createArgumentSp(std::string, ArgIndexAndMemberName);
 
     SliceProfile *Find(std::string varName);
 
@@ -265,7 +265,8 @@ private:
      * @param argIndex 何番目の引数として渡されたか
      */
     void
-    insertCFunc(SliceProfile *sp, std::string calledFunctionName, unsigned short argIndex, unsigned int lineNumber);
+    insertCFunc(SliceProfile *sp, std::string calledFunctionName, ArgIndexAndMemberName argIndex,
+                unsigned int lineNumber);
 
     std::shared_ptr<spdlog::logger> _logger;
 
@@ -481,10 +482,6 @@ public:
                     ++triggerField[op];
                     if (triggerField[expr_stmt]) {
                         expr_op_flag = true; //assume we're not seeing =
-                    }
-                    //Don't want the operators. But do make a caveat for ->
-                    if (triggerField[call]) {
-                        currentCallArgData.name.clear();
                     }
                     if (triggerField[return_stmt]) {
                         //ProcessExprStmtPreAssign(); //To catch expressions in return statements that are split by operators
@@ -845,11 +842,12 @@ public:
                     --triggerField[expr];
                 }},
                 {"name",             [this]() {
-                    if (triggerField[call] && triggerField[argument]) {
+                    if (triggerField[name] == 1 && triggerField[call] && triggerField[argument]) {
                         callArgDataStack.push(currentCallArgData);
                     }
                     //Get function arguments
-                    if (triggerField[call] || triggerFieldAnd(decl_stmt, argument_list)) {
+                    if (triggerField[name] == 1 &&
+                        (triggerField[call] || triggerFieldAnd(decl_stmt, argument_list))) {
                         GetCallData();//issue with statements like object(var)
                         while (!callArgDataStack.empty())
                             callArgDataStack.pop();
@@ -1012,8 +1010,9 @@ public:
 
         if (triggerFieldOr(decl_stmt, expr_stmt) &&
             triggerFieldAnd(call, name, argument_list) &&
-            !triggerFieldOr(index, op, preproc)) {
-            currentCallArgData.name.append(ch, len);
+            !triggerFieldOr(index, preproc)) {
+            std::string s(ch, len);
+            currentCallArgData.name.append(s);
         }
         if (triggerFieldOr(function, constructor, destructor) && triggerField[name] &&
             !triggerFieldOr(functionblock, parameter_list, argument_list, argument_list_template, type, index, preproc,

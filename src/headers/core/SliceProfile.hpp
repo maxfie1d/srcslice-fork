@@ -74,7 +74,7 @@ struct DefUseData {
         this->programPoint == other.programPoint && this->member_name == other.member_name;
     }
 
-    std::string to_string() {
+    std::string to_string() const {
         auto member_name_as_str = this->member_name.empty()
                                   ? ""
                                   : "(" + this->member_name + ")";
@@ -91,7 +91,7 @@ struct FileData {
 
     FileData() = default;
 
-    FileData(std::string file_path, unsigned int line_number){
+    FileData(std::string file_path, unsigned int line_number) {
         this->file_path = file_path;
         this->line_number = line_number;
     }
@@ -137,6 +137,26 @@ struct DvarData {
     }
 };
 
+struct ArgIndexAndMemberName {
+    unsigned int index;
+    std::string member_name;
+
+    ArgIndexAndMemberName() = default;
+
+    ArgIndexAndMemberName(unsigned int index, std::string member_name = "") {
+        this->index = index;
+        this->member_name = member_name;
+    }
+
+    std::string to_string() const {
+        if (this->member_name.empty()) {
+            return std::to_string(this->index);
+        } else {
+            return std::to_string(this->index) + "(" + this->member_name + ")";
+        }
+    }
+};
+
 /**
  * cfuncsのデータを保持する構造体
  */
@@ -154,7 +174,7 @@ struct CFuncData {
     /**
      * 何番目の引数として呼び出されたか(one-based)
      */
-    unsigned short argIndenx;
+    ArgIndexAndMemberName argIndenx;
 
     /**
      * 関数呼び出しが起きた場所
@@ -164,7 +184,7 @@ struct CFuncData {
     CFuncData(
             std::string calledFunctionName,
             std::string functionId,
-            unsigned short argIndenx,
+            ArgIndexAndMemberName argIndenx,
             ProgramPoint location
     ) {
         this->calledFunctionName = calledFunctionName;

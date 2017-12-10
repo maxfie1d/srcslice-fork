@@ -13,7 +13,7 @@ TEST(SliceTest, TestIssue29) {
 
             // 関数呼び出し時に変数の使用が伝播するなら
             // use{}に{3, 5}が現れるはず
-            testUse(g_slice, std::set<unsigned int>({3, 5, 11}));
+            testUse(g_slice, std::set<unsigned int>({5, 11}));
         }
     } catch (SAXError e) {
         FAIL();
