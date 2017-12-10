@@ -1,39 +1,76 @@
-## ファイル構成
+## SRCSLICE FORK
 
-### src/tests
+[srcSlice](https://github.com/srcML/srcSlice) のフォークプロジェクトです。
 
-テストソースのあるディレクトリ。
-
-* src/tests/samples/issue*
-    * Issue番号に該当する現象を再現する
-
-
-# メモ
+## ビルド方法
 
 ```bash
-# ビルドの実行
-$ sh ./build.sh
+# 事前に依存ライブラリをインストール
 
-# テストの実行
-$ sh ./build.sh && ./test.sh
+# リポジトリをクローン
+# --recursive オプションをお忘れなく
+$ git clone --recursive <repo>
+$ cd <repo>
+
+# リリースビルドの場合
+# build-release/bin に生成物ができます
+$ sh build-release.sh
+
+# デバッグビルドの場合
+# build-debug/bin に生成物ができます
+$ sh build-debug.sh
 ```
 
-## トラブルシューティング
+### make レシピ
 
-* サブモジュールの中身が消えた
-    * ルートで`git submodule init && git submodule update`
+レシピ | 説明
+------- | -------
+srcSlice | srcslice のバイナリを生成
+srcslicetest | srcslice のテストのバイナリを生成
+(ex_srcslicetest) | srcslice の一部のテストを使いたい時に使いました
 
-# srcSlice
-Lightweight tool for slicing
+## 使用方法
 
-To build srcSlice:
+```bash
+# 事前にソースコードを srcML を用いて変換しておきます
+# 標準出力にスライス結果が出ます
+$ srcSlice <ソースコードをsrcMLで変換したもの(.xml)>
+```
 
-1. Clone the repository with 'git clone --recursive' into the desired directory. Make sure you include the --recursive as srcSlice includes a submodule that must also be cloned.
+## 出力フォーマット
 
-2. Outside of the cloned directory, create a new directory for the build.  (This guide assumes the new directory is at the same directory tree level as the cloned directory)
+変数表と関数表を表すタブ区切りの文字列をまとめて JSON 形式で出力します。
 
-3. Enter the new directory (not the cloned one) and type 'cmake ../{cloned directory}'
+```json
+{
+    "vars": "<変数表>",
+    "funcs": "<関数表>"
+}
+```
 
-4. After cmake runs, simply type 'make' and all files should be built.  
+### 変数表のフォーマット
 
-5. Once everything is built, go into the 'bin' folder and that's where the executable will be.
+カラム名 | 説明
+------- | -------
+id | 変数に一意に振られる ID
+file | 変数が宣言されたソースファイルのパス
+func | 変数が宣言された関数。グローバル変数の場合は`__GLOBAL__`となる。
+var | 変数名
+def | 変数が代入された位置の集合
+use | 変数が参照された位置の集合
+dvars | 影響を与えた変数の集合。例えば `y = x;` のとき、 `x` の dvars は {`y`} である。
+cfuncs | 引数として与えられた関数の集合
+
+### 関数表のフォーマット
+
+カラム名 | 説明
+------- | -------
+id | 関数に一意に振られる ID
+func_name | 関数名
+kind | 関数の種類(`user-defined` のみ)
+file_path | 関数が宣言されたソースファイルのパス
+declare_range | 関数が宣言されている範囲
+
+## License
+
+GPL (GNU General Public License)
