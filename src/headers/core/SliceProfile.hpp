@@ -143,15 +143,15 @@ struct ArgIndexAndMemberName {
 
     ArgIndexAndMemberName() = default;
 
-    ArgIndexAndMemberName(unsigned int index, std::string member_name = ""){
+    ArgIndexAndMemberName(unsigned int index, std::string member_name = "") {
         this->index = index;
         this->member_name = member_name;
     }
 
     std::string to_string() const {
-        if(this->member_name.empty()){
+        if (this->member_name.empty()) {
             return std::to_string(this->index);
-        }else {
+        } else {
             return std::to_string(this->index) + "(" + this->member_name + ")";
         }
     }
@@ -174,7 +174,7 @@ struct CFuncData {
     /**
      * 何番目の引数として呼び出されたか(one-based)
      */
-     ArgIndexAndMemberName argIndenx;
+    ArgIndexAndMemberName argIndenx;
 
     /**
      * 関数呼び出しが起きた場所
@@ -264,7 +264,7 @@ class SliceProfile {
 public:
     SliceProfile() : index(0), visited(false), potentialAlias(false), dereferenced(false), isGlobal(false) {}
 
-    SliceProfile(ArgIndexAndMemberName idx,
+    SliceProfile(unsigned int idx,
                  FileData fle,
                  std::string fcn,
                  unsigned int sline,
@@ -280,7 +280,7 @@ public:
      * 何番目の引数として呼ばれたかを保持するらしい
      * プログラム中で何度か書き換えられると思うと気持ち悪いな...
      */
-    ArgIndexAndMemberName index;
+    unsigned int index;
 
     std::unordered_set<std::string>::iterator lastInsertedAlias;
     bool potentialAlias;

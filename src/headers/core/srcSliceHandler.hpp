@@ -57,7 +57,7 @@ private:
     /**
      * 関数呼び出しでの引数のインデックス(one-based)を保持する
      */
-    ArgIndexAndMemberName argIndex;
+    unsigned int argIndex;
 
     unsigned int declIndex;
 
@@ -265,7 +265,8 @@ private:
      * @param argIndex 何番目の引数として渡されたか
      */
     void
-    insertCFunc(SliceProfile *sp, std::string calledFunctionName, ArgIndexAndMemberName argIndex, unsigned int lineNumber);
+    insertCFunc(SliceProfile *sp, std::string calledFunctionName, ArgIndexAndMemberName argIndex,
+                unsigned int lineNumber);
 
     std::shared_ptr<spdlog::logger> _logger;
 
@@ -419,7 +420,7 @@ public:
 
                 {"call",             [this]() {
                     if (triggerField[call]) {//for nested calls
-                        --argIndex.index; //already in some sort of a call. Decrement counter to make up for the argument slot the function call took up.
+                        --argIndex; //already in some sort of a call. Decrement counter to make up for the argument slot the function call took up.
                     }
                     isACallName = true;
                     ++triggerField[call];
@@ -508,7 +509,7 @@ public:
                     ++triggerField[init];
                 }},
                 {"argument",         [this]() {
-                    ++argIndex.index;
+                    ++argIndex;
                     currentCallArgData.name.clear();
                     calledFunctionName.clear();
                     ++triggerField[argument];
@@ -646,7 +647,7 @@ public:
                     }
                     --triggerField[call];
                     if (triggerField[call]) {
-                        ++argIndex.index; //we exited a call but we're still in another call. Increment to make up for decrementing when we entered the second call.
+                        ++argIndex; //we exited a call but we're still in another call. Increment to make up for decrementing when we entered the second call.
                     }
                 }},
 

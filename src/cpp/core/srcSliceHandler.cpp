@@ -145,11 +145,12 @@ void srcSliceHandler::GetCallData() {
 
                 sp->index = argIndex;
 
-                argIndex.member_name = extractMemberName(callArgDataStack.top().name);
                 // cfuncstionを追加する(1/1)
                 auto &calledFunctionName = nameOfCurrentCalledFunctionStack.top();
                 this->_logger->debug("cfuncs(1/1): {}", calledFunctionName);
-                this->insertCFunc(sp, calledFunctionName, argIndex, lineNum);
+                ArgIndexAndMemberName a(argIndex,
+                                        extractMemberName(callArgDataStack.top().name));
+                this->insertCFunc(sp, calledFunctionName, std::move(a), lineNum);
             }
         }
     }
@@ -226,7 +227,7 @@ void srcSliceHandler::GetFunctionDeclData() {
  * 現在のsrc-profileに各データをセットする
  */
 void srcSliceHandler::AssignProfile() {
-    if (currentSliceProfile.index.index == 0) {
+    if (currentSliceProfile.index == 0) {
         currentSliceProfile.index = declIndex;
     }
     if (currentSliceProfile.file.empty()) {
@@ -458,7 +459,7 @@ srcSliceHandler::createArgumentSp(std::string func_name, ArgIndexAndMemberName p
         // それぞれの変数のSliceProfileについて
         for (auto &sp_pair : varmap_pair->second) {
             auto &sp = sp_pair.second;
-            if (sp.index.index == parameterIndex.index) {
+            if (sp.index == parameterIndex.index) {
                 if (sp.visited) {
                     return sp;
                 } else {
@@ -597,11 +598,11 @@ void srcSliceHandler::compute(SliceProfile &sp) {
 
             auto f = [&](std::set<DefUseData> dds) {
                 return cfunc.argIndenx.member_name.empty()
-                ? dds
-                : set_transform<DefUseData, DefUseData>(dds, [&](DefUseData dd) {
-                    dd.member_name = cfunc.argIndenx.member_name;
-                    return dd;
-                });
+                       ? dds
+                       : set_transform<DefUseData, DefUseData>(dds, [&](DefUseData dd) {
+                            dd.member_name = cfunc.argIndenx.member_name;
+                            return dd;
+                        });
             };
             auto def = f(argumentSp.def);
             auto use = f(argumentSp.use);
