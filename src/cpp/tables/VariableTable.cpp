@@ -1,4 +1,5 @@
 #include <spdlog/spdlog.h>
+#include <helpers/Utility.hpp>
 #include "tables/VariableTable.h"
 
 VarMap *VariableTable::findVarMap(const std::string &file_path, const std::string &func_name) {
@@ -92,9 +93,9 @@ VarMap *VariableTable::addFunction(const std::string file_path, const std::strin
 }
 
 SliceProfile *VariableTable::findGlobalVariableSliceProfileByName(const std::string &global_var_name) {
-    auto sp = this->_global_var_map.find(global_var_name);
-    if (sp != this->_global_var_map.end()) {
-        return &sp->second;
+    auto sp = varmapFind(global_var_name, &this->_global_var_map);
+    if (sp) {
+        return sp;
     } else {
         return nullptr;
     }

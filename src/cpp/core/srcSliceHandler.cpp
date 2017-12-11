@@ -35,9 +35,9 @@ SliceProfile *srcSliceHandler::Find(std::string varName) {
     // メンバ名を削った部分で検索する
     std::string search_word = extractObjectName(varName);
 
-    auto sp = p_varMap->find(search_word);
-    if (sp != p_varMap->end()) {
-        return &(sp->second);
+    auto sp = varmapFind(search_word, p_varMap);
+    if (sp) {
+        return sp;
     } else {
         //check global map
         auto sp2 = sysDict->variableTable.findGlobalVariableSliceProfileByName(search_word);
@@ -465,8 +465,6 @@ srcSliceHandler::createArgumentSp(std::string func_name, ArgIndexAndMemberName p
                 } else {
                     // ここで再帰的に連鎖を繋いでいると思われる
                     for (auto &itCF: sp.cfunctions) {
-                        std::cout << "cfunc2: " << itCF.calledFunctionName << std::endl;
-
                         std::string newFunctionName = itCF.calledFunctionName;
                         auto newParameterIndex = itCF.argIndenx;
                         if (newFunctionName != func_name) {

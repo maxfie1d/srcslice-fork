@@ -116,3 +116,7 @@ inline std::vector<std::string> SplitOnTok(const std::string &str, const char *t
 std::string extractObjectName(std::string s);
 
 std::string extractMemberName(std::string s);
+
+std::string extractArrayName(std::string s);
+
+SliceProfile *varmapFind(std::string name, VarMap *p_varMap);
