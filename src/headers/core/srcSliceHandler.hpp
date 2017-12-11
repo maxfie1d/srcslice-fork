@@ -379,22 +379,21 @@ public:
                         if (isACallName) {
                             isACallName = false;
                             nameOfCurrentCalledFunctionStack.push(calledFunctionName);
-
                             // すべてのグローバル変数について
                             for (auto &gv: *this->sysDict->variableTable.getRawGlobalVariableTable()) {
                                 auto &gv_sp = gv.second;
                                 // その関数内でdef/useまたは両方をするものは
                                 // 関数呼び出し位置を追加する (See #32)
-                                auto func_data = this->sysDict->functionTable.findByName(calledFunctionName);
-                                if (func_data) {
-                                    std::string func_id = func_data->computeId();
+                                auto called_func_data = this->sysDict->functionTable.findByName(calledFunctionName);
+                                if (called_func_data) {
+                                    std::string called_func_id = called_func_data->computeId();
                                     ProgramPoint pp(lineNum, this->getFunctionId(lineNum));
                                     {
                                         for (auto &def : gv_sp.def) {
-                                            if (def.programPoint.functionId == func_id) {
+                                            if (def.programPoint.functionId == called_func_id) {
                                                 DefUseData dd;
                                                 dd.programPoint = pp;
-                                                dd.derived_from_func_id = func_id;
+                                                dd.derived_from_func_id = called_func_id;
                                                 dd.member_name = def.member_name;
                                                 gv_sp.def.insert(dd);
                                             }
@@ -402,10 +401,10 @@ public:
                                     }
                                     {
                                         for (auto &use: gv_sp.use) {
-                                            if (use.programPoint.functionId == func_id) {
+                                            if (use.programPoint.functionId == called_func_id) {
                                                 DefUseData dd;
                                                 dd.programPoint = pp;
-                                                dd.derived_from_func_id = func_id;
+                                                dd.derived_from_func_id = called_func_id;
                                                 dd.member_name = use.member_name;
                                                 gv_sp.use.insert(dd);
                                             }
@@ -736,7 +735,7 @@ public:
                     //I know that we're probably in a member call chain a->b->c etc. I don't care about b and c, so expr op helps skip those.
                     if (triggerFieldOr(expr_stmt, condition)) {
 
-                        useExprStmt.name.clear();
+//                        useExprStmt.name.clear();
 
                         if (expr_assign_flag) {
                             ProcessExprStmtPreAssign();
@@ -854,7 +853,7 @@ public:
                     }
                     if (triggerField[expr]
                         && triggerFieldOr(expr_stmt, condition, return_stmt)) {
-                        if (expr_assign_flag) {
+                        if (expr_assign_flag && triggerField[name] < 2) {
                             ProcessExprStmtPostAssign();
                             useExprStack.clear(); //found an assignment so throw everything off of the other stack TODO: Potential better way?
                             currentExprStmt.name.clear();
@@ -1155,15 +1154,8 @@ public:
                     lhsExprStmt.name = std::string(str);
                 } else {
                     lhsExprStmt.name.append(str);
-//                    if (triggerField[return_stmt]) {
-//                        auto strLine = NameAndLineNumber(lhsExprStmt.name, currentExprStmt.lineNumber);
-//                        std::cout << "PUSH BACK: " << strLine.to_string() << std::endl;
-//                        //catch expr_stmts like return temp + temp;
-//                        useExprStack.push_back(strLine);
-//                    }
+                    // useExprStack.push_back(strLine);
                 }
-//                this->_logger->debug(">> " + str);
-                //catch expr_stmts like cout<<identifier;
                 useExprStmt.name.append(str);
             }
         }

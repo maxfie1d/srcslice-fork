@@ -369,7 +369,7 @@ void srcSliceHandler::ProcessExprStmtPostAssign() {
                 // エイリアスなので、最も最近のエイリアスを右辺のエイリアスリストに追加して保存する
                 lhs->lastInsertedAlias = lhs->aliases.insert(sprIt->variableName).first;
             }
-            this->_logger->debug("use#4: {}", currentExprStmt.lineNumber);
+            this->_logger->debug("use#4: {}, {}", currentExprStmt.lineNumber, name);
             this->insertUse(sprIt, currentExprStmt.lineNumber, name);
             this->_logger->debug("sprIt: {}", sprIt->variableName);
 
@@ -495,7 +495,7 @@ srcSliceHandler::createArgumentSp(std::string func_name, ArgIndexAndMemberName p
 
 std::string srcSliceHandler::getFunctionId(unsigned int lineNumber) {
     if (this->fileName.empty() || this->functionTmplt.functionName.empty()) {
-        return "<__GLOBAL__>";
+        return "__GLOBAL__";
     } else {
         // idを作る
         // NOTE: 関数テーブルから関数を検索してという方法もあるが
