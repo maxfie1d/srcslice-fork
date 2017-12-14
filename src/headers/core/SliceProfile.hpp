@@ -198,6 +198,67 @@ struct CFuncData {
     bool operator<(const CFuncData &other) const;
 };
 
+/**
+ * if 文の範囲を表す構造体です
+ */
+struct ControlRange {
+    unsigned int startLine = 0;
+    unsigned int elseLine = 0;
+    unsigned int endLine = 0;
+
+    ControlRange() = default;
+
+    ControlRange(unsigned int startLine,
+                 unsigned int endLine) {
+        this->startLine = startLine;
+        this->endLine = endLine;
+    }
+
+    ControlRange(unsigned int startLine,
+                 unsigned int elseLine,
+                 unsigned int endLine) {
+        this->startLine = startLine;
+        this->elseLine = elseLine;
+        this->endLine = endLine;
+    }
+
+    std::string to_string() const {
+        if (this->elseLine == 0) {
+            return std::to_string(this->startLine) + ".." + std::to_string(this->endLine);
+        } else {
+            return std::to_string(this->startLine) + ".." + std::to_string(this->elseLine) + ".." +
+                   std::to_string(this->endLine);
+        }
+    }
+};
+
+/**
+ * 制御表のレコードを表すクラスです
+ */
+struct ControlData {
+    std::string id;
+    ControlRange controlRange;
+    std::set<std::string> vars;
+
+    ControlData(
+            std::string id,
+            ControlRange controlRange,
+            std::set<std::string> vars
+    ) {
+        this->id = id;
+        this->controlRange = controlRange;
+        this->vars = vars;
+    }
+
+    bool operator<(const ControlData &other) const {
+        return this->id < other.id;
+    }
+
+    bool operator==(const ControlData &other) const {
+        return this->id == other.id;
+    }
+};
+
 
 /**
  * 関数のデータを格納する構造体

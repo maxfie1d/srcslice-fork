@@ -153,6 +153,27 @@ std::string create_function_table(SliceDictionary dictionary) {
     return ss.str();
 }
 
+std::string create_control_table(SliceDictionary dictionary) {
+    std::stringstream ss;
+
+    // ヘッダを出力する
+    std::vector<std::string> header({"id", "control_range", "control_vars"});
+    ss << join('\t', header) << std::endl;
+
+    for (auto pair: dictionary.controlTable) {
+        auto &cd = pair.second;
+        std::vector<std::string> vec(
+                {
+                        cd.id,
+                        cd.controlRange.to_string(),
+                        join(',', std::vector<std::string>(cd.vars.begin(), cd.vars.end()))
+                });
+
+        ss << join('\t', vec) << std::endl;
+    }
+    return ss.str();
+}
+
 void srcSliceToCsv(const srcSlice &handler) {
     // 変数と関数の解析結果を両方出力するために
     // JSON形式で出力することにした
@@ -162,6 +183,7 @@ void srcSliceToCsv(const srcSlice &handler) {
     json j;
     j["vars"] = create_variable_table(handler.dictionary);
     j["funcs"] = create_function_table(handler.dictionary);
+    j["controls"] = create_control_table(handler.dictionary);
     std::cout << j.dump(4) << std::endl;
 }
 
