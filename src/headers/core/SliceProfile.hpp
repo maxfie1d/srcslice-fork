@@ -25,6 +25,7 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <set>
+#include <helpers/StringHelper.h>
 #include "types/srcSliceTypes.h"
 #include "types/ProgramPoint.hpp"
 
@@ -237,8 +238,27 @@ struct ControlRange {
  */
 struct ControlData {
     std::string id;
+
+//    std::string file_path;
+//    unsigned int startLineNumber;
+
     ControlRange controlRange;
     std::set<std::string> vars;
+
+    std::string computeId(std::string file_path, unsigned int startLineNumber) {
+        std::string source = "control:" + file_path + ":" + std::to_string(startLineNumber);
+        std::string hex_hash = computeSHA256Hash(source);
+        return hex_hash;
+    }
+
+    ControlData() = default;
+
+    ControlData(
+            std::string file_path,
+            unsigned int start_line_number
+    ) {
+        this->id = this->computeId(file_path, start_line_number);
+    }
 
     ControlData(
             std::string id,
@@ -256,6 +276,12 @@ struct ControlData {
 
     bool operator==(const ControlData &other) const {
         return this->id == other.id;
+    }
+
+    std::string to_string() const {
+        return this->id + " " +
+               this->controlRange.to_string() + " " +
+               join(',', std::vector<std::string>(this->vars.cbegin(), this->vars.cend()));
     }
 };
 

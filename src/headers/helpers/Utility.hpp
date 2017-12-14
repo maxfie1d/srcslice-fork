@@ -24,9 +24,11 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <picosha2.h>
 
 #include <core/SliceProfile.hpp>
 #include <tables/ControlTable.h>
+#include <sstream>
 #include "tables/FunctionTable.h"
 #include "tables/VariableTable.h"
 
@@ -72,12 +74,6 @@ struct SliceDictionary {
 
     std::vector<std::pair<unsigned int, unsigned int>> controledges;
     Context currentContext;
-
-    SliceDictionary() {
-        // ダミーで一個追加してみる
-        ControlData a("id", ControlRange(1, 5, 10), std::set<std::string>({"a", "b"}));
-        this->controlTable.add(a);
-    }
 };
 
 template<typename T>

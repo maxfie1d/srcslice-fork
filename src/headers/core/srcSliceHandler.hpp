@@ -177,6 +177,9 @@ private:
     NameAndLineNumber currentFunctionBody;
     NameAndLineNumber currentFunctionDecl;
 
+    // 制御構造を保持する
+    std::stack<ControlData> control_data_stack;
+
     /*function headers*/
     void GetCallData();
 
@@ -352,7 +355,17 @@ public:
 
                 {"if",               [this]() {
                     ++triggerField[ifcond];
+
+                    ControlData cd(fileName, lineNum);
+                    cd.controlRange.startLine = lineNum;
+
+                    // if に入る時なのでスタックに入れる
+                    control_data_stack.push(cd);
                     //controlFlowLineNum.push(lineNum);
+                }},
+
+                {"else",             [this]() {
+                    control_data_stack.top().controlRange.elseLine = lineNum;
                 }},
 
                 {"for",              [this]() {
@@ -600,6 +613,10 @@ public:
 
                 {"if",               [this]() {
                     --triggerField[ifcond];
+                    auto a = control_data_stack.top();
+                    control_data_stack.pop();
+                    a.controlRange.endLine = lineNum;
+                    sysDict->controlTable.add(a);
                 }},
 
                 {"for",              [this]() {

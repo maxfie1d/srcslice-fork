@@ -18,4 +18,6 @@ public:
     std::unordered_map<std::string, ControlData>::const_iterator begin() const;
 
     std::unordered_map<std::string, ControlData>::const_iterator end() const;
+
+    void dump() ;
 };

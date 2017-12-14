@@ -21,17 +21,7 @@
 #include <core/srcSliceHandler.hpp>
 #include <json.hpp>
 #include "helpers/functional.hpp"
-
-std::string join(const char delimiter, std::vector<std::string> source) {
-    std::stringstream ss;
-    for (size_t i = 0; i < source.size(); ++i) {
-        if (i != 0) {
-            ss << delimiter;
-        }
-        ss << source[i];
-    }
-    return ss.str();
-}
+#include "helpers/StringHelper.h"
 
 template<typename T, typename Mapper>
 std::vector<std::string> unordered_set_to_vector(std::unordered_set<T> source, Mapper mapper) {

@@ -15,3 +15,10 @@ std::unordered_map<std::string, ControlData>::const_iterator ControlTable::end()
 void ControlTable::add(ControlData controlData) {
     this->_table.insert(std::make_pair(controlData.id, controlData));
 }
+
+void ControlTable::dump() {
+    for(auto p: this->_table){
+        auto &cd = p.second;
+        std::cout << cd.to_string() << std::endl;
+    }
+}
