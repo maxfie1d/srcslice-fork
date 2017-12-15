@@ -238,10 +238,6 @@ struct ControlRange {
  */
 struct ControlData {
     std::string id;
-
-//    std::string file_path;
-//    unsigned int startLineNumber;
-
     ControlRange controlRange;
     std::set<std::string> vars;
 
@@ -282,6 +278,14 @@ struct ControlData {
         return this->id + " " +
                this->controlRange.to_string() + " " +
                join(',', std::vector<std::string>(this->vars.cbegin(), this->vars.cend()));
+    }
+
+    /**
+     * 条件式中で使用された変数のIDを追加する
+     * @param var_id
+     */
+    void add_var(std::string var_id) {
+        this->vars.insert(var_id);
     }
 };
 
