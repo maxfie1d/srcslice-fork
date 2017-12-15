@@ -231,6 +231,12 @@ struct ControlRange {
                    std::to_string(this->endLine);
         }
     }
+
+    bool operator==(const ControlRange &other) const {
+        return this->startLine == other.startLine
+                && this->elseLine == other.elseLine
+                && this->endLine == other.endLine;
+    }
 };
 
 /**
