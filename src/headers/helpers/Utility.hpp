@@ -24,8 +24,11 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <picosha2.h>
 
 #include <core/SliceProfile.hpp>
+#include <tables/ControlTable.h>
+#include <sstream>
 #include "tables/FunctionTable.h"
 #include "tables/VariableTable.h"
 
@@ -55,13 +58,22 @@ struct SliceDictionary {
     std::unordered_map<std::string, ClassProfile> classTable;
 
     /**
+     * 変数テーブル
+     */
+    VariableTable variableTable;
+
+    /**
      * 関数テーブル
      */
     FunctionTable functionTable;
 
+    /**
+     * 制御テーブル
+     */
+    ControlTable controlTable;
+
     std::vector<std::pair<unsigned int, unsigned int>> controledges;
     Context currentContext;
-    VariableTable variableTable;
 };
 
 template<typename T>

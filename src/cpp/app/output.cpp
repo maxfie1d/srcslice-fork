@@ -21,17 +21,7 @@
 #include <core/srcSliceHandler.hpp>
 #include <json.hpp>
 #include "helpers/functional.hpp"
-
-std::string join(const char delimiter, std::vector<std::string> source) {
-    std::stringstream ss;
-    for (size_t i = 0; i < source.size(); ++i) {
-        if (i != 0) {
-            ss << delimiter;
-        }
-        ss << source[i];
-    }
-    return ss.str();
-}
+#include "helpers/StringHelper.h"
 
 template<typename T, typename Mapper>
 std::vector<std::string> unordered_set_to_vector(std::unordered_set<T> source, Mapper mapper) {
@@ -153,6 +143,27 @@ std::string create_function_table(SliceDictionary dictionary) {
     return ss.str();
 }
 
+std::string create_control_table(SliceDictionary dictionary) {
+    std::stringstream ss;
+
+    // ヘッダを出力する
+    std::vector<std::string> header({"id", "control_range", "control_vars"});
+    ss << join('\t', header) << std::endl;
+
+    for (auto pair: dictionary.controlTable) {
+        auto &cd = pair.second;
+        std::vector<std::string> vec(
+                {
+                        cd.id,
+                        cd.controlRange.to_string(),
+                        join(',', std::vector<std::string>(cd.vars.begin(), cd.vars.end()))
+                });
+
+        ss << join('\t', vec) << std::endl;
+    }
+    return ss.str();
+}
+
 void srcSliceToCsv(const srcSlice &handler) {
     // 変数と関数の解析結果を両方出力するために
     // JSON形式で出力することにした
@@ -162,6 +173,7 @@ void srcSliceToCsv(const srcSlice &handler) {
     json j;
     j["vars"] = create_variable_table(handler.dictionary);
     j["funcs"] = create_function_table(handler.dictionary);
+    j["controls"] = create_control_table(handler.dictionary);
     std::cout << j.dump(4) << std::endl;
 }
 

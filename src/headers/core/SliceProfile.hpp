@@ -25,6 +25,7 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <set>
+#include <helpers/StringHelper.h>
 #include "types/srcSliceTypes.h"
 #include "types/ProgramPoint.hpp"
 
@@ -196,6 +197,102 @@ struct CFuncData {
     std::string to_string() const;
 
     bool operator<(const CFuncData &other) const;
+};
+
+/**
+ * if 文の範囲を表す構造体です
+ */
+struct ControlRange {
+    unsigned int startLine = 0;
+    unsigned int elseLine = 0;
+    unsigned int endLine = 0;
+
+    ControlRange() = default;
+
+    ControlRange(unsigned int startLine,
+                 unsigned int endLine) {
+        this->startLine = startLine;
+        this->endLine = endLine;
+    }
+
+    ControlRange(unsigned int startLine,
+                 unsigned int elseLine,
+                 unsigned int endLine) {
+        this->startLine = startLine;
+        this->elseLine = elseLine;
+        this->endLine = endLine;
+    }
+
+    std::string to_string() const {
+        if (this->elseLine == 0) {
+            return std::to_string(this->startLine) + ".." + std::to_string(this->endLine);
+        } else {
+            return std::to_string(this->startLine) + ".." + std::to_string(this->elseLine) + ".." +
+                   std::to_string(this->endLine);
+        }
+    }
+
+    bool operator==(const ControlRange &other) const {
+        return this->startLine == other.startLine
+                && this->elseLine == other.elseLine
+                && this->endLine == other.endLine;
+    }
+};
+
+/**
+ * 制御表のレコードを表すクラスです
+ */
+struct ControlData {
+    std::string id;
+    ControlRange controlRange;
+    std::set<std::string> vars;
+
+    std::string computeId(std::string file_path, unsigned int startLineNumber) {
+        std::string source = "control:" + file_path + ":" + std::to_string(startLineNumber);
+        std::string hex_hash = computeSHA256Hash(source);
+        return hex_hash;
+    }
+
+    ControlData() = default;
+
+    ControlData(
+            std::string file_path,
+            unsigned int start_line_number
+    ) {
+        this->id = this->computeId(file_path, start_line_number);
+    }
+
+    ControlData(
+            std::string id,
+            ControlRange controlRange,
+            std::set<std::string> vars
+    ) {
+        this->id = id;
+        this->controlRange = controlRange;
+        this->vars = vars;
+    }
+
+    bool operator<(const ControlData &other) const {
+        return this->id < other.id;
+    }
+
+    bool operator==(const ControlData &other) const {
+        return this->id == other.id;
+    }
+
+    std::string to_string() const {
+        return this->id + " " +
+               this->controlRange.to_string() + " " +
+               join(',', std::vector<std::string>(this->vars.cbegin(), this->vars.cend()));
+    }
+
+    /**
+     * 条件式中で使用された変数のIDを追加する
+     * @param var_id
+     */
+    void add_var(std::string var_id) {
+        this->vars.insert(var_id);
+    }
 };
 
 
