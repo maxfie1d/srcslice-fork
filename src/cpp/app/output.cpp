@@ -147,7 +147,7 @@ std::string create_control_table(SliceDictionary dictionary) {
     std::stringstream ss;
 
     // ヘッダを出力する
-    std::vector<std::string> header({"id", "control_range", "control_vars"});
+    std::vector<std::string> header({"id", "file", "control_range", "control_vars"});
     ss << join('\t', header) << std::endl;
 
     for (auto pair: dictionary.controlTable) {
@@ -155,6 +155,7 @@ std::string create_control_table(SliceDictionary dictionary) {
         std::vector<std::string> vec(
                 {
                         cd.id,
+                        cd.file_path,
                         cd.controlRange.to_string(),
                         join(',', std::vector<std::string>(cd.vars.begin(), cd.vars.end()))
                 });
