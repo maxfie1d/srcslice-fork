@@ -407,7 +407,9 @@ void srcSliceHandler::ProcessExprStmtNoAssign() {
             // use{} に追加
             this->_logger->debug("use#6: {}, {}", pair.lineNumber, pair.name);
             this->insertUse(useProfile, pair.lineNumber, pair.name);
-            this->control_data_stack.top().add_var(useProfile->computeVariableId());
+            if (!this->control_data_stack.empty()) {
+                this->control_data_stack.top().add_var(useProfile->computeVariableId());
+            }
         }
     }
 }
