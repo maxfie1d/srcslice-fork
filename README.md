@@ -1,50 +1,47 @@
 ## SRCSLICE FORK
 
-[srcSlice](https://github.com/srcML/srcSlice) のフォークプロジェクトです。
+This repo is forked from [srcSlice](https://github.com/srcML/srcSlice).
 
-## ビルド方法
+## Build
 
 ```bash
-# 事前に依存ライブラリをインストール
+# Install dependencies
+# See BUILD.md
 
-# リポジトリをクローン
-# --recursive オプションをお忘れなく
+# Hey don't forget --recursive option
 $ git clone --recursive <repo>
 $ cd <repo>
 
-# リリースビルドの場合
-# build-release/bin に生成物ができます
+# Release build
 $ sh build-release.sh
 
-# デバッグビルドの場合
-# build-debug/bin に生成物ができます
+# Debug build
 $ sh build-debug.sh
 ```
 
-### make レシピ
+### `make` recipes
 
-レシピ | 説明
+Recipe | Description
 ------- | -------
-srcSlice | srcslice のバイナリを生成
-srcslicetest | srcslice のテストのバイナリを生成
-(ex_srcslicetest) | srcslice の一部のテストを使いたい時に使いました
+srcSlice | Generate srcslice binary
+srcslicetest | Generate srcslice's test binary
+(ex_srcslicetest) | Used to partial test
 
-## 使用方法
+## Usage
 
 ```bash
-# 事前にソースコードを srcML を用いて変換しておきます
-# 標準出力にスライス結果が出ます
-$ srcSlice <ソースコードをsrcMLで変換したもの(.xml)>
+# Convert your source code using srcML first
+# (Result would be sent as standard output)
+$ srcSlice <source code covnerted by srcML>
 ```
 
-## 出力フォーマット
-
-変数表と関数表を表すタブ区切りの文字列をまとめて JSON 形式で出力します。
+## Output format
 
 ```json
 {
-    "vars": "<変数表>",
-    "funcs": "<関数表>"
+    "vars": "<Variable table (tab-delimited)>",
+    "funcs": "<Function table (tab-delimited)>",
+    "controls": "<Control table (tab-delimited)>"
 }
 ```
 
@@ -74,3 +71,9 @@ declare_range | 関数が宣言されている範囲
 ## License
 
 GPL (GNU General Public License)
+
+
+## Resoruces
+
+This project is made for my graduation thesis.
+[See details](http://sel.ist.osaka-u.ac.jp/lab-db/Bthesis/index.html)
