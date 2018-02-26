@@ -244,6 +244,7 @@ struct ControlRange {
  */
 struct ControlData {
     std::string id;
+    std::string file_path;
     ControlRange controlRange;
     std::set<std::string> vars;
 
@@ -260,6 +261,7 @@ struct ControlData {
             unsigned int start_line_number
     ) {
         this->id = this->computeId(file_path, start_line_number);
+        this->file_path = file_path;
     }
 
     ControlData(
