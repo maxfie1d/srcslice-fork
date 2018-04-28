@@ -25,7 +25,7 @@ Recipe | Description
 ------- | -------
 srcSlice | Generate srcslice binary
 srcslicetest | Generate srcslice's test binary
-(ex_srcslicetest) | Used to partial test
+(ex_srcslicetest) | Used for partial test
 
 ## Usage
 
@@ -68,6 +68,16 @@ kind | 関数の種類(`user-defined` のみ)
 file_path | 関数が宣言されたソースファイルのパス
 declare_range | 関数が宣言されている範囲
 
+### 制御表のフォーマット
+
+カラム名 | 説明
+------- | -------
+id | If ブロックに一意に割り当てられる ID
+file | If ブロックのあるソースファイルのパス
+control_range | if ブロックの範囲。行番号で表される。
+control_vars | If 条件式の中で使用される変数の ID の集合
+
+
 ## License
 
 GPL (GNU General Public License)
@@ -76,4 +86,4 @@ GPL (GNU General Public License)
 ## Resoruces
 
 This project is made for my graduation thesis.
-[See details](http://sel.ist.osaka-u.ac.jp/lab-db/Bthesis/index.html)
+[See details](http://sel.ist.osaka-u.ac.jp/lab-db/Bthesis/contents.en/160.html)
